@@ -1,0 +1,30 @@
+{
+  "name": "Skippables",
+  "version": "1.0.0",
+  "summary": "Your most efficient advertising campaign",
+  "description": "Create the most engaging invite to your brand or Upload your own compelling video ad.",
+  "homepage": "https://www.skippables.com/",
+  "license": {
+    "type": "Copyright",
+    "text": "Copyright 2018 Mobiblocks. All rights reserved."
+  },
+  "authors": {
+    "dr-mobiblocks": "daniel.rusu@mobiblocks.com"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "source": {
+    "http": "http://10.0.0.50/sdk/ios/SKIPPABLES.1.0.0.zip"
+  },
+  "source_files": "SKIPPABLES.framework/Headers/*.{h}",
+  "preserve_paths": "SKIPPABLES.framework/*",
+  "vendored_frameworks": "SKIPPABLES.framework",
+  "frameworks": [
+    "CoreGraphics",
+    "AdSupport",
+    "CoreTelephony",
+    "SystemConfiguration",
+    "AVKit"
+  ]
+}

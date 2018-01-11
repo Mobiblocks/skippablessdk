@@ -1,0 +1,1 @@
+../../../../../../SKIPPABLES.framework/Headers/SKIAdBannerView.h
