@@ -1,0 +1,989 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 48;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		65B9AFFD1FB461A20093650A /* SKIVASTAd.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AAE1F8E176900245DFF /* SKIVASTAd.m */; };
+		65B9AFFE1FB461A20093650A /* SKIVASTAdDefinitionBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AB01F8E176900245DFF /* SKIVASTAdDefinitionBase.m */; };
+		65B9AFFF1FB461A20093650A /* SKIVASTAdParameters.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AB21F8E176900245DFF /* SKIVASTAdParameters.m */; };
+		65B9B0001FB461A20093650A /* SKIVASTAdSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AB41F8E176900245DFF /* SKIVASTAdSystem.m */; };
+		65B9B0011FB461A20093650A /* SKIVASTAdVerificationsInline.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AB61F8E176900245DFF /* SKIVASTAdVerificationsInline.m */; };
+		65B9B0021FB461A20093650A /* SKIVASTAdVerificationsWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AB81F8E176900245DFF /* SKIVASTAdVerificationsWrapper.m */; };
+		65B9B0031FB461A20093650A /* SKIVASTCategory.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ABA1F8E176900245DFF /* SKIVASTCategory.m */; };
+		65B9B0041FB461A20093650A /* SKIVASTClickThrough.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ABC1F8E176900245DFF /* SKIVASTClickThrough.m */; };
+		65B9B0051FB461A20093650A /* SKIVASTClickTracking.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ABE1F8E176900245DFF /* SKIVASTClickTracking.m */; };
+		65B9B0061FB461A20093650A /* SKIVASTCompanionAd.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AC01F8E176900245DFF /* SKIVASTCompanionAd.m */; };
+		65B9B0071FB461A20093650A /* SKIVASTCompanionAdsCollection.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AC21F8E176900245DFF /* SKIVASTCompanionAdsCollection.m */; };
+		65B9B0081FB461A20093650A /* SKIVASTCompanionClickTracking.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AC41F8E176900245DFF /* SKIVASTCompanionClickTracking.m */; };
+		65B9B0091FB461A20093650A /* SKIVASTCreativeBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AC61F8E176900245DFF /* SKIVASTCreativeBase.m */; };
+		65B9B00A1FB461A20093650A /* SKIVASTCreativeExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AC81F8E176900245DFF /* SKIVASTCreativeExtension.m */; };
+		65B9B00B1FB461A20093650A /* SKIVASTCreativeExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ACA1F8E176900245DFF /* SKIVASTCreativeExtensions.m */; };
+		65B9B00C1FB461A20093650A /* SKIVASTCreativeInlineChild.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ACC1F8E176900245DFF /* SKIVASTCreativeInlineChild.m */; };
+		65B9B00D1FB461A20093650A /* SKIVASTCreativeResourceNonVideo.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ACE1F8E176900245DFF /* SKIVASTCreativeResourceNonVideo.m */; };
+		65B9B00E1FB461A20093650A /* SKIVASTCreatives.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AD01F8E176900245DFF /* SKIVASTCreatives.m */; };
+		65B9B00F1FB461A20093650A /* SKIVASTCreativeWrapperChild.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AD21F8E176900245DFF /* SKIVASTCreativeWrapperChild.m */; };
+		65B9B0101FB461A20093650A /* SKIVASTCustomClick.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AD41F8E176900245DFF /* SKIVASTCustomClick.m */; };
+		65B9B0111FB461A20093650A /* SKIVASTExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AD61F8E176900245DFF /* SKIVASTExtension.m */; };
+		65B9B0121FB461A20093650A /* SKIVASTExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AD81F8E176900245DFF /* SKIVASTExtensions.m */; };
+		65B9B0131FB461A20093650A /* SKIVASTFlashResource.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ADA1F8E176900245DFF /* SKIVASTFlashResource.m */; };
+		65B9B0141FB461A20093650A /* SKIVASTHTMLResource.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ADC1F8E176900245DFF /* SKIVASTHTMLResource.m */; };
+		65B9B0151FB461A20093650A /* SKIVASTIcon.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ADE1F8E176900245DFF /* SKIVASTIcon.m */; };
+		65B9B0161FB461A20093650A /* SKIVASTIconClicks.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AE01F8E176900245DFF /* SKIVASTIconClicks.m */; };
+		65B9B0171FB461A20093650A /* SKIVASTIcons.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AE21F8E176900245DFF /* SKIVASTIcons.m */; };
+		65B9B0181FB461A20093650A /* SKIVASTIconTrackingUri.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AE41F8E176900245DFF /* SKIVASTIconTrackingUri.m */; };
+		65B9B0191FB461A20093650A /* SKIVASTImpression.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AE61F8E176900245DFF /* SKIVASTImpression.m */; };
+		65B9B01A1FB461A20093650A /* SKIVASTInline.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AE81F8E176900245DFF /* SKIVASTInline.m */; };
+		65B9B01B1FB461A20093650A /* SKIVASTInteractiveCreativeFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AEA1F8E176900245DFF /* SKIVASTInteractiveCreativeFile.m */; };
+		65B9B01C1FB461A20093650A /* SKIVASTJavaScriptResource.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AEC1F8E176900245DFF /* SKIVASTJavaScriptResource.m */; };
+		65B9B01D1FB461A20093650A /* SKIVASTLinearBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AEE1F8E176900245DFF /* SKIVASTLinearBase.m */; };
+		65B9B01E1FB461A20093650A /* SKIVASTLinearInlineChild.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AF01F8E176900245DFF /* SKIVASTLinearInlineChild.m */; };
+		65B9B01F1FB461A20093650A /* SKIVASTLinearWrapperChild.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AF21F8E176900245DFF /* SKIVASTLinearWrapperChild.m */; };
+		65B9B0201FB461A20093650A /* SKIVASTMediaFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AF41F8E176900245DFF /* SKIVASTMediaFile.m */; };
+		65B9B0211FB461A20093650A /* SKIVASTMediaFiles.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AF61F8E176900245DFF /* SKIVASTMediaFiles.m */; };
+		65B9B0221FB461A20093650A /* SKIVASTNonLinearAdBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AF81F8E176900245DFF /* SKIVASTNonLinearAdBase.m */; };
+		65B9B0231FB461A20093650A /* SKIVASTNonLinearAdInlineChild.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AFA1F8E176900245DFF /* SKIVASTNonLinearAdInlineChild.m */; };
+		65B9B0241FB461A20093650A /* SKIVASTNonLinearAds.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AFC1F8E176900245DFF /* SKIVASTNonLinearAds.m */; };
+		65B9B0251FB461A20093650A /* SKIVASTNonLinearClickTracking.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AFE1F8E176900245DFF /* SKIVASTNonLinearClickTracking.m */; };
+		65B9B0261FB461A20093650A /* SKIVASTPricing.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B001F8E176900245DFF /* SKIVASTPricing.m */; };
+		65B9B0271FB461A20093650A /* SKIVASTStaticResource.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B021F8E176900245DFF /* SKIVASTStaticResource.m */; };
+		65B9B0281FB461A20093650A /* SKIVASTSurvey.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B041F8E176900245DFF /* SKIVASTSurvey.m */; };
+		65B9B0291FB461A20093650A /* SKIVASTTracking.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B061F8E176900245DFF /* SKIVASTTracking.m */; };
+		65B9B02A1FB461A20093650A /* SKIVASTTrackingEvents.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B081F8E176900245DFF /* SKIVASTTrackingEvents.m */; };
+		65B9B02B1FB461A20093650A /* SKIVASTUniversalAdId.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B0A1F8E176900245DFF /* SKIVASTUniversalAdId.m */; };
+		65B9B02C1FB461A20093650A /* SKIVASTVAST+File.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B0C1F8E176900245DFF /* SKIVASTVAST+File.m */; };
+		65B9B02D1FB461A20093650A /* SKIVASTVAST.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B0E1F8E176900245DFF /* SKIVASTVAST.m */; };
+		65B9B02E1FB461A20093650A /* SKIVASTVerificationInline.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B101F8E176900245DFF /* SKIVASTVerificationInline.m */; };
+		65B9B02F1FB461A20093650A /* SKIVASTVerificationWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B121F8E176900245DFF /* SKIVASTVerificationWrapper.m */; };
+		65B9B0301FB461A20093650A /* SKIVASTVideoClicksBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B141F8E176900245DFF /* SKIVASTVideoClicksBase.m */; };
+		65B9B0311FB461A30093650A /* SKIVASTVideoClicksInlineChild.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B161F8E176900245DFF /* SKIVASTVideoClicksInlineChild.m */; };
+		65B9B0321FB461A30093650A /* SKIVASTViewableImpression.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B181F8E176900245DFF /* SKIVASTViewableImpression.m */; };
+		65B9B0331FB461A30093650A /* SKIVASTWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B1A1F8E176900245DFF /* SKIVASTWrapper.m */; };
+		65B9B0341FB461A30093650A /* SKIVASTWrapper+Vast.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36BA71F90C97E00245DFF /* SKIVASTWrapper+Vast.m */; };
+		65E36AA61F8E170600245DFF /* SKIVAST.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AA41F8E170600245DFF /* SKIVAST.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B1B1F8E179700245DFF /* SKIVASTAd.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AAE1F8E176900245DFF /* SKIVASTAd.m */; };
+		65E36B1C1F8E179700245DFF /* SKIVASTAdDefinitionBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AB01F8E176900245DFF /* SKIVASTAdDefinitionBase.m */; };
+		65E36B1D1F8E179700245DFF /* SKIVASTAdParameters.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AB21F8E176900245DFF /* SKIVASTAdParameters.m */; };
+		65E36B1E1F8E179700245DFF /* SKIVASTAdSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AB41F8E176900245DFF /* SKIVASTAdSystem.m */; };
+		65E36B1F1F8E179700245DFF /* SKIVASTAdVerificationsInline.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AB61F8E176900245DFF /* SKIVASTAdVerificationsInline.m */; };
+		65E36B201F8E179700245DFF /* SKIVASTAdVerificationsWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AB81F8E176900245DFF /* SKIVASTAdVerificationsWrapper.m */; };
+		65E36B211F8E179700245DFF /* SKIVASTCategory.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ABA1F8E176900245DFF /* SKIVASTCategory.m */; };
+		65E36B221F8E179700245DFF /* SKIVASTClickThrough.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ABC1F8E176900245DFF /* SKIVASTClickThrough.m */; };
+		65E36B231F8E179700245DFF /* SKIVASTClickTracking.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ABE1F8E176900245DFF /* SKIVASTClickTracking.m */; };
+		65E36B241F8E179700245DFF /* SKIVASTCompanionAd.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AC01F8E176900245DFF /* SKIVASTCompanionAd.m */; };
+		65E36B251F8E179700245DFF /* SKIVASTCompanionAdsCollection.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AC21F8E176900245DFF /* SKIVASTCompanionAdsCollection.m */; };
+		65E36B261F8E179700245DFF /* SKIVASTCompanionClickTracking.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AC41F8E176900245DFF /* SKIVASTCompanionClickTracking.m */; };
+		65E36B271F8E179700245DFF /* SKIVASTCreativeBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AC61F8E176900245DFF /* SKIVASTCreativeBase.m */; };
+		65E36B281F8E179700245DFF /* SKIVASTCreativeExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AC81F8E176900245DFF /* SKIVASTCreativeExtension.m */; };
+		65E36B291F8E179700245DFF /* SKIVASTCreativeExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ACA1F8E176900245DFF /* SKIVASTCreativeExtensions.m */; };
+		65E36B2A1F8E179700245DFF /* SKIVASTCreativeInlineChild.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ACC1F8E176900245DFF /* SKIVASTCreativeInlineChild.m */; };
+		65E36B2B1F8E179700245DFF /* SKIVASTCreativeResourceNonVideo.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ACE1F8E176900245DFF /* SKIVASTCreativeResourceNonVideo.m */; };
+		65E36B2C1F8E179700245DFF /* SKIVASTCreatives.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AD01F8E176900245DFF /* SKIVASTCreatives.m */; };
+		65E36B2D1F8E179700245DFF /* SKIVASTCreativeWrapperChild.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AD21F8E176900245DFF /* SKIVASTCreativeWrapperChild.m */; };
+		65E36B2E1F8E179700245DFF /* SKIVASTCustomClick.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AD41F8E176900245DFF /* SKIVASTCustomClick.m */; };
+		65E36B2F1F8E179700245DFF /* SKIVASTExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AD61F8E176900245DFF /* SKIVASTExtension.m */; };
+		65E36B301F8E179700245DFF /* SKIVASTExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AD81F8E176900245DFF /* SKIVASTExtensions.m */; };
+		65E36B311F8E179700245DFF /* SKIVASTFlashResource.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ADA1F8E176900245DFF /* SKIVASTFlashResource.m */; };
+		65E36B321F8E179700245DFF /* SKIVASTHTMLResource.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ADC1F8E176900245DFF /* SKIVASTHTMLResource.m */; };
+		65E36B331F8E179700245DFF /* SKIVASTIcon.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36ADE1F8E176900245DFF /* SKIVASTIcon.m */; };
+		65E36B341F8E179700245DFF /* SKIVASTIconClicks.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AE01F8E176900245DFF /* SKIVASTIconClicks.m */; };
+		65E36B351F8E179700245DFF /* SKIVASTIcons.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AE21F8E176900245DFF /* SKIVASTIcons.m */; };
+		65E36B361F8E179700245DFF /* SKIVASTIconTrackingUri.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AE41F8E176900245DFF /* SKIVASTIconTrackingUri.m */; };
+		65E36B371F8E179700245DFF /* SKIVASTImpression.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AE61F8E176900245DFF /* SKIVASTImpression.m */; };
+		65E36B381F8E179700245DFF /* SKIVASTInline.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AE81F8E176900245DFF /* SKIVASTInline.m */; };
+		65E36B391F8E179700245DFF /* SKIVASTInteractiveCreativeFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AEA1F8E176900245DFF /* SKIVASTInteractiveCreativeFile.m */; };
+		65E36B3A1F8E179700245DFF /* SKIVASTJavaScriptResource.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AEC1F8E176900245DFF /* SKIVASTJavaScriptResource.m */; };
+		65E36B3B1F8E179700245DFF /* SKIVASTLinearBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AEE1F8E176900245DFF /* SKIVASTLinearBase.m */; };
+		65E36B3C1F8E179800245DFF /* SKIVASTLinearInlineChild.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AF01F8E176900245DFF /* SKIVASTLinearInlineChild.m */; };
+		65E36B3D1F8E179800245DFF /* SKIVASTLinearWrapperChild.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AF21F8E176900245DFF /* SKIVASTLinearWrapperChild.m */; };
+		65E36B3E1F8E179800245DFF /* SKIVASTMediaFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AF41F8E176900245DFF /* SKIVASTMediaFile.m */; };
+		65E36B3F1F8E179800245DFF /* SKIVASTMediaFiles.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AF61F8E176900245DFF /* SKIVASTMediaFiles.m */; };
+		65E36B401F8E179800245DFF /* SKIVASTNonLinearAdBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AF81F8E176900245DFF /* SKIVASTNonLinearAdBase.m */; };
+		65E36B411F8E179800245DFF /* SKIVASTNonLinearAdInlineChild.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AFA1F8E176900245DFF /* SKIVASTNonLinearAdInlineChild.m */; };
+		65E36B421F8E179800245DFF /* SKIVASTNonLinearAds.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AFC1F8E176900245DFF /* SKIVASTNonLinearAds.m */; };
+		65E36B431F8E179800245DFF /* SKIVASTNonLinearClickTracking.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36AFE1F8E176900245DFF /* SKIVASTNonLinearClickTracking.m */; };
+		65E36B441F8E179800245DFF /* SKIVASTPricing.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B001F8E176900245DFF /* SKIVASTPricing.m */; };
+		65E36B451F8E179800245DFF /* SKIVASTStaticResource.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B021F8E176900245DFF /* SKIVASTStaticResource.m */; };
+		65E36B461F8E179800245DFF /* SKIVASTSurvey.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B041F8E176900245DFF /* SKIVASTSurvey.m */; };
+		65E36B471F8E179800245DFF /* SKIVASTTracking.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B061F8E176900245DFF /* SKIVASTTracking.m */; };
+		65E36B481F8E179800245DFF /* SKIVASTTrackingEvents.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B081F8E176900245DFF /* SKIVASTTrackingEvents.m */; };
+		65E36B491F8E179800245DFF /* SKIVASTUniversalAdId.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B0A1F8E176900245DFF /* SKIVASTUniversalAdId.m */; };
+		65E36B4A1F8E179800245DFF /* SKIVASTVAST+File.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B0C1F8E176900245DFF /* SKIVASTVAST+File.m */; };
+		65E36B4B1F8E179800245DFF /* SKIVASTVAST.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B0E1F8E176900245DFF /* SKIVASTVAST.m */; };
+		65E36B4C1F8E179800245DFF /* SKIVASTVerificationInline.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B101F8E176900245DFF /* SKIVASTVerificationInline.m */; };
+		65E36B4D1F8E179800245DFF /* SKIVASTVerificationWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B121F8E176900245DFF /* SKIVASTVerificationWrapper.m */; };
+		65E36B4E1F8E179800245DFF /* SKIVASTVideoClicksBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B141F8E176900245DFF /* SKIVASTVideoClicksBase.m */; };
+		65E36B4F1F8E179800245DFF /* SKIVASTVideoClicksInlineChild.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B161F8E176900245DFF /* SKIVASTVideoClicksInlineChild.m */; };
+		65E36B501F8E179800245DFF /* SKIVASTViewableImpression.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B181F8E176900245DFF /* SKIVASTViewableImpression.m */; };
+		65E36B511F8E179800245DFF /* SKIVASTWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B1A1F8E176900245DFF /* SKIVASTWrapper.m */; };
+		65E36B521F8E17A600245DFF /* SKIVASTAd.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AAD1F8E176900245DFF /* SKIVASTAd.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B531F8E17A600245DFF /* SKIVASTAdDefinitionBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AAF1F8E176900245DFF /* SKIVASTAdDefinitionBase.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B541F8E17A600245DFF /* SKIVASTAdParameters.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AB11F8E176900245DFF /* SKIVASTAdParameters.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B551F8E17A600245DFF /* SKIVASTAdSystem.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AB31F8E176900245DFF /* SKIVASTAdSystem.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B561F8E17A600245DFF /* SKIVASTAdVerificationsInline.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AB51F8E176900245DFF /* SKIVASTAdVerificationsInline.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B571F8E17A600245DFF /* SKIVASTAdVerificationsWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AB71F8E176900245DFF /* SKIVASTAdVerificationsWrapper.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B581F8E17A600245DFF /* SKIVASTCategory.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AB91F8E176900245DFF /* SKIVASTCategory.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B591F8E17A600245DFF /* SKIVASTClickThrough.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36ABB1F8E176900245DFF /* SKIVASTClickThrough.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B5A1F8E17A600245DFF /* SKIVASTClickTracking.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36ABD1F8E176900245DFF /* SKIVASTClickTracking.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B5B1F8E17A600245DFF /* SKIVASTCompanionAd.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36ABF1F8E176900245DFF /* SKIVASTCompanionAd.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B5C1F8E17A600245DFF /* SKIVASTCompanionAdsCollection.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AC11F8E176900245DFF /* SKIVASTCompanionAdsCollection.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B5D1F8E17A600245DFF /* SKIVASTCompanionClickTracking.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AC31F8E176900245DFF /* SKIVASTCompanionClickTracking.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B5E1F8E17A600245DFF /* SKIVASTCreativeBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AC51F8E176900245DFF /* SKIVASTCreativeBase.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B5F1F8E17A600245DFF /* SKIVASTCreativeExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AC71F8E176900245DFF /* SKIVASTCreativeExtension.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B601F8E17A600245DFF /* SKIVASTCreativeExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AC91F8E176900245DFF /* SKIVASTCreativeExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B611F8E17A600245DFF /* SKIVASTCreativeInlineChild.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36ACB1F8E176900245DFF /* SKIVASTCreativeInlineChild.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B621F8E17A600245DFF /* SKIVASTCreativeResourceNonVideo.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36ACD1F8E176900245DFF /* SKIVASTCreativeResourceNonVideo.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B631F8E17A600245DFF /* SKIVASTCreatives.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36ACF1F8E176900245DFF /* SKIVASTCreatives.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B641F8E17A600245DFF /* SKIVASTCreativeWrapperChild.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AD11F8E176900245DFF /* SKIVASTCreativeWrapperChild.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B651F8E17A600245DFF /* SKIVASTCustomClick.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AD31F8E176900245DFF /* SKIVASTCustomClick.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B661F8E17A600245DFF /* SKIVASTExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AD51F8E176900245DFF /* SKIVASTExtension.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B671F8E17A600245DFF /* SKIVASTExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AD71F8E176900245DFF /* SKIVASTExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B681F8E17A600245DFF /* SKIVASTFlashResource.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AD91F8E176900245DFF /* SKIVASTFlashResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B691F8E17A600245DFF /* SKIVASTHTMLResource.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36ADB1F8E176900245DFF /* SKIVASTHTMLResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B6A1F8E17A600245DFF /* SKIVASTIcon.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36ADD1F8E176900245DFF /* SKIVASTIcon.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B6B1F8E17A600245DFF /* SKIVASTIconClicks.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36ADF1F8E176900245DFF /* SKIVASTIconClicks.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B6C1F8E17A600245DFF /* SKIVASTIcons.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AE11F8E176900245DFF /* SKIVASTIcons.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B6D1F8E17A600245DFF /* SKIVASTIconTrackingUri.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AE31F8E176900245DFF /* SKIVASTIconTrackingUri.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B6E1F8E17A600245DFF /* SKIVASTImpression.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AE51F8E176900245DFF /* SKIVASTImpression.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B6F1F8E17A600245DFF /* SKIVASTInline.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AE71F8E176900245DFF /* SKIVASTInline.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B701F8E17A600245DFF /* SKIVASTInteractiveCreativeFile.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AE91F8E176900245DFF /* SKIVASTInteractiveCreativeFile.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B711F8E17A600245DFF /* SKIVASTJavaScriptResource.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AEB1F8E176900245DFF /* SKIVASTJavaScriptResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B721F8E17A600245DFF /* SKIVASTLinearBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AED1F8E176900245DFF /* SKIVASTLinearBase.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B731F8E17A600245DFF /* SKIVASTLinearInlineChild.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AEF1F8E176900245DFF /* SKIVASTLinearInlineChild.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B741F8E17A600245DFF /* SKIVASTLinearWrapperChild.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AF11F8E176900245DFF /* SKIVASTLinearWrapperChild.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B751F8E17A600245DFF /* SKIVASTMediaFile.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AF31F8E176900245DFF /* SKIVASTMediaFile.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B761F8E17A600245DFF /* SKIVASTMediaFiles.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AF51F8E176900245DFF /* SKIVASTMediaFiles.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B771F8E17A600245DFF /* SKIVASTNonLinearAdBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AF71F8E176900245DFF /* SKIVASTNonLinearAdBase.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B781F8E17A600245DFF /* SKIVASTNonLinearAdInlineChild.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AF91F8E176900245DFF /* SKIVASTNonLinearAdInlineChild.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B791F8E17A600245DFF /* SKIVASTNonLinearAds.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AFB1F8E176900245DFF /* SKIVASTNonLinearAds.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B7A1F8E17A600245DFF /* SKIVASTNonLinearClickTracking.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AFD1F8E176900245DFF /* SKIVASTNonLinearClickTracking.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B7B1F8E17A600245DFF /* SKIVASTPricing.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36AFF1F8E176900245DFF /* SKIVASTPricing.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B7C1F8E17A600245DFF /* SKIVASTStaticResource.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B011F8E176900245DFF /* SKIVASTStaticResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B7D1F8E17A600245DFF /* SKIVASTSurvey.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B031F8E176900245DFF /* SKIVASTSurvey.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B7E1F8E17A600245DFF /* SKIVASTTracking.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B051F8E176900245DFF /* SKIVASTTracking.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B7F1F8E17A600245DFF /* SKIVASTTrackingEvents.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B071F8E176900245DFF /* SKIVASTTrackingEvents.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B801F8E17A600245DFF /* SKIVASTUniversalAdId.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B091F8E176900245DFF /* SKIVASTUniversalAdId.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B811F8E17A600245DFF /* SKIVASTVAST+File.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B0B1F8E176900245DFF /* SKIVASTVAST+File.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B821F8E17A600245DFF /* SKIVASTVAST.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B0D1F8E176900245DFF /* SKIVASTVAST.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B831F8E17A600245DFF /* SKIVASTVerificationInline.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B0F1F8E176900245DFF /* SKIVASTVerificationInline.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B841F8E17A600245DFF /* SKIVASTVerificationWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B111F8E176900245DFF /* SKIVASTVerificationWrapper.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B851F8E17A600245DFF /* SKIVASTVideoClicksBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B131F8E176900245DFF /* SKIVASTVideoClicksBase.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B861F8E17A600245DFF /* SKIVASTVideoClicksInlineChild.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B151F8E176900245DFF /* SKIVASTVideoClicksInlineChild.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B871F8E17A600245DFF /* SKIVASTViewableImpression.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B171F8E176900245DFF /* SKIVASTViewableImpression.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B881F8E17A600245DFF /* SKIVASTWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B191F8E176900245DFF /* SKIVASTWrapper.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B8B1F8E17E400245DFF /* libxml2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E36B8A1F8E17E400245DFF /* libxml2.tbd */; };
+		65E36BA81F90C97E00245DFF /* SKIVASTWrapper+Vast.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36BA71F90C97E00245DFF /* SKIVASTWrapper+Vast.m */; };
+		65E36BA91F90C98500245DFF /* SKIVASTWrapper+Vast.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36BA61F90C97E00245DFF /* SKIVASTWrapper+Vast.h */; settings = {ATTRIBUTES = (Public, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		65B9AFF21FB4616F0093650A /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		65B9AFF41FB4616F0093650A /* libSKIVAST-FAT.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libSKIVAST-FAT.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		65E36AA11F8E170600245DFF /* SKIVAST.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SKIVAST.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		65E36AA41F8E170600245DFF /* SKIVAST.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVAST.h; sourceTree = "<group>"; };
+		65E36AA51F8E170600245DFF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		65E36AAD1F8E176900245DFF /* SKIVASTAd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTAd.h; sourceTree = "<group>"; };
+		65E36AAE1F8E176900245DFF /* SKIVASTAd.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTAd.m; sourceTree = "<group>"; };
+		65E36AAF1F8E176900245DFF /* SKIVASTAdDefinitionBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTAdDefinitionBase.h; sourceTree = "<group>"; };
+		65E36AB01F8E176900245DFF /* SKIVASTAdDefinitionBase.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTAdDefinitionBase.m; sourceTree = "<group>"; };
+		65E36AB11F8E176900245DFF /* SKIVASTAdParameters.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTAdParameters.h; sourceTree = "<group>"; };
+		65E36AB21F8E176900245DFF /* SKIVASTAdParameters.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTAdParameters.m; sourceTree = "<group>"; };
+		65E36AB31F8E176900245DFF /* SKIVASTAdSystem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTAdSystem.h; sourceTree = "<group>"; };
+		65E36AB41F8E176900245DFF /* SKIVASTAdSystem.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTAdSystem.m; sourceTree = "<group>"; };
+		65E36AB51F8E176900245DFF /* SKIVASTAdVerificationsInline.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTAdVerificationsInline.h; sourceTree = "<group>"; };
+		65E36AB61F8E176900245DFF /* SKIVASTAdVerificationsInline.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTAdVerificationsInline.m; sourceTree = "<group>"; };
+		65E36AB71F8E176900245DFF /* SKIVASTAdVerificationsWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTAdVerificationsWrapper.h; sourceTree = "<group>"; };
+		65E36AB81F8E176900245DFF /* SKIVASTAdVerificationsWrapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTAdVerificationsWrapper.m; sourceTree = "<group>"; };
+		65E36AB91F8E176900245DFF /* SKIVASTCategory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTCategory.h; sourceTree = "<group>"; };
+		65E36ABA1F8E176900245DFF /* SKIVASTCategory.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTCategory.m; sourceTree = "<group>"; };
+		65E36ABB1F8E176900245DFF /* SKIVASTClickThrough.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTClickThrough.h; sourceTree = "<group>"; };
+		65E36ABC1F8E176900245DFF /* SKIVASTClickThrough.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTClickThrough.m; sourceTree = "<group>"; };
+		65E36ABD1F8E176900245DFF /* SKIVASTClickTracking.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTClickTracking.h; sourceTree = "<group>"; };
+		65E36ABE1F8E176900245DFF /* SKIVASTClickTracking.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTClickTracking.m; sourceTree = "<group>"; };
+		65E36ABF1F8E176900245DFF /* SKIVASTCompanionAd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTCompanionAd.h; sourceTree = "<group>"; };
+		65E36AC01F8E176900245DFF /* SKIVASTCompanionAd.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTCompanionAd.m; sourceTree = "<group>"; };
+		65E36AC11F8E176900245DFF /* SKIVASTCompanionAdsCollection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTCompanionAdsCollection.h; sourceTree = "<group>"; };
+		65E36AC21F8E176900245DFF /* SKIVASTCompanionAdsCollection.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTCompanionAdsCollection.m; sourceTree = "<group>"; };
+		65E36AC31F8E176900245DFF /* SKIVASTCompanionClickTracking.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTCompanionClickTracking.h; sourceTree = "<group>"; };
+		65E36AC41F8E176900245DFF /* SKIVASTCompanionClickTracking.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTCompanionClickTracking.m; sourceTree = "<group>"; };
+		65E36AC51F8E176900245DFF /* SKIVASTCreativeBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTCreativeBase.h; sourceTree = "<group>"; };
+		65E36AC61F8E176900245DFF /* SKIVASTCreativeBase.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTCreativeBase.m; sourceTree = "<group>"; };
+		65E36AC71F8E176900245DFF /* SKIVASTCreativeExtension.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTCreativeExtension.h; sourceTree = "<group>"; };
+		65E36AC81F8E176900245DFF /* SKIVASTCreativeExtension.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTCreativeExtension.m; sourceTree = "<group>"; };
+		65E36AC91F8E176900245DFF /* SKIVASTCreativeExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTCreativeExtensions.h; sourceTree = "<group>"; };
+		65E36ACA1F8E176900245DFF /* SKIVASTCreativeExtensions.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTCreativeExtensions.m; sourceTree = "<group>"; };
+		65E36ACB1F8E176900245DFF /* SKIVASTCreativeInlineChild.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTCreativeInlineChild.h; sourceTree = "<group>"; };
+		65E36ACC1F8E176900245DFF /* SKIVASTCreativeInlineChild.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTCreativeInlineChild.m; sourceTree = "<group>"; };
+		65E36ACD1F8E176900245DFF /* SKIVASTCreativeResourceNonVideo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTCreativeResourceNonVideo.h; sourceTree = "<group>"; };
+		65E36ACE1F8E176900245DFF /* SKIVASTCreativeResourceNonVideo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTCreativeResourceNonVideo.m; sourceTree = "<group>"; };
+		65E36ACF1F8E176900245DFF /* SKIVASTCreatives.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTCreatives.h; sourceTree = "<group>"; };
+		65E36AD01F8E176900245DFF /* SKIVASTCreatives.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTCreatives.m; sourceTree = "<group>"; };
+		65E36AD11F8E176900245DFF /* SKIVASTCreativeWrapperChild.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTCreativeWrapperChild.h; sourceTree = "<group>"; };
+		65E36AD21F8E176900245DFF /* SKIVASTCreativeWrapperChild.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTCreativeWrapperChild.m; sourceTree = "<group>"; };
+		65E36AD31F8E176900245DFF /* SKIVASTCustomClick.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTCustomClick.h; sourceTree = "<group>"; };
+		65E36AD41F8E176900245DFF /* SKIVASTCustomClick.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTCustomClick.m; sourceTree = "<group>"; };
+		65E36AD51F8E176900245DFF /* SKIVASTExtension.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTExtension.h; sourceTree = "<group>"; };
+		65E36AD61F8E176900245DFF /* SKIVASTExtension.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTExtension.m; sourceTree = "<group>"; };
+		65E36AD71F8E176900245DFF /* SKIVASTExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTExtensions.h; sourceTree = "<group>"; };
+		65E36AD81F8E176900245DFF /* SKIVASTExtensions.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTExtensions.m; sourceTree = "<group>"; };
+		65E36AD91F8E176900245DFF /* SKIVASTFlashResource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTFlashResource.h; sourceTree = "<group>"; };
+		65E36ADA1F8E176900245DFF /* SKIVASTFlashResource.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTFlashResource.m; sourceTree = "<group>"; };
+		65E36ADB1F8E176900245DFF /* SKIVASTHTMLResource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTHTMLResource.h; sourceTree = "<group>"; };
+		65E36ADC1F8E176900245DFF /* SKIVASTHTMLResource.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTHTMLResource.m; sourceTree = "<group>"; };
+		65E36ADD1F8E176900245DFF /* SKIVASTIcon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTIcon.h; sourceTree = "<group>"; };
+		65E36ADE1F8E176900245DFF /* SKIVASTIcon.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTIcon.m; sourceTree = "<group>"; };
+		65E36ADF1F8E176900245DFF /* SKIVASTIconClicks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTIconClicks.h; sourceTree = "<group>"; };
+		65E36AE01F8E176900245DFF /* SKIVASTIconClicks.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTIconClicks.m; sourceTree = "<group>"; };
+		65E36AE11F8E176900245DFF /* SKIVASTIcons.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTIcons.h; sourceTree = "<group>"; };
+		65E36AE21F8E176900245DFF /* SKIVASTIcons.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTIcons.m; sourceTree = "<group>"; };
+		65E36AE31F8E176900245DFF /* SKIVASTIconTrackingUri.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTIconTrackingUri.h; sourceTree = "<group>"; };
+		65E36AE41F8E176900245DFF /* SKIVASTIconTrackingUri.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTIconTrackingUri.m; sourceTree = "<group>"; };
+		65E36AE51F8E176900245DFF /* SKIVASTImpression.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTImpression.h; sourceTree = "<group>"; };
+		65E36AE61F8E176900245DFF /* SKIVASTImpression.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTImpression.m; sourceTree = "<group>"; };
+		65E36AE71F8E176900245DFF /* SKIVASTInline.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTInline.h; sourceTree = "<group>"; };
+		65E36AE81F8E176900245DFF /* SKIVASTInline.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTInline.m; sourceTree = "<group>"; };
+		65E36AE91F8E176900245DFF /* SKIVASTInteractiveCreativeFile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTInteractiveCreativeFile.h; sourceTree = "<group>"; };
+		65E36AEA1F8E176900245DFF /* SKIVASTInteractiveCreativeFile.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTInteractiveCreativeFile.m; sourceTree = "<group>"; };
+		65E36AEB1F8E176900245DFF /* SKIVASTJavaScriptResource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTJavaScriptResource.h; sourceTree = "<group>"; };
+		65E36AEC1F8E176900245DFF /* SKIVASTJavaScriptResource.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTJavaScriptResource.m; sourceTree = "<group>"; };
+		65E36AED1F8E176900245DFF /* SKIVASTLinearBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTLinearBase.h; sourceTree = "<group>"; };
+		65E36AEE1F8E176900245DFF /* SKIVASTLinearBase.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTLinearBase.m; sourceTree = "<group>"; };
+		65E36AEF1F8E176900245DFF /* SKIVASTLinearInlineChild.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTLinearInlineChild.h; sourceTree = "<group>"; };
+		65E36AF01F8E176900245DFF /* SKIVASTLinearInlineChild.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTLinearInlineChild.m; sourceTree = "<group>"; };
+		65E36AF11F8E176900245DFF /* SKIVASTLinearWrapperChild.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTLinearWrapperChild.h; sourceTree = "<group>"; };
+		65E36AF21F8E176900245DFF /* SKIVASTLinearWrapperChild.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTLinearWrapperChild.m; sourceTree = "<group>"; };
+		65E36AF31F8E176900245DFF /* SKIVASTMediaFile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTMediaFile.h; sourceTree = "<group>"; };
+		65E36AF41F8E176900245DFF /* SKIVASTMediaFile.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTMediaFile.m; sourceTree = "<group>"; };
+		65E36AF51F8E176900245DFF /* SKIVASTMediaFiles.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTMediaFiles.h; sourceTree = "<group>"; };
+		65E36AF61F8E176900245DFF /* SKIVASTMediaFiles.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTMediaFiles.m; sourceTree = "<group>"; };
+		65E36AF71F8E176900245DFF /* SKIVASTNonLinearAdBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTNonLinearAdBase.h; sourceTree = "<group>"; };
+		65E36AF81F8E176900245DFF /* SKIVASTNonLinearAdBase.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTNonLinearAdBase.m; sourceTree = "<group>"; };
+		65E36AF91F8E176900245DFF /* SKIVASTNonLinearAdInlineChild.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTNonLinearAdInlineChild.h; sourceTree = "<group>"; };
+		65E36AFA1F8E176900245DFF /* SKIVASTNonLinearAdInlineChild.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTNonLinearAdInlineChild.m; sourceTree = "<group>"; };
+		65E36AFB1F8E176900245DFF /* SKIVASTNonLinearAds.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTNonLinearAds.h; sourceTree = "<group>"; };
+		65E36AFC1F8E176900245DFF /* SKIVASTNonLinearAds.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTNonLinearAds.m; sourceTree = "<group>"; };
+		65E36AFD1F8E176900245DFF /* SKIVASTNonLinearClickTracking.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTNonLinearClickTracking.h; sourceTree = "<group>"; };
+		65E36AFE1F8E176900245DFF /* SKIVASTNonLinearClickTracking.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTNonLinearClickTracking.m; sourceTree = "<group>"; };
+		65E36AFF1F8E176900245DFF /* SKIVASTPricing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTPricing.h; sourceTree = "<group>"; };
+		65E36B001F8E176900245DFF /* SKIVASTPricing.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTPricing.m; sourceTree = "<group>"; };
+		65E36B011F8E176900245DFF /* SKIVASTStaticResource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTStaticResource.h; sourceTree = "<group>"; };
+		65E36B021F8E176900245DFF /* SKIVASTStaticResource.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTStaticResource.m; sourceTree = "<group>"; };
+		65E36B031F8E176900245DFF /* SKIVASTSurvey.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTSurvey.h; sourceTree = "<group>"; };
+		65E36B041F8E176900245DFF /* SKIVASTSurvey.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTSurvey.m; sourceTree = "<group>"; };
+		65E36B051F8E176900245DFF /* SKIVASTTracking.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTTracking.h; sourceTree = "<group>"; };
+		65E36B061F8E176900245DFF /* SKIVASTTracking.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTTracking.m; sourceTree = "<group>"; };
+		65E36B071F8E176900245DFF /* SKIVASTTrackingEvents.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTTrackingEvents.h; sourceTree = "<group>"; };
+		65E36B081F8E176900245DFF /* SKIVASTTrackingEvents.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTTrackingEvents.m; sourceTree = "<group>"; };
+		65E36B091F8E176900245DFF /* SKIVASTUniversalAdId.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTUniversalAdId.h; sourceTree = "<group>"; };
+		65E36B0A1F8E176900245DFF /* SKIVASTUniversalAdId.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTUniversalAdId.m; sourceTree = "<group>"; };
+		65E36B0B1F8E176900245DFF /* SKIVASTVAST+File.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SKIVASTVAST+File.h"; sourceTree = "<group>"; };
+		65E36B0C1F8E176900245DFF /* SKIVASTVAST+File.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "SKIVASTVAST+File.m"; sourceTree = "<group>"; };
+		65E36B0D1F8E176900245DFF /* SKIVASTVAST.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTVAST.h; sourceTree = "<group>"; };
+		65E36B0E1F8E176900245DFF /* SKIVASTVAST.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTVAST.m; sourceTree = "<group>"; };
+		65E36B0F1F8E176900245DFF /* SKIVASTVerificationInline.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTVerificationInline.h; sourceTree = "<group>"; };
+		65E36B101F8E176900245DFF /* SKIVASTVerificationInline.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTVerificationInline.m; sourceTree = "<group>"; };
+		65E36B111F8E176900245DFF /* SKIVASTVerificationWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTVerificationWrapper.h; sourceTree = "<group>"; };
+		65E36B121F8E176900245DFF /* SKIVASTVerificationWrapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTVerificationWrapper.m; sourceTree = "<group>"; };
+		65E36B131F8E176900245DFF /* SKIVASTVideoClicksBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTVideoClicksBase.h; sourceTree = "<group>"; };
+		65E36B141F8E176900245DFF /* SKIVASTVideoClicksBase.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTVideoClicksBase.m; sourceTree = "<group>"; };
+		65E36B151F8E176900245DFF /* SKIVASTVideoClicksInlineChild.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTVideoClicksInlineChild.h; sourceTree = "<group>"; };
+		65E36B161F8E176900245DFF /* SKIVASTVideoClicksInlineChild.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTVideoClicksInlineChild.m; sourceTree = "<group>"; };
+		65E36B171F8E176900245DFF /* SKIVASTViewableImpression.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTViewableImpression.h; sourceTree = "<group>"; };
+		65E36B181F8E176900245DFF /* SKIVASTViewableImpression.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTViewableImpression.m; sourceTree = "<group>"; };
+		65E36B191F8E176900245DFF /* SKIVASTWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTWrapper.h; sourceTree = "<group>"; };
+		65E36B1A1F8E176900245DFF /* SKIVASTWrapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTWrapper.m; sourceTree = "<group>"; };
+		65E36B8A1F8E17E400245DFF /* libxml2.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libxml2.tbd; path = usr/lib/libxml2.tbd; sourceTree = SDKROOT; };
+		65E36B8C1F8E182700245DFF /* SKILog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKILog.h; sourceTree = "<group>"; };
+		65E36BA61F90C97E00245DFF /* SKIVASTWrapper+Vast.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SKIVASTWrapper+Vast.h"; sourceTree = "<group>"; };
+		65E36BA71F90C97E00245DFF /* SKIVASTWrapper+Vast.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "SKIVASTWrapper+Vast.m"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		65B9AFF11FB4616F0093650A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		65E36A9D1F8E170600245DFF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65E36B8B1F8E17E400245DFF /* libxml2.tbd in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		65E36A971F8E170600245DFF = {
+			isa = PBXGroup;
+			children = (
+				65E36AA31F8E170600245DFF /* SKIVAST */,
+				65E36AA21F8E170600245DFF /* Products */,
+				65E36B891F8E17E400245DFF /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		65E36AA21F8E170600245DFF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				65E36AA11F8E170600245DFF /* SKIVAST.framework */,
+				65B9AFF41FB4616F0093650A /* libSKIVAST-FAT.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		65E36AA31F8E170600245DFF /* SKIVAST */ = {
+			isa = PBXGroup;
+			children = (
+				65E36AAC1F8E176900245DFF /* Classes */,
+				65E36AA41F8E170600245DFF /* SKIVAST.h */,
+				65E36B8C1F8E182700245DFF /* SKILog.h */,
+				65E36AA51F8E170600245DFF /* Info.plist */,
+			);
+			path = SKIVAST;
+			sourceTree = "<group>";
+		};
+		65E36AAC1F8E176900245DFF /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				65E36AAD1F8E176900245DFF /* SKIVASTAd.h */,
+				65E36AAE1F8E176900245DFF /* SKIVASTAd.m */,
+				65E36AAF1F8E176900245DFF /* SKIVASTAdDefinitionBase.h */,
+				65E36AB01F8E176900245DFF /* SKIVASTAdDefinitionBase.m */,
+				65E36AB11F8E176900245DFF /* SKIVASTAdParameters.h */,
+				65E36AB21F8E176900245DFF /* SKIVASTAdParameters.m */,
+				65E36AB31F8E176900245DFF /* SKIVASTAdSystem.h */,
+				65E36AB41F8E176900245DFF /* SKIVASTAdSystem.m */,
+				65E36AB51F8E176900245DFF /* SKIVASTAdVerificationsInline.h */,
+				65E36AB61F8E176900245DFF /* SKIVASTAdVerificationsInline.m */,
+				65E36AB71F8E176900245DFF /* SKIVASTAdVerificationsWrapper.h */,
+				65E36AB81F8E176900245DFF /* SKIVASTAdVerificationsWrapper.m */,
+				65E36AB91F8E176900245DFF /* SKIVASTCategory.h */,
+				65E36ABA1F8E176900245DFF /* SKIVASTCategory.m */,
+				65E36ABB1F8E176900245DFF /* SKIVASTClickThrough.h */,
+				65E36ABC1F8E176900245DFF /* SKIVASTClickThrough.m */,
+				65E36ABD1F8E176900245DFF /* SKIVASTClickTracking.h */,
+				65E36ABE1F8E176900245DFF /* SKIVASTClickTracking.m */,
+				65E36ABF1F8E176900245DFF /* SKIVASTCompanionAd.h */,
+				65E36AC01F8E176900245DFF /* SKIVASTCompanionAd.m */,
+				65E36AC11F8E176900245DFF /* SKIVASTCompanionAdsCollection.h */,
+				65E36AC21F8E176900245DFF /* SKIVASTCompanionAdsCollection.m */,
+				65E36AC31F8E176900245DFF /* SKIVASTCompanionClickTracking.h */,
+				65E36AC41F8E176900245DFF /* SKIVASTCompanionClickTracking.m */,
+				65E36AC51F8E176900245DFF /* SKIVASTCreativeBase.h */,
+				65E36AC61F8E176900245DFF /* SKIVASTCreativeBase.m */,
+				65E36AC71F8E176900245DFF /* SKIVASTCreativeExtension.h */,
+				65E36AC81F8E176900245DFF /* SKIVASTCreativeExtension.m */,
+				65E36AC91F8E176900245DFF /* SKIVASTCreativeExtensions.h */,
+				65E36ACA1F8E176900245DFF /* SKIVASTCreativeExtensions.m */,
+				65E36ACB1F8E176900245DFF /* SKIVASTCreativeInlineChild.h */,
+				65E36ACC1F8E176900245DFF /* SKIVASTCreativeInlineChild.m */,
+				65E36ACD1F8E176900245DFF /* SKIVASTCreativeResourceNonVideo.h */,
+				65E36ACE1F8E176900245DFF /* SKIVASTCreativeResourceNonVideo.m */,
+				65E36ACF1F8E176900245DFF /* SKIVASTCreatives.h */,
+				65E36AD01F8E176900245DFF /* SKIVASTCreatives.m */,
+				65E36AD11F8E176900245DFF /* SKIVASTCreativeWrapperChild.h */,
+				65E36AD21F8E176900245DFF /* SKIVASTCreativeWrapperChild.m */,
+				65E36AD31F8E176900245DFF /* SKIVASTCustomClick.h */,
+				65E36AD41F8E176900245DFF /* SKIVASTCustomClick.m */,
+				65E36AD51F8E176900245DFF /* SKIVASTExtension.h */,
+				65E36AD61F8E176900245DFF /* SKIVASTExtension.m */,
+				65E36AD71F8E176900245DFF /* SKIVASTExtensions.h */,
+				65E36AD81F8E176900245DFF /* SKIVASTExtensions.m */,
+				65E36AD91F8E176900245DFF /* SKIVASTFlashResource.h */,
+				65E36ADA1F8E176900245DFF /* SKIVASTFlashResource.m */,
+				65E36ADB1F8E176900245DFF /* SKIVASTHTMLResource.h */,
+				65E36ADC1F8E176900245DFF /* SKIVASTHTMLResource.m */,
+				65E36ADD1F8E176900245DFF /* SKIVASTIcon.h */,
+				65E36ADE1F8E176900245DFF /* SKIVASTIcon.m */,
+				65E36ADF1F8E176900245DFF /* SKIVASTIconClicks.h */,
+				65E36AE01F8E176900245DFF /* SKIVASTIconClicks.m */,
+				65E36AE11F8E176900245DFF /* SKIVASTIcons.h */,
+				65E36AE21F8E176900245DFF /* SKIVASTIcons.m */,
+				65E36AE31F8E176900245DFF /* SKIVASTIconTrackingUri.h */,
+				65E36AE41F8E176900245DFF /* SKIVASTIconTrackingUri.m */,
+				65E36AE51F8E176900245DFF /* SKIVASTImpression.h */,
+				65E36AE61F8E176900245DFF /* SKIVASTImpression.m */,
+				65E36AE71F8E176900245DFF /* SKIVASTInline.h */,
+				65E36AE81F8E176900245DFF /* SKIVASTInline.m */,
+				65E36AE91F8E176900245DFF /* SKIVASTInteractiveCreativeFile.h */,
+				65E36AEA1F8E176900245DFF /* SKIVASTInteractiveCreativeFile.m */,
+				65E36AEB1F8E176900245DFF /* SKIVASTJavaScriptResource.h */,
+				65E36AEC1F8E176900245DFF /* SKIVASTJavaScriptResource.m */,
+				65E36AED1F8E176900245DFF /* SKIVASTLinearBase.h */,
+				65E36AEE1F8E176900245DFF /* SKIVASTLinearBase.m */,
+				65E36AEF1F8E176900245DFF /* SKIVASTLinearInlineChild.h */,
+				65E36AF01F8E176900245DFF /* SKIVASTLinearInlineChild.m */,
+				65E36AF11F8E176900245DFF /* SKIVASTLinearWrapperChild.h */,
+				65E36AF21F8E176900245DFF /* SKIVASTLinearWrapperChild.m */,
+				65E36AF31F8E176900245DFF /* SKIVASTMediaFile.h */,
+				65E36AF41F8E176900245DFF /* SKIVASTMediaFile.m */,
+				65E36AF51F8E176900245DFF /* SKIVASTMediaFiles.h */,
+				65E36AF61F8E176900245DFF /* SKIVASTMediaFiles.m */,
+				65E36AF71F8E176900245DFF /* SKIVASTNonLinearAdBase.h */,
+				65E36AF81F8E176900245DFF /* SKIVASTNonLinearAdBase.m */,
+				65E36AF91F8E176900245DFF /* SKIVASTNonLinearAdInlineChild.h */,
+				65E36AFA1F8E176900245DFF /* SKIVASTNonLinearAdInlineChild.m */,
+				65E36AFB1F8E176900245DFF /* SKIVASTNonLinearAds.h */,
+				65E36AFC1F8E176900245DFF /* SKIVASTNonLinearAds.m */,
+				65E36AFD1F8E176900245DFF /* SKIVASTNonLinearClickTracking.h */,
+				65E36AFE1F8E176900245DFF /* SKIVASTNonLinearClickTracking.m */,
+				65E36AFF1F8E176900245DFF /* SKIVASTPricing.h */,
+				65E36B001F8E176900245DFF /* SKIVASTPricing.m */,
+				65E36B011F8E176900245DFF /* SKIVASTStaticResource.h */,
+				65E36B021F8E176900245DFF /* SKIVASTStaticResource.m */,
+				65E36B031F8E176900245DFF /* SKIVASTSurvey.h */,
+				65E36B041F8E176900245DFF /* SKIVASTSurvey.m */,
+				65E36B051F8E176900245DFF /* SKIVASTTracking.h */,
+				65E36B061F8E176900245DFF /* SKIVASTTracking.m */,
+				65E36B071F8E176900245DFF /* SKIVASTTrackingEvents.h */,
+				65E36B081F8E176900245DFF /* SKIVASTTrackingEvents.m */,
+				65E36B091F8E176900245DFF /* SKIVASTUniversalAdId.h */,
+				65E36B0A1F8E176900245DFF /* SKIVASTUniversalAdId.m */,
+				65E36B0B1F8E176900245DFF /* SKIVASTVAST+File.h */,
+				65E36B0C1F8E176900245DFF /* SKIVASTVAST+File.m */,
+				65E36B0D1F8E176900245DFF /* SKIVASTVAST.h */,
+				65E36B0E1F8E176900245DFF /* SKIVASTVAST.m */,
+				65E36B0F1F8E176900245DFF /* SKIVASTVerificationInline.h */,
+				65E36B101F8E176900245DFF /* SKIVASTVerificationInline.m */,
+				65E36B111F8E176900245DFF /* SKIVASTVerificationWrapper.h */,
+				65E36B121F8E176900245DFF /* SKIVASTVerificationWrapper.m */,
+				65E36B131F8E176900245DFF /* SKIVASTVideoClicksBase.h */,
+				65E36B141F8E176900245DFF /* SKIVASTVideoClicksBase.m */,
+				65E36B151F8E176900245DFF /* SKIVASTVideoClicksInlineChild.h */,
+				65E36B161F8E176900245DFF /* SKIVASTVideoClicksInlineChild.m */,
+				65E36B171F8E176900245DFF /* SKIVASTViewableImpression.h */,
+				65E36B181F8E176900245DFF /* SKIVASTViewableImpression.m */,
+				65E36B191F8E176900245DFF /* SKIVASTWrapper.h */,
+				65E36B1A1F8E176900245DFF /* SKIVASTWrapper.m */,
+				65E36BA61F90C97E00245DFF /* SKIVASTWrapper+Vast.h */,
+				65E36BA71F90C97E00245DFF /* SKIVASTWrapper+Vast.m */,
+			);
+			path = Classes;
+			sourceTree = "<group>";
+		};
+		65E36B891F8E17E400245DFF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				65E36B8A1F8E17E400245DFF /* libxml2.tbd */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		65E36A9E1F8E170600245DFF /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65E36AA61F8E170600245DFF /* SKIVAST.h in Headers */,
+				65E36B521F8E17A600245DFF /* SKIVASTAd.h in Headers */,
+				65E36B531F8E17A600245DFF /* SKIVASTAdDefinitionBase.h in Headers */,
+				65E36B541F8E17A600245DFF /* SKIVASTAdParameters.h in Headers */,
+				65E36B551F8E17A600245DFF /* SKIVASTAdSystem.h in Headers */,
+				65E36B561F8E17A600245DFF /* SKIVASTAdVerificationsInline.h in Headers */,
+				65E36B571F8E17A600245DFF /* SKIVASTAdVerificationsWrapper.h in Headers */,
+				65E36B581F8E17A600245DFF /* SKIVASTCategory.h in Headers */,
+				65E36B591F8E17A600245DFF /* SKIVASTClickThrough.h in Headers */,
+				65E36B5A1F8E17A600245DFF /* SKIVASTClickTracking.h in Headers */,
+				65E36B5B1F8E17A600245DFF /* SKIVASTCompanionAd.h in Headers */,
+				65E36B5C1F8E17A600245DFF /* SKIVASTCompanionAdsCollection.h in Headers */,
+				65E36B5D1F8E17A600245DFF /* SKIVASTCompanionClickTracking.h in Headers */,
+				65E36B5E1F8E17A600245DFF /* SKIVASTCreativeBase.h in Headers */,
+				65E36B5F1F8E17A600245DFF /* SKIVASTCreativeExtension.h in Headers */,
+				65E36B601F8E17A600245DFF /* SKIVASTCreativeExtensions.h in Headers */,
+				65E36B611F8E17A600245DFF /* SKIVASTCreativeInlineChild.h in Headers */,
+				65E36B621F8E17A600245DFF /* SKIVASTCreativeResourceNonVideo.h in Headers */,
+				65E36B631F8E17A600245DFF /* SKIVASTCreatives.h in Headers */,
+				65E36BA91F90C98500245DFF /* SKIVASTWrapper+Vast.h in Headers */,
+				65E36B641F8E17A600245DFF /* SKIVASTCreativeWrapperChild.h in Headers */,
+				65E36B651F8E17A600245DFF /* SKIVASTCustomClick.h in Headers */,
+				65E36B661F8E17A600245DFF /* SKIVASTExtension.h in Headers */,
+				65E36B671F8E17A600245DFF /* SKIVASTExtensions.h in Headers */,
+				65E36B681F8E17A600245DFF /* SKIVASTFlashResource.h in Headers */,
+				65E36B691F8E17A600245DFF /* SKIVASTHTMLResource.h in Headers */,
+				65E36B6A1F8E17A600245DFF /* SKIVASTIcon.h in Headers */,
+				65E36B6B1F8E17A600245DFF /* SKIVASTIconClicks.h in Headers */,
+				65E36B6C1F8E17A600245DFF /* SKIVASTIcons.h in Headers */,
+				65E36B6D1F8E17A600245DFF /* SKIVASTIconTrackingUri.h in Headers */,
+				65E36B6E1F8E17A600245DFF /* SKIVASTImpression.h in Headers */,
+				65E36B6F1F8E17A600245DFF /* SKIVASTInline.h in Headers */,
+				65E36B701F8E17A600245DFF /* SKIVASTInteractiveCreativeFile.h in Headers */,
+				65E36B711F8E17A600245DFF /* SKIVASTJavaScriptResource.h in Headers */,
+				65E36B721F8E17A600245DFF /* SKIVASTLinearBase.h in Headers */,
+				65E36B731F8E17A600245DFF /* SKIVASTLinearInlineChild.h in Headers */,
+				65E36B741F8E17A600245DFF /* SKIVASTLinearWrapperChild.h in Headers */,
+				65E36B751F8E17A600245DFF /* SKIVASTMediaFile.h in Headers */,
+				65E36B761F8E17A600245DFF /* SKIVASTMediaFiles.h in Headers */,
+				65E36B771F8E17A600245DFF /* SKIVASTNonLinearAdBase.h in Headers */,
+				65E36B781F8E17A600245DFF /* SKIVASTNonLinearAdInlineChild.h in Headers */,
+				65E36B791F8E17A600245DFF /* SKIVASTNonLinearAds.h in Headers */,
+				65E36B7A1F8E17A600245DFF /* SKIVASTNonLinearClickTracking.h in Headers */,
+				65E36B7B1F8E17A600245DFF /* SKIVASTPricing.h in Headers */,
+				65E36B7C1F8E17A600245DFF /* SKIVASTStaticResource.h in Headers */,
+				65E36B7D1F8E17A600245DFF /* SKIVASTSurvey.h in Headers */,
+				65E36B7E1F8E17A600245DFF /* SKIVASTTracking.h in Headers */,
+				65E36B7F1F8E17A600245DFF /* SKIVASTTrackingEvents.h in Headers */,
+				65E36B801F8E17A600245DFF /* SKIVASTUniversalAdId.h in Headers */,
+				65E36B811F8E17A600245DFF /* SKIVASTVAST+File.h in Headers */,
+				65E36B821F8E17A600245DFF /* SKIVASTVAST.h in Headers */,
+				65E36B831F8E17A600245DFF /* SKIVASTVerificationInline.h in Headers */,
+				65E36B841F8E17A600245DFF /* SKIVASTVerificationWrapper.h in Headers */,
+				65E36B851F8E17A600245DFF /* SKIVASTVideoClicksBase.h in Headers */,
+				65E36B861F8E17A600245DFF /* SKIVASTVideoClicksInlineChild.h in Headers */,
+				65E36B871F8E17A600245DFF /* SKIVASTViewableImpression.h in Headers */,
+				65E36B881F8E17A600245DFF /* SKIVASTWrapper.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		65B9AFF31FB4616F0093650A /* SKIVAST-FAT */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 65B9AFFC1FB461700093650A /* Build configuration list for PBXNativeTarget "SKIVAST-FAT" */;
+			buildPhases = (
+				65B9AFF01FB4616F0093650A /* Sources */,
+				65B9AFF11FB4616F0093650A /* Frameworks */,
+				65B9AFF21FB4616F0093650A /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "SKIVAST-FAT";
+			productName = "SKIVAST-FAT";
+			productReference = 65B9AFF41FB4616F0093650A /* libSKIVAST-FAT.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		65E36AA01F8E170600245DFF /* SKIVAST */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 65E36AA91F8E170600245DFF /* Build configuration list for PBXNativeTarget "SKIVAST" */;
+			buildPhases = (
+				65E36A9C1F8E170600245DFF /* Sources */,
+				65E36A9D1F8E170600245DFF /* Frameworks */,
+				65E36A9E1F8E170600245DFF /* Headers */,
+				65E36A9F1F8E170600245DFF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SKIVAST;
+			productName = SKIVAST;
+			productReference = 65E36AA11F8E170600245DFF /* SKIVAST.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		65E36A981F8E170600245DFF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				CLASSPREFIX = SKIVAST;
+				LastUpgradeCheck = 0900;
+				ORGANIZATIONNAME = Mobiblocks;
+				TargetAttributes = {
+					65B9AFF31FB4616F0093650A = {
+						CreatedOnToolsVersion = 9.1;
+						ProvisioningStyle = Automatic;
+					};
+					65E36AA01F8E170600245DFF = {
+						CreatedOnToolsVersion = 9.0;
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = 65E36A9B1F8E170600245DFF /* Build configuration list for PBXProject "SKIVAST" */;
+			compatibilityVersion = "Xcode 8.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 65E36A971F8E170600245DFF;
+			productRefGroup = 65E36AA21F8E170600245DFF /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				65E36AA01F8E170600245DFF /* SKIVAST */,
+				65B9AFF31FB4616F0093650A /* SKIVAST-FAT */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		65E36A9F1F8E170600245DFF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		65B9AFF01FB4616F0093650A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65B9AFFD1FB461A20093650A /* SKIVASTAd.m in Sources */,
+				65B9AFFE1FB461A20093650A /* SKIVASTAdDefinitionBase.m in Sources */,
+				65B9AFFF1FB461A20093650A /* SKIVASTAdParameters.m in Sources */,
+				65B9B0001FB461A20093650A /* SKIVASTAdSystem.m in Sources */,
+				65B9B0011FB461A20093650A /* SKIVASTAdVerificationsInline.m in Sources */,
+				65B9B0021FB461A20093650A /* SKIVASTAdVerificationsWrapper.m in Sources */,
+				65B9B0031FB461A20093650A /* SKIVASTCategory.m in Sources */,
+				65B9B0041FB461A20093650A /* SKIVASTClickThrough.m in Sources */,
+				65B9B0051FB461A20093650A /* SKIVASTClickTracking.m in Sources */,
+				65B9B0061FB461A20093650A /* SKIVASTCompanionAd.m in Sources */,
+				65B9B0071FB461A20093650A /* SKIVASTCompanionAdsCollection.m in Sources */,
+				65B9B0081FB461A20093650A /* SKIVASTCompanionClickTracking.m in Sources */,
+				65B9B0091FB461A20093650A /* SKIVASTCreativeBase.m in Sources */,
+				65B9B00A1FB461A20093650A /* SKIVASTCreativeExtension.m in Sources */,
+				65B9B00B1FB461A20093650A /* SKIVASTCreativeExtensions.m in Sources */,
+				65B9B00C1FB461A20093650A /* SKIVASTCreativeInlineChild.m in Sources */,
+				65B9B00D1FB461A20093650A /* SKIVASTCreativeResourceNonVideo.m in Sources */,
+				65B9B00E1FB461A20093650A /* SKIVASTCreatives.m in Sources */,
+				65B9B00F1FB461A20093650A /* SKIVASTCreativeWrapperChild.m in Sources */,
+				65B9B0101FB461A20093650A /* SKIVASTCustomClick.m in Sources */,
+				65B9B0111FB461A20093650A /* SKIVASTExtension.m in Sources */,
+				65B9B0121FB461A20093650A /* SKIVASTExtensions.m in Sources */,
+				65B9B0131FB461A20093650A /* SKIVASTFlashResource.m in Sources */,
+				65B9B0141FB461A20093650A /* SKIVASTHTMLResource.m in Sources */,
+				65B9B0151FB461A20093650A /* SKIVASTIcon.m in Sources */,
+				65B9B0161FB461A20093650A /* SKIVASTIconClicks.m in Sources */,
+				65B9B0171FB461A20093650A /* SKIVASTIcons.m in Sources */,
+				65B9B0181FB461A20093650A /* SKIVASTIconTrackingUri.m in Sources */,
+				65B9B0191FB461A20093650A /* SKIVASTImpression.m in Sources */,
+				65B9B01A1FB461A20093650A /* SKIVASTInline.m in Sources */,
+				65B9B01B1FB461A20093650A /* SKIVASTInteractiveCreativeFile.m in Sources */,
+				65B9B01C1FB461A20093650A /* SKIVASTJavaScriptResource.m in Sources */,
+				65B9B01D1FB461A20093650A /* SKIVASTLinearBase.m in Sources */,
+				65B9B01E1FB461A20093650A /* SKIVASTLinearInlineChild.m in Sources */,
+				65B9B01F1FB461A20093650A /* SKIVASTLinearWrapperChild.m in Sources */,
+				65B9B0201FB461A20093650A /* SKIVASTMediaFile.m in Sources */,
+				65B9B0211FB461A20093650A /* SKIVASTMediaFiles.m in Sources */,
+				65B9B0221FB461A20093650A /* SKIVASTNonLinearAdBase.m in Sources */,
+				65B9B0231FB461A20093650A /* SKIVASTNonLinearAdInlineChild.m in Sources */,
+				65B9B0241FB461A20093650A /* SKIVASTNonLinearAds.m in Sources */,
+				65B9B0251FB461A20093650A /* SKIVASTNonLinearClickTracking.m in Sources */,
+				65B9B0261FB461A20093650A /* SKIVASTPricing.m in Sources */,
+				65B9B0271FB461A20093650A /* SKIVASTStaticResource.m in Sources */,
+				65B9B0281FB461A20093650A /* SKIVASTSurvey.m in Sources */,
+				65B9B0291FB461A20093650A /* SKIVASTTracking.m in Sources */,
+				65B9B02A1FB461A20093650A /* SKIVASTTrackingEvents.m in Sources */,
+				65B9B02B1FB461A20093650A /* SKIVASTUniversalAdId.m in Sources */,
+				65B9B02C1FB461A20093650A /* SKIVASTVAST+File.m in Sources */,
+				65B9B02D1FB461A20093650A /* SKIVASTVAST.m in Sources */,
+				65B9B02E1FB461A20093650A /* SKIVASTVerificationInline.m in Sources */,
+				65B9B02F1FB461A20093650A /* SKIVASTVerificationWrapper.m in Sources */,
+				65B9B0301FB461A20093650A /* SKIVASTVideoClicksBase.m in Sources */,
+				65B9B0311FB461A30093650A /* SKIVASTVideoClicksInlineChild.m in Sources */,
+				65B9B0321FB461A30093650A /* SKIVASTViewableImpression.m in Sources */,
+				65B9B0331FB461A30093650A /* SKIVASTWrapper.m in Sources */,
+				65B9B0341FB461A30093650A /* SKIVASTWrapper+Vast.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		65E36A9C1F8E170600245DFF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65E36B1B1F8E179700245DFF /* SKIVASTAd.m in Sources */,
+				65E36B1C1F8E179700245DFF /* SKIVASTAdDefinitionBase.m in Sources */,
+				65E36B1D1F8E179700245DFF /* SKIVASTAdParameters.m in Sources */,
+				65E36B1E1F8E179700245DFF /* SKIVASTAdSystem.m in Sources */,
+				65E36B1F1F8E179700245DFF /* SKIVASTAdVerificationsInline.m in Sources */,
+				65E36B201F8E179700245DFF /* SKIVASTAdVerificationsWrapper.m in Sources */,
+				65E36B211F8E179700245DFF /* SKIVASTCategory.m in Sources */,
+				65E36B221F8E179700245DFF /* SKIVASTClickThrough.m in Sources */,
+				65E36B231F8E179700245DFF /* SKIVASTClickTracking.m in Sources */,
+				65E36B241F8E179700245DFF /* SKIVASTCompanionAd.m in Sources */,
+				65E36B251F8E179700245DFF /* SKIVASTCompanionAdsCollection.m in Sources */,
+				65E36B261F8E179700245DFF /* SKIVASTCompanionClickTracking.m in Sources */,
+				65E36B271F8E179700245DFF /* SKIVASTCreativeBase.m in Sources */,
+				65E36B281F8E179700245DFF /* SKIVASTCreativeExtension.m in Sources */,
+				65E36B291F8E179700245DFF /* SKIVASTCreativeExtensions.m in Sources */,
+				65E36B2A1F8E179700245DFF /* SKIVASTCreativeInlineChild.m in Sources */,
+				65E36B2B1F8E179700245DFF /* SKIVASTCreativeResourceNonVideo.m in Sources */,
+				65E36B2C1F8E179700245DFF /* SKIVASTCreatives.m in Sources */,
+				65E36B2D1F8E179700245DFF /* SKIVASTCreativeWrapperChild.m in Sources */,
+				65E36B2E1F8E179700245DFF /* SKIVASTCustomClick.m in Sources */,
+				65E36B2F1F8E179700245DFF /* SKIVASTExtension.m in Sources */,
+				65E36B301F8E179700245DFF /* SKIVASTExtensions.m in Sources */,
+				65E36B311F8E179700245DFF /* SKIVASTFlashResource.m in Sources */,
+				65E36B321F8E179700245DFF /* SKIVASTHTMLResource.m in Sources */,
+				65E36B331F8E179700245DFF /* SKIVASTIcon.m in Sources */,
+				65E36B341F8E179700245DFF /* SKIVASTIconClicks.m in Sources */,
+				65E36B351F8E179700245DFF /* SKIVASTIcons.m in Sources */,
+				65E36B361F8E179700245DFF /* SKIVASTIconTrackingUri.m in Sources */,
+				65E36B371F8E179700245DFF /* SKIVASTImpression.m in Sources */,
+				65E36B381F8E179700245DFF /* SKIVASTInline.m in Sources */,
+				65E36B391F8E179700245DFF /* SKIVASTInteractiveCreativeFile.m in Sources */,
+				65E36B3A1F8E179700245DFF /* SKIVASTJavaScriptResource.m in Sources */,
+				65E36B3B1F8E179700245DFF /* SKIVASTLinearBase.m in Sources */,
+				65E36B3C1F8E179800245DFF /* SKIVASTLinearInlineChild.m in Sources */,
+				65E36B3D1F8E179800245DFF /* SKIVASTLinearWrapperChild.m in Sources */,
+				65E36B3E1F8E179800245DFF /* SKIVASTMediaFile.m in Sources */,
+				65E36B3F1F8E179800245DFF /* SKIVASTMediaFiles.m in Sources */,
+				65E36B401F8E179800245DFF /* SKIVASTNonLinearAdBase.m in Sources */,
+				65E36B411F8E179800245DFF /* SKIVASTNonLinearAdInlineChild.m in Sources */,
+				65E36BA81F90C97E00245DFF /* SKIVASTWrapper+Vast.m in Sources */,
+				65E36B421F8E179800245DFF /* SKIVASTNonLinearAds.m in Sources */,
+				65E36B431F8E179800245DFF /* SKIVASTNonLinearClickTracking.m in Sources */,
+				65E36B441F8E179800245DFF /* SKIVASTPricing.m in Sources */,
+				65E36B451F8E179800245DFF /* SKIVASTStaticResource.m in Sources */,
+				65E36B461F8E179800245DFF /* SKIVASTSurvey.m in Sources */,
+				65E36B471F8E179800245DFF /* SKIVASTTracking.m in Sources */,
+				65E36B481F8E179800245DFF /* SKIVASTTrackingEvents.m in Sources */,
+				65E36B491F8E179800245DFF /* SKIVASTUniversalAdId.m in Sources */,
+				65E36B4A1F8E179800245DFF /* SKIVASTVAST+File.m in Sources */,
+				65E36B4B1F8E179800245DFF /* SKIVASTVAST.m in Sources */,
+				65E36B4C1F8E179800245DFF /* SKIVASTVerificationInline.m in Sources */,
+				65E36B4D1F8E179800245DFF /* SKIVASTVerificationWrapper.m in Sources */,
+				65E36B4E1F8E179800245DFF /* SKIVASTVideoClicksBase.m in Sources */,
+				65E36B4F1F8E179800245DFF /* SKIVASTVideoClicksInlineChild.m in Sources */,
+				65E36B501F8E179800245DFF /* SKIVASTViewableImpression.m in Sources */,
+				65E36B511F8E179800245DFF /* SKIVASTWrapper.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		65B9AFFA1FB461700093650A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				HEADER_SEARCH_PATHS = $SDKROOT/usr/include/libxml2;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		65B9AFFB1FB461700093650A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				HEADER_SEARCH_PATHS = $SDKROOT/usr/include/libxml2;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		65E36AA71F8E170600245DFF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		65E36AA81F8E170600245DFF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		65E36AAA1F8E170600245DFF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				HEADER_SEARCH_PATHS = $SDKROOT/usr/include/libxml2;
+				INFOPLIST_FILE = SKIVAST/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mobiblocks.SKIVAST;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 armv7 armv7s i386 x86_64";
+			};
+			name = Debug;
+		};
+		65E36AAB1F8E170600245DFF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				HEADER_SEARCH_PATHS = $SDKROOT/usr/include/libxml2;
+				INFOPLIST_FILE = SKIVAST/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mobiblocks.SKIVAST;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 armv7 armv7s i386 x86_64";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		65B9AFFC1FB461700093650A /* Build configuration list for PBXNativeTarget "SKIVAST-FAT" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				65B9AFFA1FB461700093650A /* Debug */,
+				65B9AFFB1FB461700093650A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		65E36A9B1F8E170600245DFF /* Build configuration list for PBXProject "SKIVAST" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				65E36AA71F8E170600245DFF /* Debug */,
+				65E36AA81F8E170600245DFF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		65E36AA91F8E170600245DFF /* Build configuration list for PBXNativeTarget "SKIVAST" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				65E36AAA1F8E170600245DFF /* Debug */,
+				65E36AAB1F8E170600245DFF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 65E36A981F8E170600245DFF /* Project object */;
+}

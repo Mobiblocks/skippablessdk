@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tnc-jP-IDv" customClass="SKIAdBannerView">
+                                <rect key="frame" x="0.0" y="617" width="375" height="50"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="50" id="om2-jE-xgW"/>
+                                </constraints>
+                            </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZWk-Uv-QHd" customClass="SKIAdBannerView">
+                                <rect key="frame" x="27.5" y="20" width="320" height="480"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="480" id="Wae-uL-2Uu"/>
+                                    <constraint firstAttribute="width" constant="320" id="zg8-GW-N81"/>
+                                </constraints>
+                            </view>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="R8n-M9-AhQ">
+                                <rect key="frame" x="164" y="318" width="46" height="30"/>
+                                <state key="normal" title="Button"/>
+                                <connections>
+                                    <action selector="showIntertitial:" destination="BYZ-38-t0r" eventType="touchUpInside" id="C6h-3k-beS"/>
+                                </connections>
+                            </button>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="kvg-rk-Mbq" customClass="SKIAdBannerView">
+                                <rect key="frame" x="27" y="509" width="320" height="100"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="320" id="Ubx-ZL-niJ"/>
+                                    <constraint firstAttribute="height" constant="100" id="W7z-7k-8UU"/>
+                                </constraints>
+                            </view>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hdg-fb-cIm">
+                                <rect key="frame" x="170.5" y="380" width="33" height="30"/>
+                                <state key="normal" title="CPM"/>
+                                <connections>
+                                    <segue destination="qPq-HS-h1p" kind="presentation" id="n2G-8Z-fyP"/>
+                                </connections>
+                            </button>
+                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="EsH-sn-soG">
+                                <rect key="frame" x="310" y="20" width="51" height="31"/>
+                                <connections>
+                                    <action selector="testSwitchValueChanged:" destination="BYZ-38-t0r" eventType="valueChanged" id="cel-h2-1bQ"/>
+                                </connections>
+                            </switch>
+                        </subviews>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="R8n-M9-AhQ" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="1kK-Od-pUk"/>
+                            <constraint firstItem="kvg-rk-Mbq" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="6vf-Az-QnH"/>
+                            <constraint firstItem="ZWk-Uv-QHd" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="8vE-PX-Wnd"/>
+                            <constraint firstItem="hdg-fb-cIm" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="JYx-fB-aA2"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="tnc-jP-IDv" secondAttribute="trailing" id="Pnx-gv-fqc"/>
+                            <constraint firstItem="ZWk-Uv-QHd" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="QRh-ZD-2RZ"/>
+                            <constraint firstItem="tnc-jP-IDv" firstAttribute="top" secondItem="kvg-rk-Mbq" secondAttribute="bottom" constant="8" id="Tvl-X5-jde"/>
+                            <constraint firstItem="EsH-sn-soG" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="gAM-ec-knH"/>
+                            <constraint firstItem="hdg-fb-cIm" firstAttribute="top" secondItem="R8n-M9-AhQ" secondAttribute="bottom" constant="32" id="jHt-tG-ZRt"/>
+                            <constraint firstItem="R8n-M9-AhQ" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="nAh-j4-eVa"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="tnc-jP-IDv" secondAttribute="bottom" id="o8X-KC-eiE"/>
+                            <constraint firstItem="tnc-jP-IDv" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="rgt-5A-QM1"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="EsH-sn-soG" secondAttribute="trailing" constant="16" id="wA5-ct-9R8"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                    </view>
+                    <connections>
+                        <outlet property="adViewBottomConstraint" destination="o8X-KC-eiE" id="Ias-Ig-kJH"/>
+                        <outlet property="bottomAdView" destination="tnc-jP-IDv" id="ryY-m6-fEN"/>
+                        <outlet property="halfPageAdView" destination="ZWk-Uv-QHd" id="Ixj-Ob-4vj"/>
+                        <outlet property="mediumAdView" destination="kvg-rk-Mbq" id="kgS-TX-Mwj"/>
+                        <outlet property="showButton" destination="R8n-M9-AhQ" id="spu-vY-Vln"/>
+                        <outlet property="testSwitch" destination="EsH-sn-soG" id="7Hx-MI-oWK"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="ocv-Mz-l24">
+            <objects>
+                <viewController id="qPq-HS-h1p" customClass="ViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="if1-fJ-eXE">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="R9a-DC-N7k" customClass="SKIAdBannerView">
+                                <rect key="frame" x="0.0" y="617" width="375" height="50"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="50" id="Obs-fA-b4s"/>
+                                </constraints>
+                            </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tua-uV-AoV" customClass="SKIAdBannerView">
+                                <rect key="frame" x="27.5" y="20" width="320" height="480"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="480" id="XGe-LP-mDe"/>
+                                    <constraint firstAttribute="width" constant="320" id="qFQ-KX-qh3"/>
+                                </constraints>
+                            </view>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hT3-bP-4lm">
+                                <rect key="frame" x="164" y="318" width="46" height="30"/>
+                                <state key="normal" title="Button"/>
+                                <connections>
+                                    <action selector="showIntertitial:" destination="qPq-HS-h1p" eventType="touchUpInside" id="DOJ-Y8-Ogp"/>
+                                </connections>
+                            </button>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="pOx-fE-GCw" customClass="SKIAdBannerView">
+                                <rect key="frame" x="27" y="509" width="320" height="100"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="100" id="cGD-r5-cwO"/>
+                                    <constraint firstAttribute="width" constant="320" id="iHp-Sz-CST"/>
+                                </constraints>
+                            </view>
+                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0Wg-My-JGI">
+                                <rect key="frame" x="310" y="20" width="51" height="31"/>
+                                <connections>
+                                    <action selector="testSwitchValueChanged:" destination="qPq-HS-h1p" eventType="valueChanged" id="jhF-43-bI9"/>
+                                </connections>
+                            </switch>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="lTo-5r-9mk">
+                                <rect key="frame" x="0.0" y="20" width="46" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="back"/>
+                                <connections>
+                                    <action selector="dismiss:" destination="qPq-HS-h1p" eventType="touchUpInside" id="AOC-7O-Hzj"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="hT3-bP-4lm" firstAttribute="centerX" secondItem="if1-fJ-eXE" secondAttribute="centerX" id="2Ju-O4-pZM"/>
+                            <constraint firstItem="R9a-DC-N7k" firstAttribute="top" secondItem="pOx-fE-GCw" secondAttribute="bottom" constant="8" id="4hN-0K-MoO"/>
+                            <constraint firstItem="tua-uV-AoV" firstAttribute="centerX" secondItem="if1-fJ-eXE" secondAttribute="centerX" id="5bE-H8-CkU"/>
+                            <constraint firstItem="tua-uV-AoV" firstAttribute="top" secondItem="4GJ-Vg-C46" secondAttribute="top" id="GoY-zr-rdW"/>
+                            <constraint firstItem="4GJ-Vg-C46" firstAttribute="trailing" secondItem="0Wg-My-JGI" secondAttribute="trailing" constant="16" id="TMJ-v1-a6y"/>
+                            <constraint firstItem="pOx-fE-GCw" firstAttribute="centerX" secondItem="if1-fJ-eXE" secondAttribute="centerX" id="Uwc-Fj-c0y"/>
+                            <constraint firstItem="4GJ-Vg-C46" firstAttribute="trailing" secondItem="R9a-DC-N7k" secondAttribute="trailing" id="bhn-Jk-Tti"/>
+                            <constraint firstItem="R9a-DC-N7k" firstAttribute="leading" secondItem="4GJ-Vg-C46" secondAttribute="leading" id="fsX-8U-unc"/>
+                            <constraint firstItem="hT3-bP-4lm" firstAttribute="centerY" secondItem="if1-fJ-eXE" secondAttribute="centerY" id="jOJ-hU-ndi"/>
+                            <constraint firstItem="0Wg-My-JGI" firstAttribute="top" secondItem="4GJ-Vg-C46" secondAttribute="top" id="ldG-Y4-fUd"/>
+                            <constraint firstItem="4GJ-Vg-C46" firstAttribute="bottom" secondItem="R9a-DC-N7k" secondAttribute="bottom" id="tBa-Rk-MIu"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="4GJ-Vg-C46"/>
+                    </view>
+                    <connections>
+                        <outlet property="adViewBottomConstraint" destination="tBa-Rk-MIu" id="iVe-5u-DDr"/>
+                        <outlet property="bottomAdView" destination="R9a-DC-N7k" id="FJs-eA-QpS"/>
+                        <outlet property="halfPageAdView" destination="tua-uV-AoV" id="UND-RF-BZI"/>
+                        <outlet property="mediumAdView" destination="pOx-fE-GCw" id="7eJ-S6-lDc"/>
+                        <outlet property="showButton" destination="hT3-bP-4lm" id="Wl0-8y-0qr"/>
+                        <outlet property="testSwitch" destination="0Wg-My-JGI" id="lj6-Wc-o0O"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="LZD-3m-BsC" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-665" y="636"/>
+        </scene>
+    </scenes>
+</document>

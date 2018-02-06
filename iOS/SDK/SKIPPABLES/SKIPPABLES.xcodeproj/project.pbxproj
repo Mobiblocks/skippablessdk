@@ -1,0 +1,656 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 48;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		6531A4671FA0A74700E627C3 /* SKIAdEventTracker.h in Headers */ = {isa = PBXBuildFile; fileRef = 6531A4651FA0A74700E627C3 /* SKIAdEventTracker.h */; };
+		6531A4681FA0A74700E627C3 /* SKIAdEventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 6531A4661FA0A74700E627C3 /* SKIAdEventTracker.m */; };
+		65582F361FAB358B0099AC77 /* SKIViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 65582F341FAB358B0099AC77 /* SKIViewController.h */; };
+		65582F371FAB358B0099AC77 /* SKIViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 65582F351FAB358B0099AC77 /* SKIViewController.m */; };
+		65582F3A1FACAE910099AC77 /* SKIObserver.h in Headers */ = {isa = PBXBuildFile; fileRef = 65582F381FACAE910099AC77 /* SKIObserver.h */; };
+		65582F3B1FACAE910099AC77 /* SKIObserver.m in Sources */ = {isa = PBXBuildFile; fileRef = 65582F391FACAE910099AC77 /* SKIObserver.m */; };
+		65B9B0391FB461D20093650A /* libSKIVAST-FAT.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65B9B0381FB461C10093650A /* libSKIVAST-FAT.a */; };
+		65D1A66B1FC30356003E91AA /* SKIGeo.h in Headers */ = {isa = PBXBuildFile; fileRef = 65D1A6691FC30356003E91AA /* SKIGeo.h */; };
+		65D1A66C1FC30356003E91AA /* SKIGeo.m in Sources */ = {isa = PBXBuildFile; fileRef = 65D1A66A1FC30356003E91AA /* SKIGeo.m */; };
+		65E3686C1F84DE2E00245DFF /* SKIPPABLES.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E3686A1F84DE2E00245DFF /* SKIPPABLES.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E368791F84E06B00245DFF /* SKIAdSize.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E368771F84E06B00245DFF /* SKIAdSize.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E3687A1F84E06B00245DFF /* SKIAdSize.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E368781F84E06B00245DFF /* SKIAdSize.m */; };
+		65E3687D1F84E78300245DFF /* SKIAdRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E3687B1F84E78300245DFF /* SKIAdRequest.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E3687E1F84E78300245DFF /* SKIAdRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E3687C1F84E78300245DFF /* SKIAdRequest.m */; };
+		65E368851F84E82800245DFF /* SKIAdBannerView.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E368831F84E82800245DFF /* SKIAdBannerView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E368861F84E82800245DFF /* SKIAdBannerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E368841F84E82800245DFF /* SKIAdBannerView.m */; };
+		65E368891F84ED5100245DFF /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E368881F84ED5100245DFF /* CoreGraphics.framework */; };
+		65E368BF1F862D3B00245DFF /* SKIAdRequestError.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E368BD1F862D3B00245DFF /* SKIAdRequestError.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E368C01F862D3B00245DFF /* SKIAdRequestError.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E368BE1F862D3B00245DFF /* SKIAdRequestError.m */; };
+		65E368C91F86618700245DFF /* SKIAsync.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E368C71F86618700245DFF /* SKIAsync.h */; };
+		65E368CA1F86618700245DFF /* SKIAsync.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E368C81F86618700245DFF /* SKIAsync.m */; };
+		65E368D01F87774100245DFF /* SKIAdRequestResponse.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E368CE1F87774100245DFF /* SKIAdRequestResponse.h */; };
+		65E368D11F87774100245DFF /* SKIAdRequestResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E368CF1F87774100245DFF /* SKIAdRequestResponse.m */; };
+		65E368D41F879A1500245DFF /* SKIAdBannerViewDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E368D21F879A1500245DFF /* SKIAdBannerViewDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E369471F8BC66300245DFF /* libxml2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E369461F8BC66200245DFF /* libxml2.tbd */; };
+		65E36B911F8E1B8700245DFF /* SKIAdInterstitial.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B8F1F8E1B8700245DFF /* SKIAdInterstitial.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B921F8E1B8700245DFF /* SKIAdInterstitial.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B901F8E1B8700245DFF /* SKIAdInterstitial.m */; };
+		65E36B941F8E1BB700245DFF /* SKIAdInterstitialDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B931F8E1BB700245DFF /* SKIAdInterstitialDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65E36B971F8E5D4700245DFF /* SKIAdInterstitialViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B951F8E5D4700245DFF /* SKIAdInterstitialViewController.h */; };
+		65E36B981F8E5D4700245DFF /* SKIAdInterstitialViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B961F8E5D4700245DFF /* SKIAdInterstitialViewController.m */; };
+		65E36B9D1F8E63AC00245DFF /* SKIConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B9C1F8E63AC00245DFF /* SKIConstants.m */; };
+		65F63C4D1F96404300A5CE56 /* SKIVASTCompressedCreative.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F63C4B1F96404300A5CE56 /* SKIVASTCompressedCreative.h */; };
+		65F63C4E1F96404300A5CE56 /* SKIVASTCompressedCreative.m in Sources */ = {isa = PBXBuildFile; fileRef = 65F63C4C1F96404300A5CE56 /* SKIVASTCompressedCreative.m */; };
+		65F63C591F9779CB00A5CE56 /* SKIVASTUrl.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F63C571F9779CB00A5CE56 /* SKIVASTUrl.h */; };
+		65F63C5A1F9779CB00A5CE56 /* SKIVASTUrl.m in Sources */ = {isa = PBXBuildFile; fileRef = 65F63C581F9779CB00A5CE56 /* SKIVASTUrl.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		65B9AFEE1FB4612F0093650A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65B9AFEA1FB4612E0093650A /* SKIVAST.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 65E36AA11F8E170600245DFF;
+			remoteInfo = SKIVAST;
+		};
+		65B9B0371FB461C10093650A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65B9AFEA1FB4612E0093650A /* SKIVAST.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 65B9AFF41FB4616F0093650A;
+			remoteInfo = "SKIVAST-FAT";
+		};
+		65B9B03A1FB461E20093650A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65B9AFEA1FB4612E0093650A /* SKIVAST.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 65B9AFF31FB4616F0093650A;
+			remoteInfo = "SKIVAST-FAT";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		6531A4651FA0A74700E627C3 /* SKIAdEventTracker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdEventTracker.h; sourceTree = "<group>"; };
+		6531A4661FA0A74700E627C3 /* SKIAdEventTracker.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdEventTracker.m; sourceTree = "<group>"; };
+		65582F341FAB358B0099AC77 /* SKIViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIViewController.h; sourceTree = "<group>"; };
+		65582F351FAB358B0099AC77 /* SKIViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIViewController.m; sourceTree = "<group>"; };
+		65582F381FACAE910099AC77 /* SKIObserver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIObserver.h; sourceTree = "<group>"; };
+		65582F391FACAE910099AC77 /* SKIObserver.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIObserver.m; sourceTree = "<group>"; };
+		65582F3C1FB45DB00099AC77 /* SKIAdRequestError_Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdRequestError_Private.h; sourceTree = "<group>"; };
+		658EE98D1F99EEEA00628597 /* SKIAdInterstitial_Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdInterstitial_Private.h; sourceTree = "<group>"; };
+		65B9AFEA1FB4612E0093650A /* SKIVAST.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SKIVAST.xcodeproj; path = ../SKIVAST/SKIVAST.xcodeproj; sourceTree = "<group>"; };
+		65D1A6691FC30356003E91AA /* SKIGeo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIGeo.h; sourceTree = "<group>"; };
+		65D1A66A1FC30356003E91AA /* SKIGeo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIGeo.m; sourceTree = "<group>"; };
+		65E368671F84DE2E00245DFF /* SKIPPABLES.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SKIPPABLES.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		65E3686A1F84DE2E00245DFF /* SKIPPABLES.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIPPABLES.h; sourceTree = "<group>"; };
+		65E3686B1F84DE2E00245DFF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		65E368771F84E06B00245DFF /* SKIAdSize.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdSize.h; sourceTree = "<group>"; };
+		65E368781F84E06B00245DFF /* SKIAdSize.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdSize.m; sourceTree = "<group>"; };
+		65E3687B1F84E78300245DFF /* SKIAdRequest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdRequest.h; sourceTree = "<group>"; };
+		65E3687C1F84E78300245DFF /* SKIAdRequest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdRequest.m; sourceTree = "<group>"; };
+		65E368831F84E82800245DFF /* SKIAdBannerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdBannerView.h; sourceTree = "<group>"; };
+		65E368841F84E82800245DFF /* SKIAdBannerView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdBannerView.m; sourceTree = "<group>"; };
+		65E368881F84ED5100245DFF /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		65E3688E1F85037200245DFF /* SKIConstants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIConstants.h; sourceTree = "<group>"; };
+		65E368BC1F85328C00245DFF /* SKIAdRequest_Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdRequest_Private.h; sourceTree = "<group>"; };
+		65E368BD1F862D3B00245DFF /* SKIAdRequestError.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdRequestError.h; sourceTree = "<group>"; };
+		65E368BE1F862D3B00245DFF /* SKIAdRequestError.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdRequestError.m; sourceTree = "<group>"; };
+		65E368C71F86618700245DFF /* SKIAsync.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAsync.h; sourceTree = "<group>"; };
+		65E368C81F86618700245DFF /* SKIAsync.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAsync.m; sourceTree = "<group>"; };
+		65E368CE1F87774100245DFF /* SKIAdRequestResponse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdRequestResponse.h; sourceTree = "<group>"; };
+		65E368CF1F87774100245DFF /* SKIAdRequestResponse.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdRequestResponse.m; sourceTree = "<group>"; };
+		65E368D21F879A1500245DFF /* SKIAdBannerViewDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdBannerViewDelegate.h; sourceTree = "<group>"; };
+		65E369461F8BC66200245DFF /* libxml2.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libxml2.tbd; path = usr/lib/libxml2.tbd; sourceTree = SDKROOT; };
+		65E36A941F8CBF6100245DFF /* SKILog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKILog.h; sourceTree = "<group>"; };
+		65E36B8F1F8E1B8700245DFF /* SKIAdInterstitial.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdInterstitial.h; sourceTree = "<group>"; };
+		65E36B901F8E1B8700245DFF /* SKIAdInterstitial.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdInterstitial.m; sourceTree = "<group>"; };
+		65E36B931F8E1BB700245DFF /* SKIAdInterstitialDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdInterstitialDelegate.h; sourceTree = "<group>"; };
+		65E36B951F8E5D4700245DFF /* SKIAdInterstitialViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdInterstitialViewController.h; sourceTree = "<group>"; };
+		65E36B961F8E5D4700245DFF /* SKIAdInterstitialViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdInterstitialViewController.m; sourceTree = "<group>"; };
+		65E36B9C1F8E63AC00245DFF /* SKIConstants.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIConstants.m; sourceTree = "<group>"; };
+		65F63C4B1F96404300A5CE56 /* SKIVASTCompressedCreative.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTCompressedCreative.h; sourceTree = "<group>"; };
+		65F63C4C1F96404300A5CE56 /* SKIVASTCompressedCreative.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTCompressedCreative.m; sourceTree = "<group>"; };
+		65F63C571F9779CB00A5CE56 /* SKIVASTUrl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTUrl.h; sourceTree = "<group>"; };
+		65F63C581F9779CB00A5CE56 /* SKIVASTUrl.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTUrl.m; sourceTree = "<group>"; };
+		65F63C5E1F98E2D300A5CE56 /* SKIVAST.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SKIVAST.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		65E368631F84DE2E00245DFF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65B9B0391FB461D20093650A /* libSKIVAST-FAT.a in Frameworks */,
+				65E369471F8BC66300245DFF /* libxml2.tbd in Frameworks */,
+				65E368891F84ED5100245DFF /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		65B9AFEB1FB4612E0093650A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				65B9AFEF1FB4612F0093650A /* SKIVAST.framework */,
+				65B9B0381FB461C10093650A /* libSKIVAST-FAT.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		65E3685D1F84DE2E00245DFF = {
+			isa = PBXGroup;
+			children = (
+				65B9AFEA1FB4612E0093650A /* SKIVAST.xcodeproj */,
+				65E368691F84DE2E00245DFF /* SKIPPABLES */,
+				65E368681F84DE2E00245DFF /* Products */,
+				65E368871F84ED5100245DFF /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		65E368681F84DE2E00245DFF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				65E368671F84DE2E00245DFF /* SKIPPABLES.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		65E368691F84DE2E00245DFF /* SKIPPABLES */ = {
+			isa = PBXGroup;
+			children = (
+				65E368721F84E01300245DFF /* Classes */,
+				65E3686A1F84DE2E00245DFF /* SKIPPABLES.h */,
+				65E3686B1F84DE2E00245DFF /* Info.plist */,
+			);
+			path = SKIPPABLES;
+			sourceTree = "<group>";
+		};
+		65E368721F84E01300245DFF /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				65E368C61F86616C00245DFF /* Util */,
+				65E3688E1F85037200245DFF /* SKIConstants.h */,
+				65E36B9C1F8E63AC00245DFF /* SKIConstants.m */,
+				65E36A941F8CBF6100245DFF /* SKILog.h */,
+				65E368771F84E06B00245DFF /* SKIAdSize.h */,
+				65E368781F84E06B00245DFF /* SKIAdSize.m */,
+				65E368BC1F85328C00245DFF /* SKIAdRequest_Private.h */,
+				65E3687B1F84E78300245DFF /* SKIAdRequest.h */,
+				65E3687C1F84E78300245DFF /* SKIAdRequest.m */,
+				65582F3C1FB45DB00099AC77 /* SKIAdRequestError_Private.h */,
+				65E368BD1F862D3B00245DFF /* SKIAdRequestError.h */,
+				65E368BE1F862D3B00245DFF /* SKIAdRequestError.m */,
+				65E368CE1F87774100245DFF /* SKIAdRequestResponse.h */,
+				65E368CF1F87774100245DFF /* SKIAdRequestResponse.m */,
+				6531A4651FA0A74700E627C3 /* SKIAdEventTracker.h */,
+				6531A4661FA0A74700E627C3 /* SKIAdEventTracker.m */,
+				65E368831F84E82800245DFF /* SKIAdBannerView.h */,
+				65E368841F84E82800245DFF /* SKIAdBannerView.m */,
+				65E368D21F879A1500245DFF /* SKIAdBannerViewDelegate.h */,
+				658EE98D1F99EEEA00628597 /* SKIAdInterstitial_Private.h */,
+				65E36B8F1F8E1B8700245DFF /* SKIAdInterstitial.h */,
+				65E36B901F8E1B8700245DFF /* SKIAdInterstitial.m */,
+				65E36B931F8E1BB700245DFF /* SKIAdInterstitialDelegate.h */,
+				65582F341FAB358B0099AC77 /* SKIViewController.h */,
+				65582F351FAB358B0099AC77 /* SKIViewController.m */,
+				65E36B951F8E5D4700245DFF /* SKIAdInterstitialViewController.h */,
+				65E36B961F8E5D4700245DFF /* SKIAdInterstitialViewController.m */,
+			);
+			path = Classes;
+			sourceTree = "<group>";
+		};
+		65E368871F84ED5100245DFF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				65F63C5E1F98E2D300A5CE56 /* SKIVAST.framework */,
+				65E369461F8BC66200245DFF /* libxml2.tbd */,
+				65E368881F84ED5100245DFF /* CoreGraphics.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		65E368C61F86616C00245DFF /* Util */ = {
+			isa = PBXGroup;
+			children = (
+				65F63C461F963FF800A5CE56 /* VAST */,
+				65E368C71F86618700245DFF /* SKIAsync.h */,
+				65E368C81F86618700245DFF /* SKIAsync.m */,
+				65582F381FACAE910099AC77 /* SKIObserver.h */,
+				65582F391FACAE910099AC77 /* SKIObserver.m */,
+				65D1A6691FC30356003E91AA /* SKIGeo.h */,
+				65D1A66A1FC30356003E91AA /* SKIGeo.m */,
+			);
+			path = Util;
+			sourceTree = "<group>";
+		};
+		65F63C461F963FF800A5CE56 /* VAST */ = {
+			isa = PBXGroup;
+			children = (
+				65F63C4B1F96404300A5CE56 /* SKIVASTCompressedCreative.h */,
+				65F63C4C1F96404300A5CE56 /* SKIVASTCompressedCreative.m */,
+				65F63C571F9779CB00A5CE56 /* SKIVASTUrl.h */,
+				65F63C581F9779CB00A5CE56 /* SKIVASTUrl.m */,
+			);
+			path = VAST;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		65E368641F84DE2E00245DFF /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65E36B971F8E5D4700245DFF /* SKIAdInterstitialViewController.h in Headers */,
+				65E368851F84E82800245DFF /* SKIAdBannerView.h in Headers */,
+				65582F3A1FACAE910099AC77 /* SKIObserver.h in Headers */,
+				65D1A66B1FC30356003E91AA /* SKIGeo.h in Headers */,
+				65582F361FAB358B0099AC77 /* SKIViewController.h in Headers */,
+				65E368C91F86618700245DFF /* SKIAsync.h in Headers */,
+				65E3687D1F84E78300245DFF /* SKIAdRequest.h in Headers */,
+				65F63C591F9779CB00A5CE56 /* SKIVASTUrl.h in Headers */,
+				65E36B911F8E1B8700245DFF /* SKIAdInterstitial.h in Headers */,
+				65E36B941F8E1BB700245DFF /* SKIAdInterstitialDelegate.h in Headers */,
+				65E368791F84E06B00245DFF /* SKIAdSize.h in Headers */,
+				65E368D01F87774100245DFF /* SKIAdRequestResponse.h in Headers */,
+				65E3686C1F84DE2E00245DFF /* SKIPPABLES.h in Headers */,
+				65E368BF1F862D3B00245DFF /* SKIAdRequestError.h in Headers */,
+				6531A4671FA0A74700E627C3 /* SKIAdEventTracker.h in Headers */,
+				65F63C4D1F96404300A5CE56 /* SKIVASTCompressedCreative.h in Headers */,
+				65E368D41F879A1500245DFF /* SKIAdBannerViewDelegate.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		65E368661F84DE2E00245DFF /* SKIPPABLES */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 65E3686F1F84DE2E00245DFF /* Build configuration list for PBXNativeTarget "SKIPPABLES" */;
+			buildPhases = (
+				65E368621F84DE2E00245DFF /* Sources */,
+				65E368631F84DE2E00245DFF /* Frameworks */,
+				65E368641F84DE2E00245DFF /* Headers */,
+				65E368651F84DE2E00245DFF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				65B9B03B1FB461E20093650A /* PBXTargetDependency */,
+			);
+			name = SKIPPABLES;
+			productName = SKIPPABLES;
+			productReference = 65E368671F84DE2E00245DFF /* SKIPPABLES.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		65E3685E1F84DE2E00245DFF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				CLASSPREFIX = SKI;
+				LastUpgradeCheck = 0900;
+				ORGANIZATIONNAME = Mobiblocks;
+				TargetAttributes = {
+					65E368661F84DE2E00245DFF = {
+						CreatedOnToolsVersion = 9.0;
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = 65E368611F84DE2E00245DFF /* Build configuration list for PBXProject "SKIPPABLES" */;
+			compatibilityVersion = "Xcode 8.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 65E3685D1F84DE2E00245DFF;
+			productRefGroup = 65E368681F84DE2E00245DFF /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 65B9AFEB1FB4612E0093650A /* Products */;
+					ProjectRef = 65B9AFEA1FB4612E0093650A /* SKIVAST.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				65E368661F84DE2E00245DFF /* SKIPPABLES */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		65B9AFEF1FB4612F0093650A /* SKIVAST.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SKIVAST.framework;
+			remoteRef = 65B9AFEE1FB4612F0093650A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65B9B0381FB461C10093650A /* libSKIVAST-FAT.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libSKIVAST-FAT.a";
+			remoteRef = 65B9B0371FB461C10093650A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		65E368651F84DE2E00245DFF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		65E368621F84DE2E00245DFF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65E368CA1F86618700245DFF /* SKIAsync.m in Sources */,
+				65E36B981F8E5D4700245DFF /* SKIAdInterstitialViewController.m in Sources */,
+				65E368861F84E82800245DFF /* SKIAdBannerView.m in Sources */,
+				65582F3B1FACAE910099AC77 /* SKIObserver.m in Sources */,
+				65E36B9D1F8E63AC00245DFF /* SKIConstants.m in Sources */,
+				6531A4681FA0A74700E627C3 /* SKIAdEventTracker.m in Sources */,
+				65F63C5A1F9779CB00A5CE56 /* SKIVASTUrl.m in Sources */,
+				65E36B921F8E1B8700245DFF /* SKIAdInterstitial.m in Sources */,
+				65E368C01F862D3B00245DFF /* SKIAdRequestError.m in Sources */,
+				65E3687E1F84E78300245DFF /* SKIAdRequest.m in Sources */,
+				65D1A66C1FC30356003E91AA /* SKIGeo.m in Sources */,
+				65E3687A1F84E06B00245DFF /* SKIAdSize.m in Sources */,
+				65582F371FAB358B0099AC77 /* SKIViewController.m in Sources */,
+				65E368D11F87774100245DFF /* SKIAdRequestResponse.m in Sources */,
+				65F63C4E1F96404300A5CE56 /* SKIVASTCompressedCreative.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		65B9B03B1FB461E20093650A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "SKIVAST-FAT";
+			targetProxy = 65B9B03A1FB461E20093650A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		65D1A6771FC6EFFF003E91AA /* SCBuild */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = SCBuild;
+		};
+		65D1A6781FC6EFFF003E91AA /* SCBuild */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GCC_PREPROCESSOR_DEFINITIONS = "SC_BUILD=1";
+				HEADER_SEARCH_PATHS = (
+					$SDKROOT/usr/include/libxml2,
+					"\"$PROJECT_DIR/../SKIVAST/SKIVAST\"/**",
+				);
+				INFOPLIST_FILE = SKIPPABLES/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mobiblocks.SKIPPABLES;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = SCBuild;
+		};
+		65E3686D1F84DE2E00245DFF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		65E3686E1F84DE2E00245DFF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		65E368701F84DE2E00245DFF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				HEADER_SEARCH_PATHS = (
+					$SDKROOT/usr/include/libxml2,
+					"\"$PROJECT_DIR/../SKIVAST/SKIVAST\"/**",
+				);
+				INFOPLIST_FILE = SKIPPABLES/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mobiblocks.SKIPPABLES;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		65E368711F84DE2E00245DFF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				HEADER_SEARCH_PATHS = (
+					$SDKROOT/usr/include/libxml2,
+					"\"$PROJECT_DIR/../SKIVAST/SKIVAST\"/**",
+				);
+				INFOPLIST_FILE = SKIPPABLES/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mobiblocks.SKIPPABLES;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		65E368611F84DE2E00245DFF /* Build configuration list for PBXProject "SKIPPABLES" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				65E3686D1F84DE2E00245DFF /* Debug */,
+				65E3686E1F84DE2E00245DFF /* Release */,
+				65D1A6771FC6EFFF003E91AA /* SCBuild */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		65E3686F1F84DE2E00245DFF /* Build configuration list for PBXNativeTarget "SKIPPABLES" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				65E368701F84DE2E00245DFF /* Debug */,
+				65E368711F84DE2E00245DFF /* Release */,
+				65D1A6781FC6EFFF003E91AA /* SCBuild */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 65E3685E1F84DE2E00245DFF /* Project object */;
+}
