@@ -25,7 +25,11 @@ You can also [download](https://www.skippables.com/sdk/ios) a copy of the SDK fr
 
 1. Drag and drop *SKIPPABLES.framework* inside a file group of your XCode project (usually, 'Frameworks').
 2. Be sure to check the box for 'Copy items into destination group's folder if needed' on the following window.
-3. Include the following frameworks that are not included by default:
+3. Don't forget to embed the framework in your application:
+	1. Go to the app target’s General configuration page
+	2. Add the framework target to the Embedded Binaries section by clicking the Add icon (do not drag in the framework from Finder)
+	3. Select *SKIPPABLES.framework* from the list of binaries that can be embedded.
+4. Include the following frameworks that are not included by default:
     * *AdSupport.framework*
 
 ##Banners

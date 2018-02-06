@@ -484,6 +484,13 @@ pre[class*="language-"] {
 <ol>
 <li>Drag and drop <em>SKIPPABLES.framework</em> inside a file group of your XCode project (usually, &#39;Frameworks&#39;).</li>
 <li>Be sure to check the box for &#39;Copy items into destination group&#39;s folder if needed&#39; on the following window.</li>
+<li>Don&#39;t forget to embed the framework in your application:
+
+<ol>
+<li>Go to the app target’s General configuration page</li>
+<li>Add the framework target to the Embedded Binaries section by clicking the Add icon (do not drag in the framework from Finder)</li>
+<li>Select <em>SKIPPABLES.framework</em> from the list of binaries that can be embedded.</li>
+</ol></li>
 <li>Include the following frameworks that are not included by default:
 
 <ul>
