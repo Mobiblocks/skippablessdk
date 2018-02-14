@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "SKIPPABLES/SKIPPABLES/Classes/SKIAdInterstitialViewController.m"
-            timestampString = "537450518.766634"
+            timestampString = "540317248.145658"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "159"
-            endingLineNumber = "159"
+            startingLineNumber = "162"
+            endingLineNumber = "162"
             landmarkName = "-preloadWithResponse:"
             landmarkType = "7">
             <Locations>
@@ -26,11 +26,11 @@
                   moduleName = "SKIPPABLES"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/daniel/Dev/iOS/skipp/repo/skippablessdk/iOS/SDK/SKIPPABLES/SKIPPABLES/Classes/SKIAdInterstitialViewController.m"
-                  timestampString = "537450544.734156"
+                  timestampString = "540317248.34324"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "159"
-                  endingLineNumber = "159"
+                  startingLineNumber = "162"
+                  endingLineNumber = "162"
                   offsetFromSymbolStart = "548">
                </Location>
                <Location
@@ -41,11 +41,11 @@
                   moduleName = "SKIPPABLES"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/daniel/Dev/iOS/skipp/repo/skippablessdk/iOS/SDK/SKIPPABLES/SKIPPABLES/Classes/SKIAdInterstitialViewController.m"
-                  timestampString = "537450544.7363811"
+                  timestampString = "540317248.34822"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "160"
-                  endingLineNumber = "160"
+                  startingLineNumber = "163"
+                  endingLineNumber = "163"
                   offsetFromSymbolStart = "26">
                </Location>
             </Locations>
@@ -58,11 +58,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "SKIPPABLES/SKIPPABLES/Classes/SKIAdInterstitialViewController.m"
-            timestampString = "537450518.766989"
+            timestampString = "540317248.145738"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "170"
-            endingLineNumber = "170"
+            startingLineNumber = "173"
+            endingLineNumber = "173"
             landmarkName = "-preloadWithResponse:"
             landmarkType = "7">
          </BreakpointContent>
@@ -74,11 +74,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "SKIPPABLES/SKIPPABLES/Classes/SKIAdInterstitialViewController.m"
-            timestampString = "537450518.767234"
+            timestampString = "540317248.1457959"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "560"
-            endingLineNumber = "560"
+            startingLineNumber = "563"
+            endingLineNumber = "563"
             landmarkName = "-prepareAdPlayerWithFail:"
             landmarkType = "7">
          </BreakpointContent>
@@ -90,11 +90,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "SKIPPABLES/SKIPPABLES/Classes/SKIAdInterstitialViewController.m"
-            timestampString = "537450518.7675591"
+            timestampString = "540317248.1458499"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "184"
-            endingLineNumber = "184"
+            startingLineNumber = "187"
+            endingLineNumber = "187"
             landmarkName = "-loadVastFromXmlString:callback:"
             landmarkType = "7">
          </BreakpointContent>
@@ -106,12 +106,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "SKIPPABLES/SKIPPABLES/Classes/SKIAdInterstitialViewController.m"
-            timestampString = "537450518.767791"
+            timestampString = "540317248.145903"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "648"
-            endingLineNumber = "648"
-            landmarkName = "-prepareAdView"
+            startingLineNumber = "1241"
+            endingLineNumber = "1241"
+            landmarkName = "-handleTapGesture:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -121,13 +121,13 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "SKIPPABLES_Sample/SKIPPABLES_Sample/ViewController.m"
-            timestampString = "537450518.768193"
+            filePath = "SKIPPABLES/SKIPPABLES/Classes/SKIAdInterstitialViewController.m"
+            timestampString = "540317248.1459481"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "38"
-            endingLineNumber = "38"
-            landmarkName = "-viewDidLoad"
+            startingLineNumber = "1285"
+            endingLineNumber = "1285"
+            landmarkName = "-showSkip"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -137,13 +137,61 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "SKIPPABLES_Sample/SKIPPABLES_Sample/ViewController.m"
-            timestampString = "537450518.768245"
+            filePath = "SKIPPABLES/SKIPPABLES/Classes/SKIAdInterstitialViewController.m"
+            timestampString = "540317248.145992"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "34"
-            endingLineNumber = "34"
-            landmarkName = "-viewDidLoad"
+            startingLineNumber = "1315"
+            endingLineNumber = "1315"
+            landmarkName = "-showReport"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "SKIPPABLES/SKIPPABLES/Classes/SKIAdBannerView.m"
+            timestampString = "540317248.146051"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "131"
+            endingLineNumber = "131"
+            landmarkName = "-webView:shouldStartLoadWithRequest:navigationType:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "SKIPPABLES/SKIPPABLES/Classes/SKIAdBannerView.m"
+            timestampString = "540317248.146376"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "104"
+            endingLineNumber = "104"
+            landmarkName = "-skiAdRequest:didReceiveResponse:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "SKIPPABLES/SKIPPABLES/Classes/SKIAdBannerView.m"
+            timestampString = "540317248.146602"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "162"
+            endingLineNumber = "162"
+            landmarkName = "-webViewDidFinishLoad:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

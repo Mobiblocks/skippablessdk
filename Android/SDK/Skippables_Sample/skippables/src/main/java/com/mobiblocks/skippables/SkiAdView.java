@@ -38,20 +38,24 @@ public class SkiAdView extends ViewGroup {
 
     public SkiAdView(Context context) {
         super(context);
+        setClipChildren(true);
     }
 
     public SkiAdView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        setClipChildren(true);
     }
 
     public SkiAdView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        setClipChildren(true);
     }
 
     @SuppressWarnings("unused")
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public SkiAdView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+        setClipChildren(true);
     }
 
     @Override
@@ -208,11 +212,11 @@ public class SkiAdView extends ViewGroup {
                     public void onPageFinished(WebView view, String url) {
                         super.onPageFinished(view, url);
                         view.getSettings().setJavaScriptEnabled(true);
-//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-//                            view.evaluateJavascript("document.body.style.margin='0';document.body.style.padding='0';", null);
-//                        } else {
-                        view.loadUrl("javascript:(function() {document.body.style.margin='0';document.body.style.padding='0';})();");
-//                        }
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                            view.evaluateJavascript("document.body.style.margin='0';document.body.style.padding='0';", null);
+                        } else {
+                            view.loadUrl("javascript:(function() {document.body.style.margin='0';document.body.style.padding='0';})();");
+                        }
                         view.getSettings().setJavaScriptEnabled(false);
                         view.setVisibility(VISIBLE);
                     }

@@ -32,6 +32,7 @@
 {
 	self = [super initWithFrame:frame];
 	if (self) {
+		self.clipsToBounds = YES;
 		self.adSize = kSKIAdSizeBanner;
 	}
 	return self;
@@ -41,6 +42,7 @@
 {
 	self = [super initWithCoder:coder];
 	if (self) {
+		self.clipsToBounds = YES;
 		self.adSize = kSKIAdSizeBanner;
 	}
 	return self;
