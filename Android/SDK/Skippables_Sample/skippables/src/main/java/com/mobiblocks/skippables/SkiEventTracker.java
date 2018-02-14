@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,7 +19,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
-import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -42,13 +42,19 @@ class SkiEventTracker {
     private final File installFile;
     private boolean isConnected;
 
-    private HashMap<UUID, EventDatePair> events = new HashMap<>();
+    private HashMap<UUID, P> events = new HashMap<>();
 
     private URL installUrl;
+    private URL infringementUrl;
 
     private SkiEventTracker(final Context applicationContext) {
         try {
             installUrl = new URL(SKIConstants.GetInstallUrl());
+        } catch (MalformedURLException ignore) {
+            //impossible
+        }
+        try {
+            infringementUrl = new URL(SKIConstants.GetInfringementReportUrl());
         } catch (MalformedURLException ignore) {
             //impossible
         }
@@ -110,10 +116,10 @@ class SkiEventTracker {
 
                 Date date = new Date();
                 //noinspection unchecked
-                ArrayList<EventDatePair> eventPairs = (ArrayList<EventDatePair>) objectInputStream.readObject();
-                for (EventDatePair pair :
+                ArrayList<P> eventPairs = (ArrayList<P>) objectInputStream.readObject();
+                for (P pair :
                         eventPairs) {
-                    Date eventDate = pair.date;
+                    Date eventDate = pair.e;
                     if (eventDate.before(date)) {
                         continue;
                     }
@@ -121,6 +127,7 @@ class SkiEventTracker {
                     events.put(UUID.randomUUID(), pair);
                 }
             } catch (IOException | ClassNotFoundException ignored) {
+                Dl("read: " + ignored);
             } finally {
                 if (fileInputStream != null) {
                     try {
@@ -179,7 +186,7 @@ class SkiEventTracker {
 
             //noinspection ResultOfMethodCallIgnored
             installFile.createNewFile();
-            
+
             trackEventRequest(installUrl, NO_EXPIRE, data);
         } catch (JSONException | IOException ignored) {
         }
@@ -187,11 +194,11 @@ class SkiEventTracker {
 
     private void maybeResendEvents() {
         Date current = new Date();
-        for (Map.Entry<UUID, EventDatePair> entry :
+        for (Map.Entry<UUID, P> entry :
                 events.entrySet()) {
             UUID uuid = entry.getKey();
-            EventDatePair pair = entry.getValue();
-            Date eventDate = pair.date;
+            P pair = entry.getValue();
+            Date eventDate = pair.e;
             if (eventDate.before(current)) {
                 events.remove(uuid);
                 continue;
@@ -205,13 +212,18 @@ class SkiEventTracker {
         trackEventRequest(url, new Date(System.currentTimeMillis() + 86400 * 1000), null);
     }
 
+    @SuppressWarnings("WeakerAccess")
+    void trackEventRequest(final URL url, final JSONObject data) {
+        trackEventRequest(url, new Date(System.currentTimeMillis() + 86400 * 1000), data);
+    }
+
     private void trackEventRequest(final URL url, final Date expires, final JSONObject data) {
         final UUID uuid = UUID.randomUUID();
-
+        Dl("trackEventRequest: " + url);
         SerialTask.run(new Runnable() {
             @Override
             public void run() {
-                events.put(uuid, EventDatePair.pair(url, expires, data));
+                events.put(uuid, P.pair(url, expires, data));
                 savedEvents();
             }
         }, new Runnable() {
@@ -222,18 +234,27 @@ class SkiEventTracker {
         });
     }
 
+    void trackInfringementReport(InfringementReport report) {
+        try {
+            trackEventRequest(infringementUrl, report.buildJSON());
+        } catch (JSONException e) {
+            Dl("report: " + e);
+        }
+    }
+
     private void makeRequestEvent(final UUID uuid) {
-        EventDatePair pair = events.get(uuid);
+        P pair = events.get(uuid);
         if (pair == null) {
             return;
         }
 
+        Dl("makeRequestEvent: " + pair.u);
         HttpURLConnection urlConnection = null;
         OutputStreamWriter out = null;
         try {
-            JSONObject data = pair.getData();
-            
-            urlConnection = (HttpURLConnection) pair.url.openConnection();
+            JSONObject data = pair.getD();
+
+            urlConnection = (HttpURLConnection) pair.u.openConnection();
             urlConnection.setConnectTimeout(15 * 1000);
             urlConnection.setReadTimeout(15 * 1000);
             urlConnection.setRequestProperty("Connection", "close");
@@ -264,8 +285,10 @@ class SkiEventTracker {
                     }
                 });
             }
-        } catch (IOException ignored) {
 
+            Dl("makeRequestEvent: " + statusCode + ":" + pair.u);
+        } catch (IOException ignored) {
+            Dl("makeRequestEvent: " + pair.u + ":" + ignored);
         } finally {
             if (out != null) {
                 try {
@@ -302,33 +325,9 @@ class SkiEventTracker {
         }
     }
 
-    private static class EventDatePair implements Serializable {
-        private static final long serialVersionUID = 1352111171012111124L;
-
-        private final URL url;
-        private final Date date;
-        private final String data;
-
-        private EventDatePair(URL url, Date date, JSONObject data) {
-            this.date = date;
-            this.url = url;
-            this.data = data == null ? null : data.toString();
-        }
-
-        static EventDatePair pair(URL url, Date expires, JSONObject data) {
-            return new EventDatePair(url, expires, data);
-        }
-
-        public JSONObject getData() {
-            if (data == null) {
-                return null;
-            }
-            
-            try {
-                return new JSONObject(data);
-            } catch (JSONException e) {
-                return null;
-            }
+    private static void Dl(String l) {
+        if (BuildConfig.DEBUG) {
+            Log.d("skippables", l);
         }
     }
 
@@ -346,6 +345,78 @@ class SkiEventTracker {
 
         static void run(Runnable... runnables) {
             new SerialTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, runnables);
+        }
+    }
+
+    static InfringementReport infringementReport() {
+        return new InfringementReport();
+    }
+
+    static InfringementReport infringementReport(SkiAdInfo adInfo) {
+        return new InfringementReport(adInfo);
+    }
+
+    static InfringementReport infringementReport(SkiAdRequestResponse response) {
+        return new InfringementReport(response.getAdInfo());
+    }
+
+    static class InfringementReport {
+        private String adId;
+        private String adUnitId;
+        private String deviceInfoJsonString;
+
+
+        private String email;
+        private String message;
+
+        InfringementReport() {
+        }
+
+        InfringementReport(SkiAdInfo adInfo) {
+            adId = adInfo.getAdId();
+            adUnitId = adInfo.getAdUnitId();
+            deviceInfoJsonString = adInfo.getDeviceInfoJsonString();
+        }
+
+        InfringementReport setAdId(String adId) {
+            this.adId = adId;
+
+            return this;
+        }
+
+        InfringementReport setAdUnitId(String adUnitId) {
+            this.adUnitId = adUnitId;
+
+            return this;
+        }
+
+        InfringementReport setDeviceInfoJsonString(String deviceInfoJsonString) {
+            this.deviceInfoJsonString = deviceInfoJsonString;
+
+            return this;
+        }
+
+        InfringementReport setEmail(String email) {
+            this.email = email;
+
+            return this;
+        }
+
+        InfringementReport setMessage(String message) {
+            this.message = message;
+
+            return this;
+        }
+
+        private JSONObject buildJSON() throws JSONException {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("adid", adId);
+            jsonObject.put("adunitid", adUnitId);
+            jsonObject.put("email", email);
+            jsonObject.put("message", message);
+            jsonObject.put("deviceinfo", deviceInfoJsonString);
+
+            return jsonObject;
         }
     }
 }

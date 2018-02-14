@@ -592,7 +592,7 @@ public class SkiAdRequest {
         return new Builder();
     }
 
-    private String getAdUnitId() {
+     String getAdUnitId() {
         return adUnitId;
     }
 

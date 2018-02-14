@@ -5,9 +5,12 @@ import android.annotation.TargetApi;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +18,7 @@ import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.TextView;
 
 import static com.mobiblocks.skippables.SkiAdRequest.ERROR_INVALID_ARGUMENT;
 
@@ -29,6 +33,7 @@ public class SkiAdView extends ViewGroup {
     private SkiAdSize mAdSize = SkiAdSize.BANNER;
     private SkiAdListener mAdListener;
     private WebView mWebView;
+    private TextView mReportView;
     private boolean mLoading;
 
     public SkiAdView(Context context) {
@@ -75,6 +80,14 @@ public class SkiAdView extends ViewGroup {
             int wb = wt + ah;
             mWebView.layout(wl, wt, wr, wb);
         }
+        
+        if (mReportView != null) {
+            int rl = 0;
+            int rt = 0;
+            int rw = mReportView.getMeasuredWidth();
+            int rh = mReportView.getMeasuredHeight();
+            mReportView.layout(rl, rt, rl + rw, rt + rh);
+        }
     }
 
     @Override
@@ -82,21 +95,27 @@ public class SkiAdView extends ViewGroup {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int measuredWidth = 0;
         int measuredHeight = 0;
-        if(mWebView != null && mWebView.getVisibility() != View.GONE) {
+        if (mWebView != null && mWebView.getVisibility() != View.GONE) {
             this.measureChild(mWebView, widthMeasureSpec, heightMeasureSpec);
             measuredWidth = mWebView.getMeasuredWidth();
             measuredHeight = mWebView.getMeasuredHeight();
         } else {
-            if(mAdSize != null) {
-                Context var7 = this.getContext();
-                measuredWidth = mAdSize.getWidthInPixels(var7);
-                measuredHeight = mAdSize.getHeightInPixels(var7);
+            if (mAdSize != null) {
+                Context context = this.getContext();
+                measuredWidth = mAdSize.getWidthInPixels(context);
+                measuredHeight = mAdSize.getHeightInPixels(context);
             }
         }
 
         measuredWidth = Math.max(measuredWidth, this.getSuggestedMinimumWidth());
         measuredHeight = Math.max(measuredHeight, this.getSuggestedMinimumHeight());
         this.setMeasuredDimension(View.resolveSize(measuredWidth, widthMeasureSpec), View.resolveSize(measuredHeight, heightMeasureSpec));
+
+        if (mReportView != null) {
+            int childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(measuredWidth, MeasureSpec.AT_MOST);
+            int childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(measuredHeight, MeasureSpec.AT_MOST);
+            mReportView.measure(childWidthMeasureSpec, childHeightMeasureSpec);
+        }
     }
 
     @SuppressWarnings("unused")
@@ -104,7 +123,7 @@ public class SkiAdView extends ViewGroup {
         if (isLoading()) {
             return;
         }
-        
+
         if (mAdUnitId == null || mAdUnitId.isEmpty()) {
             throw new IllegalArgumentException("AdUnitId is empty");
         }
@@ -117,6 +136,7 @@ public class SkiAdView extends ViewGroup {
         mRequest.setAdUnitId(mAdUnitId);
         mRequest.load(getContext(), new SkiAdRequestListener() {
 
+            @SuppressLint("ClickableViewAccessibility")
             @Override
             public void onResponse(final SkiAdRequestResponse response) {
                 mLoading = false;
@@ -132,7 +152,7 @@ public class SkiAdView extends ViewGroup {
                     }
                     return;
                 }
-                
+
                 String htmlData = response.getHtmlSnippet();
                 mWebView = new WebView(getContext());
                 mWebView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
@@ -144,15 +164,14 @@ public class SkiAdView extends ViewGroup {
                     }
                 });
                 mWebView.setWebViewClient(new WebViewClient() {
-                    private boolean hitTypeIsLink(int hitType)
-                    {
+                    private boolean hitTypeIsLink(int hitType) {
                         return hitType == WebView.HitTestResult.ANCHOR_TYPE
                                 || hitType == WebView.HitTestResult.IMAGE_ANCHOR_TYPE
                                 || hitType == WebView.HitTestResult.SRC_ANCHOR_TYPE
                                 || hitType == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE;
                     }
 
-                    private void TryOpenAnyBrowser(Uri uri) {
+                    private void tryOpenAnyBrowser(Uri uri) {
                         Intent intent = new Intent(Intent.ACTION_VIEW);
                         intent.setData(uri);
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -172,7 +191,7 @@ public class SkiAdView extends ViewGroup {
                                 }
                             }
                         }
-                        
+
                         if (mAdListener != null) {
                             final int errorCode = response.getErrorCode();
                             post(new Runnable() {
@@ -183,6 +202,7 @@ public class SkiAdView extends ViewGroup {
                             });
                         }
                     }
+
                     @SuppressLint("SetJavaScriptEnabled")
                     @Override
                     public void onPageFinished(WebView view, String url) {
@@ -191,7 +211,7 @@ public class SkiAdView extends ViewGroup {
 //                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
 //                            view.evaluateJavascript("document.body.style.margin='0';document.body.style.padding='0';", null);
 //                        } else {
-                            view.loadUrl("javascript:(function() {document.body.style.margin='0';document.body.style.padding='0';})();");
+                        view.loadUrl("javascript:(function() {document.body.style.margin='0';document.body.style.padding='0';})();");
 //                        }
                         view.getSettings().setJavaScriptEnabled(false);
                         view.setVisibility(VISIBLE);
@@ -213,17 +233,17 @@ public class SkiAdView extends ViewGroup {
                         WebView.HitTestResult hr = view.getHitTestResult();
                         int hitType = hr != null ? hr.getType() : WebView.HitTestResult.UNKNOWN_TYPE;
                         if (hitTypeIsLink(hitType)) {
-                            TryOpenAnyBrowser(Uri.parse(url));
+                            tryOpenAnyBrowser(Uri.parse(url));
                             return true;
                         } else {
                             if (hitType == WebView.HitTestResult.EMAIL_TYPE ||
                                     hitType == WebView.HitTestResult.GEO_TYPE ||
                                     hitType == WebView.HitTestResult.PHONE_TYPE) {
-                                TryOpenAnyBrowser(Uri.parse(url));
+                                tryOpenAnyBrowser(Uri.parse(url));
                                 return true;
                             }
                         }
-                        
+
                         return super.shouldOverrideUrlLoading(view, url);
                     }
 
@@ -235,6 +255,54 @@ public class SkiAdView extends ViewGroup {
                 mWebView.loadData(htmlData, "text/html", "utf8");
                 mWebView.setVisibility(INVISIBLE);
                 SkiAdView.this.addView(mWebView, new ViewGroup.LayoutParams(mAdSize.getWidthInPixels(getContext()), mAdSize.getHeightInPixels(getContext())));
+
+                if (response.getAdInfo() != null) {
+                    mReportView = new TextView(getContext());
+                    mReportView.setText(R.string.skippables_ad_report);
+                    mReportView.setTextSize(11);
+                    mReportView.setTextColor(Color.rgb(70, 130, 180));
+                    mReportView.setBackgroundColor(Color.argb(178, 51, 51, 51));
+                    int plr = px(0);
+                    int ptb = px(0);
+                    mReportView.setPadding(plr, ptb, plr, ptb);
+                    mReportView.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            SkiAdReportActivity.show(getContext(), new SkiAdReportActivity.SkiAdReportListener() {
+                                @Override
+                                public void onResult(boolean canceled, Intent data) {
+                                    if (canceled) {
+                                        return;
+                                    }
+                                    
+                                    String email = SkiAdReportActivity.getEmail(data);
+                                    String feedback = SkiAdReportActivity.getFeedback(data);
+
+                                    SkiEventTracker.getInstance(getContext())
+                                            .trackInfringementReport(
+                                                    SkiEventTracker.infringementReport(response)
+                                                            .setEmail(email)
+                                                            .setMessage(feedback));
+
+                                    if (mAdListener != null) {
+                                        post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                mAdListener.onAdFailedToLoad(SkiAdRequest.ERROR_NO_FILL);
+                                                
+                                                mWebView = null;
+                                                mReportView = null;
+                                                removeAllViews();
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    });
+
+                    SkiAdView.this.addView(mReportView, new ViewGroup.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+                }
 
                 if (mAdListener != null) {
                     post(new Runnable() {
@@ -278,7 +346,7 @@ public class SkiAdView extends ViewGroup {
             setMinimumWidth(0);
             setMinimumHeight(0);
         }
-        
+
         requestLayout();
 //        LayoutParams params = getLayoutParams();
 //        if (params != null) {
@@ -292,6 +360,11 @@ public class SkiAdView extends ViewGroup {
 //
 //            super.setLayoutParams(params);
 //        }
+    }
+
+    private int px(float dp) {
+        Resources r = getResources();
+        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics()));
     }
 
     public boolean isLoading() {

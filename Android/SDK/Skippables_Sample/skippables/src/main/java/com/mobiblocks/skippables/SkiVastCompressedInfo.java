@@ -63,9 +63,9 @@ class SkiVastCompressedInfo implements Parcelable {
 
         trackings = in.createTypedArrayList(MediaFile.Tracking.CREATOR);
 
-        String urlString = in.readString();
-        if (urlString != null && !urlString.isEmpty()) {
-            clickThrough = new URL(urlString);
+        String clickThroughString = in.readString();
+        if (clickThroughString != null && !clickThroughString.isEmpty()) {
+            clickThrough = new URL(clickThroughString);
         }
 
         clickTrackings = toURLArray(in.createStringArrayList());

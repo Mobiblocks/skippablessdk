@@ -47,3 +47,5 @@
 -keep public class com.mobiblocks.skippables.Skippables {
     public *;
 }
+
+-keep class com.mobiblocks.skippables.P { *; }

@@ -46,7 +46,7 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
             return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_INTERNAL_ERROR);
         }
 
-        String urlString = SKIConstants.GetApiUrl(adRequest.getAdType());
+        String urlString = SKIConstants.GetAdApiUrl(adRequest.getAdType());
         OutputStreamWriter out = null;
         HttpURLConnection urlConnection = null;
         try {
@@ -99,6 +99,12 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
                         String tempDir = listener.onGetTempDirectory() + "/" + mediaFile.getValue().hashCode() + ".mp4";
                         response.getVastInfo().setLocalMediaFile(tempDir);
                         downloadMediaFile(mediaFile.getValue(), tempDir);
+                    }
+                    
+                    response.getAdInfo().setAdUnitId(adRequest.getAdUnitId());
+                    JSONObject deviceInfo = requestJson.optJSONObject("device");
+                    if (deviceInfo != null) {
+                        response.getAdInfo().setDeviceInfoJsonString(deviceInfo.toString());
                     }
 
                     return response;

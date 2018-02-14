@@ -38,8 +38,11 @@ class SkiAdRequestResponse {
     private int errorCode = SkiAdRequest.ERROR_NO_ERROR;
     @VastError.AdVastError
     private int vastErrorCode = VastError.VAST_NO_ERROR_CODE;
+
     private String htmlSnippet;
     private SkiVastCompressedInfo vast;
+
+    private final SkiAdInfo adInfo = new SkiAdInfo();
 
     @SuppressWarnings("WeakerAccess")
     static SkiAdRequestResponse response() {
@@ -47,11 +50,11 @@ class SkiAdRequestResponse {
     }
 
     static SkiAdRequestResponse withError(@SkiAdRequest.AdError int errorCode) {
-        return new SkiAdRequestResponse(SkiAdRequest.ERROR_RECEIVED_INVALID_RESPONSE, errorCode);
+        return new SkiAdRequestResponse(errorCode);
     }
 
     static SkiAdRequestResponse withVastError(@VastError.AdVastError int vastErrorCode) {
-        return new SkiAdRequestResponse(vastErrorCode);
+        return new SkiAdRequestResponse(SkiAdRequest.ERROR_RECEIVED_INVALID_RESPONSE, vastErrorCode);
     }
 
     private SkiAdRequestResponse() {
@@ -84,9 +87,9 @@ class SkiAdRequestResponse {
     int getErrorCode() {
         return errorCode;
     }
-    
+
     @VastError.AdVastError
-    public int getVastErrorCode() {
+    int getVastErrorCode() {
         return vastErrorCode;
     }
 
@@ -104,6 +107,10 @@ class SkiAdRequestResponse {
 
     private void setVastInfo(SkiVastCompressedInfo vast) {
         this.vast = vast;
+    }
+
+    SkiAdInfo getAdInfo() {
+        return adInfo;
     }
 
     static SkiAdRequestResponse create(JSONObject object) {
@@ -145,6 +152,7 @@ class SkiAdRequestResponse {
 
                     SkiAdRequestResponse response = new SkiAdRequestResponse();
                     response.setVastInfo(compressedInfo);
+                    response.adInfo.setAdId(ad.getId());
 
                     return response;
                 } catch (VastException e) {

@@ -37,11 +37,14 @@ import java.util.TimerTask;
 
 public class SkiAdInterstitialActivity extends Activity {
 
-    private static final String EXTRA_VAST_INFO = "EXTRA_VAST_INFO";
     private static final String EXTRA_UID = "EXTRA_UID";
+    private static final String EXTRA_AD_INFO = "EXTRA_AD_INFO";
+    private static final String EXTRA_VAST_INFO = "EXTRA_VAST_INFO";
+
     private SkiVastCompressedInfo mVastInfo;
     private TextView mSkipView;
     private TextView mCloseView;
+    private TextView mReportView;
     private Timer myTimer;
     private Runnable mTimerTick = new Runnable() {
         @Override
@@ -58,12 +61,12 @@ public class SkiAdInterstitialActivity extends Activity {
     private boolean mShownOnce;
 
     private boolean mStateSaved;
-    private int mRestoredPosition;
 
-    static Intent getIntent(@NonNull Context context, @NonNull String uid, @NonNull SkiVastCompressedInfo vastInfo) {
+    static Intent getIntent(@NonNull Context context, @NonNull String uid, @NonNull SkiAdInfo adInfo, @NonNull SkiVastCompressedInfo vastInfo) {
         Intent intent = new Intent(context, SkiAdInterstitialActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra(SkiAdInterstitialActivity.EXTRA_UID, uid);
+        intent.putExtra(SkiAdInterstitialActivity.EXTRA_AD_INFO, adInfo);
         intent.putExtra(SkiAdInterstitialActivity.EXTRA_VAST_INFO, vastInfo);
 
         return intent;
@@ -71,6 +74,10 @@ public class SkiAdInterstitialActivity extends Activity {
 
     static SkiVastCompressedInfo getVastInfo(Intent intent) {
         return intent.getParcelableExtra(EXTRA_VAST_INFO);
+    }
+
+    static SkiAdInfo getAdInfo(Intent intent) {
+        return intent.getParcelableExtra(EXTRA_AD_INFO);
     }
 
     static String getUid(Intent intent) {
@@ -90,6 +97,7 @@ public class SkiAdInterstitialActivity extends Activity {
             finishInterstitial(false);
             return;
         }
+
         if (mVastInfo.isMaybeShownInLandscape()) {
             int orientation = getScreenOrientation(this);
             switch (orientation) {
@@ -219,6 +227,50 @@ public class SkiAdInterstitialActivity extends Activity {
 
         mRelativeLayout.addView(mCloseView);
 
+        final SkiAdInfo adInfo = getAdInfo(getIntent());
+        if (adInfo != null) {
+            mReportView = new TextView(this);
+            mReportView.setVisibility(View.GONE);
+            mReportView.setText(R.string.skippables_interstitial_report);
+            mReportView.setTextSize(13);
+            mReportView.setTextColor(Color.rgb(70, 130, 180));
+            mReportView.setBackgroundColor(Color.argb(178, 51, 51, 51));
+            int plr = px(5);
+            int ptb = px(2);
+            mReportView.setPadding(plr, ptb, plr, ptb);
+            mReportView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    SkiAdReportActivity.show(SkiAdInterstitialActivity.this, new SkiAdReportActivity.SkiAdReportListener() {
+                        @Override
+                        public void onResult(boolean canceled, Intent data) {
+                            if (!canceled) {
+                                String email = SkiAdReportActivity.getEmail(data);
+                                String feedback = SkiAdReportActivity.getFeedback(data);
+
+                                SkiEventTracker.getInstance(SkiAdInterstitialActivity.this)
+                                        .trackInfringementReport(
+                                                SkiEventTracker.infringementReport(adInfo)
+                                                        .setEmail(email)
+                                                        .setMessage(feedback));
+
+                                finishInterstitial(true);
+                            }
+                        }
+                    });
+                }
+            });
+
+            RelativeLayout.LayoutParams reportViewLayoutParams = new RelativeLayout.LayoutParams(
+                    RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+
+            reportViewLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+            reportViewLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            reportViewLayoutParams.setMargins(0, 0, 0, 0);
+
+            mRelativeLayout.addView(mReportView, reportViewLayoutParams);
+        }
+
         updateCloseView(false);
         updateSkipView(false);
 
@@ -241,7 +293,7 @@ public class SkiAdInterstitialActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        
+
         outState.putInt("__savedPosition", mVideoView.getCurrentPosition());
 
         mStateSaved = true;
@@ -251,9 +303,9 @@ public class SkiAdInterstitialActivity extends Activity {
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
 
-        mRestoredPosition = savedInstanceState.getInt("__savedPosition", 0);
-        if (mRestoredPosition > 0 && mVideoView != null) {
-            mVideoView.seekTo(mRestoredPosition);
+        int restoredPosition = savedInstanceState.getInt("__savedPosition", 0);
+        if (restoredPosition > 0 && mVideoView != null) {
+            mVideoView.seekTo(restoredPosition);
         }
         mStateSaved = false;
     }
@@ -262,35 +314,38 @@ public class SkiAdInterstitialActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        maybeScheduleTicker();
-        if (!mVideoView.isPlaying()) {
-            mVideoView.start();
-        }
-
-        if (!mShownOnce) {
-            mShownOnce = true;
-
-            //noinspection ConstantConditions
-            URL assetURL = mVastInfo.findBestMediaFile(this).getValue();
-            Util.VastUrlMacros builder = Util.VastUrlMacros.builder()
-                    .setAssetUrl(assetURL)
-                    .setContentPlayAhead(0);
-            ArrayList<URL> impressions = mVastInfo.getImpressionUrls();
-            for (URL url : impressions) {
-                URL macrosed = builder.build(url);
-                SkiEventTracker.getInstance(this).trackEventRequest(macrosed);
+        hideEverything();
+        if (!mCompleted) {
+            maybeScheduleTicker();
+            if (!mVideoView.isPlaying()) {
+                mVideoView.start();
             }
 
-            for (SkiVastCompressedInfo.MediaFile.Tracking tracking :
-                    mVastInfo.getTrackings()) {
+            if (!mShownOnce) {
+                mShownOnce = true;
+
                 //noinspection ConstantConditions
-                if (tracking.getValue() == null) {
-                    continue;
-                }
-                String event = tracking.getEvent();
-                if ("start".equalsIgnoreCase(event)) {
-                    URL macrosed = builder.build(tracking.getValue());
+                URL assetURL = mVastInfo.findBestMediaFile(this).getValue();
+                Util.VastUrlMacros builder = Util.VastUrlMacros.builder()
+                        .setAssetUrl(assetURL)
+                        .setContentPlayAhead(0);
+                ArrayList<URL> impressions = mVastInfo.getImpressionUrls();
+                for (URL url : impressions) {
+                    URL macrosed = builder.build(url);
                     SkiEventTracker.getInstance(this).trackEventRequest(macrosed);
+                }
+
+                for (SkiVastCompressedInfo.MediaFile.Tracking tracking :
+                        mVastInfo.getTrackings()) {
+                    //noinspection ConstantConditions
+                    if (tracking.getValue() == null) {
+                        continue;
+                    }
+                    String event = tracking.getEvent();
+                    if ("start".equalsIgnoreCase(event)) {
+                        URL macrosed = builder.build(tracking.getValue());
+                        SkiEventTracker.getInstance(this).trackEventRequest(macrosed);
+                    }
                 }
             }
         }
@@ -300,9 +355,11 @@ public class SkiAdInterstitialActivity extends Activity {
     protected void onPause() {
         super.onPause();
 
-        maybeUnscheduleTicker();
-        if (mVideoView.isPlaying()) {
-            mVideoView.pause();
+        if (!mCompleted) {
+            maybeUnscheduleTicker();
+            if (mVideoView.isPlaying()) {
+                mVideoView.pause();
+            }
         }
     }
 
@@ -407,8 +464,10 @@ public class SkiAdInterstitialActivity extends Activity {
         if (completed) {
             mCloseView.setEnabled(true);
             mCloseView.setText(R.string.skippables_interstitial_close);
+            mReportView.setVisibility(View.VISIBLE);
             return;
         }
+        mReportView.setVisibility(View.GONE);
 
         int duration = getAnyDuration();
         int currentPosition = mVideoView.getCurrentPosition() / 1000;
@@ -425,34 +484,39 @@ public class SkiAdInterstitialActivity extends Activity {
 
     private void updateSkipView(boolean completed) {
         if (completed) {
-            mSkipView.setVisibility(View.GONE);
+            mReportView.setVisibility(View.VISIBLE);
+//            mSkipView.setVisibility(View.GONE);
             return;
         }
 
         VastTime vastTime = mVastInfo.getSkipOffset();
         if (vastTime == null) {
-            mSkipView.setVisibility(View.GONE);
+            mReportView.setVisibility(View.VISIBLE);
+//            mSkipView.setVisibility(View.GONE);
             return;
         }
 
         int duration = getAnyDuration();
         int skippOffset = vastTime.getOffset(duration);
         if (skippOffset < 0 || skippOffset >= duration) {
-            mSkipView.setVisibility(View.GONE);
+//            mReportView.setVisibility(View.VISIBLE);
+//            mSkipView.setVisibility(View.GONE);
             return;
         }
 
-        mSkipView.setVisibility(View.VISIBLE);
-
         int currentPosition = mVideoView.getCurrentPosition() / 1000;
         if (currentPosition >= duration) {
-            mSkipView.setVisibility(View.GONE);
-            mSkipView.setEnabled(false);
+//            mSkipView.setVisibility(View.GONE);
+            mReportView.setVisibility(View.VISIBLE);
+            mSkipView.setEnabled(true);
         } else if (currentPosition >= skippOffset) {
+            mReportView.setVisibility(View.VISIBLE);
+            mSkipView.setVisibility(View.VISIBLE);
             mSkipView.setText(R.string.skippables_interstitial_skip);
             mSkipView.setTextColor(Color.WHITE);
             mSkipView.setEnabled(true);
         } else {
+            mSkipView.setVisibility(View.VISIBLE);
             mSkipView.setTextColor(Color.rgb(153, 153, 153));
             mSkipView.setEnabled(false);
             int remaining = Math.round(skippOffset - currentPosition);
@@ -615,7 +679,7 @@ public class SkiAdInterstitialActivity extends Activity {
         if (clickUrl != null) {
             if (clickUrl.getProtocol().equalsIgnoreCase("http") ||
                     clickUrl.getProtocol().equalsIgnoreCase("https")) {
-                left = TryOpenAnyBrowser(Uri.parse(clickUrl.toString()));
+                left = tryOpenAnyBrowser(Uri.parse(clickUrl.toString()));
             } else {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(Uri.parse(clickUrl.toString()));
@@ -631,7 +695,7 @@ public class SkiAdInterstitialActivity extends Activity {
         }
     }
 
-    private boolean TryOpenAnyBrowser(Uri uri) {
+    private boolean tryOpenAnyBrowser(Uri uri) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(uri);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -651,7 +715,7 @@ public class SkiAdInterstitialActivity extends Activity {
                 }
             }
         }
-        
+
         return true;
     }
 

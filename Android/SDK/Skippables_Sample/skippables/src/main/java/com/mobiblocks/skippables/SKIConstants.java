@@ -8,14 +8,16 @@ package com.mobiblocks.skippables;
 
 final class SKIConstants {
     static final String UNIT_ID_KEY = SkiConf.UNIT_ID_KEY;
-//    private static final String API_BANNER_URL = "http://10.0.0.50/tek/banner";
-//    private static final String API_VIDEO_URL = "http://10.0.0.50/tek/video";
-//    private static final String INSTALL_URL = "http://10.0.0.50/tek/install";
-    private static final String API_BANNER_URL = "https://www.skippables.com/ad/AdServer/GetBanner";
-    private static final String API_VIDEO_URL = "https://www.skippables.com/ad/AdServer/GetVideo";
-    private static final String INSTALL_URL = "https://www.skippables.com/ad/InstallServer/Track";
+    private static final String BASE_URL = "http://test.skippables.com";
+//    private static final String BASE_URL = "http://10.0.0.56";
+//    private static final String BASE_URL = "https://www.skippables.com";
+    
+    private static final String API_BANNER_URL = BASE_URL + "/ad/AdServer/GetBanner";
+    private static final String API_VIDEO_URL = BASE_URL + "/ad/AdServer/GetVideo";
+    private static final String INSTALL_URL = BASE_URL + "/ad/InstallServer/Track";
+    private static final String INFRINGEMENT_REPORT_URL = BASE_URL + "/api/Feedback/InfringementReport";
 
-    static String GetApiUrl(@SkiAdRequest.AdType int adType) {
+    static String GetAdApiUrl(@SkiAdRequest.AdType int adType) {
         switch (adType) {
             case SkiAdRequest.AD_TYPE_BANNER_IMAGE:
             case SkiAdRequest.AD_TYPE_BANNER_RICH_MEDIA:
@@ -31,5 +33,9 @@ final class SKIConstants {
 
     static String GetInstallUrl() {
         return INSTALL_URL;
+    }
+
+    static String GetInfringementReportUrl() {
+        return INFRINGEMENT_REPORT_URL;
     }
 }

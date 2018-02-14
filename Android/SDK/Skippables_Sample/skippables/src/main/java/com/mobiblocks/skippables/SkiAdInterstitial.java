@@ -27,6 +27,7 @@ public class SkiAdInterstitial {
     private boolean mLoading;
     private boolean mLoaded;
     private boolean mHasBeenUsed;
+    private SkiAdInfo mAdInfo;
     private SkiVastCompressedInfo mVastInfo;
     private SkiAdRequest mRequest;
 
@@ -85,6 +86,7 @@ public class SkiAdInterstitial {
 
                 mLoaded = true;
 
+                mAdInfo = response.getAdInfo();
                 mVastInfo = response.getVastInfo();
 
                 if (mAdListener != null) {
@@ -131,7 +133,7 @@ public class SkiAdInterstitial {
         mHasBeenUsed = true;
         mLoaded = false;
 
-        mContext.startActivity(SkiAdInterstitialActivity.getIntent(mContext, mRequest.uid, mVastInfo));
+        mContext.startActivity(SkiAdInterstitialActivity.getIntent(mContext, mRequest.uid, mAdInfo, mVastInfo));
 
         if (mAdListener != null) {
             sListeners.put(mRequest.uid, new WeakReference<>(mAdListener));
