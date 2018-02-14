@@ -19,6 +19,7 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
 import android.widget.RelativeLayout;
@@ -127,6 +128,7 @@ public class SkiAdInterstitialActivity extends Activity {
 //        videoViewLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
 
         mVideoView = new InterstitialVideoView(this);
+//        mVideoView.setClickable(true);
         mVideoView.setLayoutParams(videoViewLayoutParams);
         mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
@@ -164,12 +166,38 @@ public class SkiAdInterstitialActivity extends Activity {
                 mVideoView.setVideoURI(Uri.parse(mediaFile.getValue().toString()));
             }
         }
-        mVideoView.setOnClickListener(new View.OnClickListener() {
+        final float point[] = new float[]{0, 0};
+        mVideoView.setOnTouchListener(new View.OnTouchListener() {
+            private boolean isAClick(float startX, float endX, float startY, float endY) {
+                float differenceX = Math.abs(startX - endX);
+                float differenceY = Math.abs(startY - endY);
+                return !(differenceX > 50 || differenceY > 50);
+            }
+            
             @Override
-            public void onClick(View v) {
-                handleVideoClick();
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        point[0] = event.getX();
+                        point[1] = event.getY();
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        float endX = event.getX();
+                        float endY = event.getY();
+                        if (isAClick(point[0], endX, point[1], endY)) {
+                            handleVideoClick();
+                        }
+                        return true;
+                }
+                return false;
             }
         });
+//        mVideoView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                handleVideoClick();
+//            }
+//        });
         mRelativeLayout.addView(mVideoView);
 
         DisplayMetrics displayMetrics = new DisplayMetrics();
