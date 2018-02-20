@@ -16,6 +16,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)trackEventRequestWithUrl:(NSURL *)url;
 - (void)trackErrorRequestWithUrl:(NSURL *)url;
 
+- (void)sendReportWithDeviceData:(NSDictionary *)deviceInfo adId:(NSString *)adId adUnitId:(NSString *)adUnitId email:(NSString *)email message:(NSString *)message;
+
 @end
 
 NS_ASSUME_NONNULL_END

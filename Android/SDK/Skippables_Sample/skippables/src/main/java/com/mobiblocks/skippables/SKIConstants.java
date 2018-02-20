@@ -8,7 +8,8 @@ package com.mobiblocks.skippables;
 
 final class SKIConstants {
     static final String UNIT_ID_KEY = SkiConf.UNIT_ID_KEY;
-    
+//    private static final String BASE_URL = "http://test.skippables.com";
+//    private static final String BASE_URL = "http://10.0.0.56";
     private static final String BASE_URL = "https://www.skippables.com";
     
     private static final String API_BANNER_URL = BASE_URL + "/ad/AdServer/GetBanner";

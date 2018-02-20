@@ -13,6 +13,8 @@
 
 + (instancetype)compressed;
 
+@property (copy, nonatomic) NSString *adId;
+
 @property (assign, nonatomic) BOOL nonLinear;
 
 @property (assign, nonatomic, readonly) BOOL maybeShownInLandscape;

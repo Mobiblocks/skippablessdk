@@ -103,12 +103,12 @@ public class SkiAdReportActivity extends Activity {
         emailEdit.setHint("Email (optional)");
         emailEdit.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         emailEdit.setSingleLine(true);
-        emailEdit.setMinWidth(px(200));
+        emailEdit.setMinWidth(px(300));
 
         linearLayout.addView(emailEdit);
 
         final EditText feedbackEdit = new EditText(this);
-        feedbackEdit.setMinWidth(px(200));
+        feedbackEdit.setMinWidth(px(300));
         feedbackEdit.setMinHeight(px(200));
         feedbackEdit.setMaxHeight(px(280));
         feedbackEdit.setSingleLine(false);
@@ -164,6 +164,7 @@ public class SkiAdReportActivity extends Activity {
         });
         
         setContentView(linearLayout);
+//        getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
     }
 
     @Override

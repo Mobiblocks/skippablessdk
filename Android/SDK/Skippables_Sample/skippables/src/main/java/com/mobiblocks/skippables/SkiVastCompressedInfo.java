@@ -141,6 +141,14 @@ class SkiVastCompressedInfo implements Parcelable {
 
             int screenRatio = Math.max(screenWidth, screenHeight) / Math.min(screenWidth, screenHeight);
 
+            float widthWeight = 1;
+            float heightWeight = 1;
+            if (screenWidth > screenHeight) {
+                heightWeight = 1.5f;
+            } else if (screenWidth < screenHeight) {
+                widthWeight = 1.5f;
+            }
+            
             ArrayList<MediaFile> usable = usableMediaFilesSortedByResolution();
 
             SparseArray<MediaFile> pointedMediaFiles = new SparseArray<>();
@@ -157,8 +165,8 @@ class SkiVastCompressedInfo implements Parcelable {
                 int heightDiff = Math.abs(screenHeight - currentHeight);
 
                 int pointRatio = Math.round(ratioDiff * 10);
-                int pointWidth = Math.round(widthDiff / 50 * 1);
-                int pointHeight = Math.round(heightDiff / 50 * 1);
+                int pointWidth = Math.round(widthDiff / 50.f * widthWeight);
+                int pointHeight = Math.round(heightDiff / 50.f * heightWeight);
 
                 int points = pointRatio + pointWidth + pointHeight;
                 pointedMediaFiles.put(points, media);

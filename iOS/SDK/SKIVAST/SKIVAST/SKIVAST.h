@@ -2,7 +2,6 @@
 //  SKIVAST.h
 //  SKIVAST
 //
-//  Created by Daniel on 10/11/17.
 //  Copyright © 2017 Mobiblocks. All rights reserved.
 //
 

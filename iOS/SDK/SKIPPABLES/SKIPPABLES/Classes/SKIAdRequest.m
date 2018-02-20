@@ -530,26 +530,25 @@ NSString *SKIUserAgent() {
 	
 	__weak typeof(self) wSelf = self;
 	[self loadAvailableDataWitchCompletion:^(NSDictionary<NSString *,NSObject *> *dictionary) {
-		NSError *error = nil;
-		NSData *data = [NSJSONSerialization dataWithJSONObject:dictionary options:0 error:&error];
-		if (error) {
-			SKIAdRequestResponse *requestResponse = [SKIAdRequestResponse response];
-			requestResponse.error = [SKIAdRequestError errorInternalErrorWithUserInfo:@{NSUnderlyingErrorKey : error}];
-			
-			SKIAsyncOnMain(^{
-				[wSelf.delegate skiAdRequest:wSelf didReceiveResponse:requestResponse];
-			});
-			DLog("%@", error.description);
-			return;
-		}
-		
-		[wSelf loadRequestWithData:data];
+		[wSelf loadRequestWithData:dictionary];
 	}];
 }
 
-- (void)loadRequestWithData:(NSData *)requestData {
-	__weak typeof(self) wSelf = self;
+- (void)loadRequestWithData:(NSDictionary *)dictionary {
+	NSError *error = nil;
+	NSData *requestData = [NSJSONSerialization dataWithJSONObject:dictionary options:0 error:&error];
+	if (error) {
+		SKIAdRequestResponse *requestResponse = [SKIAdRequestResponse response];
+		requestResponse.error = [SKIAdRequestError errorInternalErrorWithUserInfo:@{NSUnderlyingErrorKey : error}];
+		
+		SKIAsyncOnMain(^{
+			[self.delegate skiAdRequest:self didReceiveResponse:requestResponse];
+		});
+		DLog("%@", error.description);
+		return;
+	}
 	
+	__weak typeof(self) wSelf = self;
 	NSString *urlString = self.adType == kSKIAdTypeInterstitialVideo ? SKIPPABLES_API_VIDEO_URL : SKIPPABLES_API_BANNER_URL;
 	NSURL *url = [NSURL URLWithString:urlString];
 	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
@@ -617,6 +616,7 @@ NSString *SKIUserAgent() {
 		}
 		
 		SKIAdRequestResponse *requestResponse = [SKIAdRequestResponse response];
+		requestResponse.deviceInfo = dictionary[@"device"];
 		requestResponse.rawResponse = responseData;
 		
 		if (self.adType == kSKIAdTypeInterstitialVideo) {

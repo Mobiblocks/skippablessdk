@@ -125,6 +125,7 @@ class SkiAdRequestResponse {
                 }
 
                 SkiAdRequestResponse response = SkiAdRequestResponse.response();
+                response.adInfo.setAdId(object.optString("AdId"));
                 response.setHtmlSnippet(data);
 
                 return response;

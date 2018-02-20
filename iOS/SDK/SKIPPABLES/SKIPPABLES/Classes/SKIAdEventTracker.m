@@ -231,6 +231,29 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 	[self trackEventRequestWithUrl:url];
 }
 
+- (void)sendReportWithDeviceData:(NSDictionary *)deviceInfo adId:(NSString *)adId adUnitId:(NSString *)adUnitId email:(NSString *)email message:(NSString *)message {
+	if (!adId || !adUnitId) {
+		return;
+	}
+	
+	NSMutableDictionary *data = [NSMutableDictionary dictionary];
+	if (adId) {
+		data[@"adid"] = adId;
+	}
+	data[@"adunitid"] = adUnitId;
+	data[@"email"] = email;
+	data[@"message"] = message;
+	
+	if (deviceInfo.count > 0) {
+		NSString *deviceInfoString = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:deviceInfo options:0 error:nil] encoding:NSUTF8StringEncoding];
+		if (deviceInfoString) {
+			data[@"deviceinfo"] = deviceInfoString;
+		}
+	}
+	
+	[self trackEventRequestWithUrl:[NSURL URLWithString:SKIPPABLES_REPORT_URL] expirationDate:[[NSDate date] dateByAddingTimeInterval:86400] data:[NSJSONSerialization dataWithJSONObject:data options:0 error:nil]];
+}
+
 - (void)requestEventWithIdentifier:(NSString *)identifier callback:(void (^_Nullable)(BOOL success))callback {
 	SKIAdEventData *info = self.eventDictionary[identifier];
 	if (!info) {

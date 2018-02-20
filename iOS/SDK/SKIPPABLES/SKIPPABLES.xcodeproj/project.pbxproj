@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6516CFE920373BD100119842 /* SKIAdReportViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 6516CFE720373BD100119842 /* SKIAdReportViewController.h */; };
+		6516CFEA20373BD100119842 /* SKIAdReportViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6516CFE820373BD100119842 /* SKIAdReportViewController.m */; };
 		6531A4671FA0A74700E627C3 /* SKIAdEventTracker.h in Headers */ = {isa = PBXBuildFile; fileRef = 6531A4651FA0A74700E627C3 /* SKIAdEventTracker.h */; };
 		6531A4681FA0A74700E627C3 /* SKIAdEventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 6531A4661FA0A74700E627C3 /* SKIAdEventTracker.m */; };
 		65582F361FAB358B0099AC77 /* SKIViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 65582F341FAB358B0099AC77 /* SKIViewController.h */; };
@@ -69,6 +71,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		6516CFE720373BD100119842 /* SKIAdReportViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdReportViewController.h; sourceTree = "<group>"; };
+		6516CFE820373BD100119842 /* SKIAdReportViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdReportViewController.m; sourceTree = "<group>"; };
 		6531A4651FA0A74700E627C3 /* SKIAdEventTracker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdEventTracker.h; sourceTree = "<group>"; };
 		6531A4661FA0A74700E627C3 /* SKIAdEventTracker.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdEventTracker.m; sourceTree = "<group>"; };
 		65582F341FAB358B0099AC77 /* SKIViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIViewController.h; sourceTree = "<group>"; };
@@ -195,6 +199,8 @@
 				65582F351FAB358B0099AC77 /* SKIViewController.m */,
 				65E36B951F8E5D4700245DFF /* SKIAdInterstitialViewController.h */,
 				65E36B961F8E5D4700245DFF /* SKIAdInterstitialViewController.m */,
+				6516CFE720373BD100119842 /* SKIAdReportViewController.h */,
+				6516CFE820373BD100119842 /* SKIAdReportViewController.m */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -257,6 +263,7 @@
 				65E368BF1F862D3B00245DFF /* SKIAdRequestError.h in Headers */,
 				6531A4671FA0A74700E627C3 /* SKIAdEventTracker.h in Headers */,
 				65F63C4D1F96404300A5CE56 /* SKIVASTCompressedCreative.h in Headers */,
+				6516CFE920373BD100119842 /* SKIAdReportViewController.h in Headers */,
 				65E368D41F879A1500245DFF /* SKIAdBannerViewDelegate.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -367,6 +374,7 @@
 				65D1A66C1FC30356003E91AA /* SKIGeo.m in Sources */,
 				65E3687A1F84E06B00245DFF /* SKIAdSize.m in Sources */,
 				65582F371FAB358B0099AC77 /* SKIViewController.m in Sources */,
+				6516CFEA20373BD100119842 /* SKIAdReportViewController.m in Sources */,
 				65E368D11F87774100245DFF /* SKIAdRequestResponse.m in Sources */,
 				65F63C4E1F96404300A5CE56 /* SKIVASTCompressedCreative.m in Sources */,
 			);

@@ -21,6 +21,8 @@
 
 @property (copy, nonatomic) NSDictionary *rawResponse;
 
+@property (copy, nonatomic) NSDictionary *deviceInfo;
+
 @property (strong, nonatomic) SKIAdRequestError *error;
 
 @end

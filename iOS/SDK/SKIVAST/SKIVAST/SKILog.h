@@ -2,7 +2,6 @@
 //  SKILog.h
 //  SKIPPABLES
 //
-//  Created by Daniel on 10/10/17.
 //  Copyright © 2017 Mobiblocks. All rights reserved.
 //
 

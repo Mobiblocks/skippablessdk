@@ -112,7 +112,17 @@ public class SkiAdInterstitialActivity extends Activity {
                 }
             }
         } else {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            int orientation = getScreenOrientation(this);
+            switch (orientation) {
+                case ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE:
+                case ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE: {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                    break;
+                }
+                default: {
+                    setRequestedOrientation(orientation);
+                }
+            }
         }
 
         mRelativeLayout = new RelativeLayout(this);
@@ -166,8 +176,9 @@ public class SkiAdInterstitialActivity extends Activity {
                 mVideoView.setVideoURI(Uri.parse(mediaFile.getValue().toString()));
             }
         }
-        final float point[] = new float[]{0, 0};
         mVideoView.setOnTouchListener(new View.OnTouchListener() {
+            float startX = 0;
+            float startY = 0;
             private boolean isAClick(float startX, float endX, float startY, float endY) {
                 float differenceX = Math.abs(startX - endX);
                 float differenceY = Math.abs(startY - endY);
@@ -178,13 +189,13 @@ public class SkiAdInterstitialActivity extends Activity {
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
-                        point[0] = event.getX();
-                        point[1] = event.getY();
+                        startX = event.getX();
+                        startY = event.getY();
                         return true;
                     case MotionEvent.ACTION_UP:
                         float endX = event.getX();
                         float endY = event.getY();
-                        if (isAClick(point[0], endX, point[1], endY)) {
+                        if (isAClick(startX, endX, startY, endY)) {
                             handleVideoClick();
                         }
                         return true;
@@ -700,6 +711,7 @@ public class SkiAdInterstitialActivity extends Activity {
     }
 
     private void handleVideoClick() {
+        mVideoView.setOnTouchListener(null);
         sendClickEvents();
 
         boolean left = true;

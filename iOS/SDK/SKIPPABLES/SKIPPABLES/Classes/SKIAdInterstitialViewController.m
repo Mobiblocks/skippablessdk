@@ -7,6 +7,8 @@
 
 #import "SKIAdInterstitialViewController.h"
 
+#import "SKIAdReportViewController.h"
+
 #import <AVKit/AVKit.h>
 
 #import "SKIVAST.h"
@@ -35,12 +37,16 @@
 @property (strong, nonatomic) UIView *durationView;
 @property (strong, nonatomic) UILabel *durationLabelView;
 
+@property (strong, nonatomic) UILabel *reportLabelView;
+
 @property (copy, nonatomic) void (^tapCallback)(void);
 @property (copy, nonatomic) void (^skipCallback)(void);
 @property (copy, nonatomic) void (^closeCallback)(void);
+@property (copy, nonatomic) void (^reportCallback)(void);
 
 @property (strong, nonatomic) UITapGestureRecognizer *skipTapGesture;
 @property (strong, nonatomic) UITapGestureRecognizer *closeTapGesture;
+@property (strong, nonatomic) UITapGestureRecognizer *reportTapGesture;
 
 - (void)updateDurationTimeLabelWithDuration:(NSTimeInterval)duration currentTime:(NSTimeInterval)currentTime;
 - (void)updateSkipTimeLabelWithOffset:(NSTimeInterval)skipOffset currentTime:(NSTimeInterval)currentTime;
@@ -328,6 +334,7 @@
 			}
 
 			self.compressedCreative = [SKIVASTCompressedCreative compressed];
+			self.compressedCreative.adId = ad.identifier;
 			self.compressedCreative.errorTrackings = errorTrackings;
 			self.compressedCreative.impressionUrls = impressionUrls;
 			self.compressedCreative.additionalImpressionUrls = additionalImpressionUrls;
@@ -421,6 +428,14 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 		default:
 			break;
 	}
+	
+	CGFloat widthWeight = 1;
+	CGFloat heightWeight = 1;
+	if (screenSize.width > screenSize.height) {
+		heightWeight = 1.5f;
+	} else if (screenSize.width < screenSize.height) {
+		widthWeight = 1.5f;
+	}
 
 	NSMutableDictionary<NSNumber *, SKIVASTMediaFile*> *pointedMediaFiles = [NSMutableDictionary dictionary];
 	
@@ -437,8 +452,8 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 		CGFloat heightDiff = ABS(screenSize.height - currentHeight);
 		
 		NSInteger pointRatio = round(ratioDiff * 10);
-		NSInteger pointWidth = round(widthDiff / 50. * 1);
-		NSInteger pointHeight = round(heightDiff / 50. * 1);
+		NSInteger pointWidth = round(widthDiff / 50. * widthWeight);
+		NSInteger pointHeight = round(heightDiff / 50. * heightWeight);
 		
 		NSInteger pointAcumm = pointRatio + pointWidth + pointHeight;
 		pointedMediaFiles[@(pointAcumm)] = mediaFile;
@@ -808,6 +823,21 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 		[self.avPlayerControllerLayer setCloseCallback:^{
 			[wSelf closeInterstitial];
 		}];
+		[self.avPlayerControllerLayer setReportCallback:^{
+			if (wSelf) {
+				[SKIAdReportViewController showFromViewController:wSelf callback:^(BOOL canceled, NSString * _Nullable email, NSString * _Nullable message) {
+					if (canceled) {
+						return;
+					}
+					
+					[[SKIAdEventTracker defaultTracker] sendReportWithDeviceData:wSelf.ad.response.deviceInfo adId:wSelf.compressedCreative.adId adUnitId:wSelf.ad.adUnitID email:email message:message];
+					
+					SKIAsyncOnMain(^{
+						[wSelf closeInterstitial];
+					});
+				}];
+			}
+		}];
 
 		if (@available(iOS 9.0, *)) {
 			_avPlayerController.allowsPictureInPicturePlayback = NO;
@@ -878,6 +908,7 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 			                        if (note.object != playerItem) {
 				                        return;
 			                        }
+									[wSelf reportPlayerErrorAndCLose];
 									DLog(@"AVPlayerItemFailedToPlayToEndTimeNotification: %@", note.userInfo);
 			                    }];
 		[self.avPlayerNotificationTokens addObject:token];
@@ -967,6 +998,10 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	}
 	
 	return NO;
+}
+
+- (void)reportPlayerErrorAndCLose {
+	[self closeInterstitial];
 }
 
 - (void)closeInterstitial {
@@ -1098,6 +1133,10 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	return YES;
 }
 
+- (UIStatusBarAnimation)preferredStatusBarUpdateAnimation {
+	return UIStatusBarAnimationFade;
+}
+
 - (BOOL)shouldAutorotate {
 	if (SKIiSiPhone()) {
 		if (SKIiSLandscape() && self.compressedCreative.maybeShownInLandscape) {
@@ -1177,10 +1216,26 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 
 		[self.durationView addSubview:self.durationLabelView];
 		[self addSubview:self.durationView];
+
+		self.reportLabelView = [[UILabel alloc] initWithFrame:(CGRect){{8.f, 0.f}, CGSizeZero}];
+		self.reportLabelView.textColor = [UIColor colorWithRed:0.27f green:0.5f blue:0.7f alpha:1.f];
+		self.reportLabelView.font = [UIFont monospacedDigitSystemFontOfSize:17 weight:UIFontWeightRegular];
+		self.reportLabelView.text = @"Report";
+		self.reportLabelView.backgroundColor = [UIColor colorWithWhite:0.2f alpha:0.7f];
+		self.reportLabelView.userInteractionEnabled = YES;
+		self.reportLabelView.font = [UIFont systemFontOfSize:13.f];
+		[self.reportLabelView sizeToFit];
+		self.reportLabelView.hidden = YES;
+		
+		self.reportTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
+		[self.reportLabelView addGestureRecognizer:self.reportTapGesture];
+		
+		[self addSubview:self.reportLabelView];
 		
 		UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
 		[tapGesture requireGestureRecognizerToFail:self.skipTapGesture];
 		[tapGesture requireGestureRecognizerToFail:self.closeTapGesture];
+		[tapGesture requireGestureRecognizerToFail:self.reportTapGesture];
 		[self addGestureRecognizer:tapGesture];
 		
 		UITapGestureRecognizer *tapDoubleGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleDoubleTapGesture:)];
@@ -1197,11 +1252,16 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	CGRect durationFrame = self.durationView.frame;
 	durationFrame.origin.y = frame.size.height - durationFrame.size.height;
 	self.durationView.frame = durationFrame;
-
+	
 	CGRect skipFrame = self.skipView.frame;
 	skipFrame.origin.x = frame.size.width - skipFrame.size.width;
 	skipFrame.origin.y = frame.size.height * .75f;
 	self.skipView.frame = skipFrame;
+	
+	CGRect reportFrame = self.reportLabelView.frame;
+	reportFrame.origin.x = frame.size.width - reportFrame.size.width;
+	reportFrame.origin.y = 0;
+	self.reportLabelView.frame = reportFrame;
 }
 
 - (void)handleTapGesture:(UITapGestureRecognizer *)gesture {
@@ -1212,6 +1272,10 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	} else if (gesture.view == self.durationView) {
 		if (self.closeCallback != nil) {
 			self.closeCallback();
+		}
+	} else if (gesture.view == self.reportLabelView) {
+		if (self.reportCallback != nil) {
+			self.reportCallback();
 		}
 	} else {
 		if (self.tapCallback != nil) {
@@ -1231,10 +1295,11 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 }
 
 - (void)updateSkipTimeLabelWithOffset:(NSTimeInterval)skipOffset currentTime:(NSTimeInterval)currentTime {
-	if (skipOffset < 0.) {
-		[self hideSkip];
-		return;
-	} else if (skipOffset < 1.) {
+//	if (skipOffset < 0.) {
+//		[self hideSkip];
+//		return;
+//	} else
+		if (skipOffset < 1.) {
 		[self showSkip];
 		return;
 	}
@@ -1253,6 +1318,7 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	self.skipLabelView.textColor = [UIColor whiteColor];
 	
 	self.skipView.userInteractionEnabled = YES;
+	[self showReport];
 }
 
 - (void)hideSkip {
@@ -1263,11 +1329,11 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 - (void)showClose {
 	[UIView animateWithDuration:UINavigationControllerHideShowBarDuration
 	    animations:^{
-		    self.skipView.alpha = 0.0f;
+//		    self.skipView.alpha = 0.0f;
 		    self.durationLabelView.alpha = 0.0f;
 		}
 	    completion:^(BOOL finished) {
-		    self.skipView.hidden = YES;
+//		    self.skipView.hidden = YES;
 		    self.skipView.alpha = 1.0f;
 		    [UIView animateWithDuration:UINavigationControllerHideShowBarDuration
 		        animations:^{
@@ -1276,8 +1342,13 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 			    }
 		        completion:^(BOOL finished) {
 			        self.durationView.userInteractionEnabled = YES;
+					[self showReport];
 			    }];
 		}];
+}
+
+- (void)showReport {
+	self.reportLabelView.hidden = NO;
 }
 
 @end
