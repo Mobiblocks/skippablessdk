@@ -18,21 +18,9 @@ public final class SkiAdSize extends SkiSize {
     @SuppressWarnings("WeakerAccess")
     public static final SkiAdSize FULL_BANNER = new SkiAdSize(468, 60);
     @SuppressWarnings("WeakerAccess")
-    public static final SkiAdSize MEDIUM_RECTANGLE = new SkiAdSize(300, 250);
-    @SuppressWarnings("WeakerAccess")
     public static final SkiAdSize LEADERBOARD = new SkiAdSize(728, 90);
     @SuppressWarnings("WeakerAccess")
     public static final SkiAdSize LARGE_LEADERBOARD = new SkiAdSize(970, 90);
-    @SuppressWarnings("WeakerAccess")
-    public static final SkiAdSize SKYSCRAPER = new SkiAdSize(120, 600);
-    @SuppressWarnings("WeakerAccess")
-    public static final SkiAdSize WIDE_SKYSCRAPER = new SkiAdSize(160, 600);
-    @SuppressWarnings("WeakerAccess")
-    public static final SkiAdSize HALF_PAGE = new SkiAdSize(300, 600);
-    @SuppressWarnings("WeakerAccess")
-    public static final SkiAdSize PORTRAIT = new SkiAdSize(300, 1050);
-    @SuppressWarnings("WeakerAccess")
-    public static final SkiAdSize BILLBOARD = new SkiAdSize(970, 250);
 
     private SkiAdSize(int width, int height) {
         super(width, height);

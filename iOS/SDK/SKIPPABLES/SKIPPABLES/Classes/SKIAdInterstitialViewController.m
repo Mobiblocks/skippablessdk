@@ -1107,7 +1107,14 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 - (void)viewDidLayoutSubviews {
 	[super viewDidLayoutSubviews];
 	
-	self.avPlayerControllerLayer.frame = self.view.bounds;
+	if (@available(iOS 11.0, *)) {
+		CGRect insets = self.view.safeAreaLayoutGuide.layoutFrame;
+		if (insets.size.height > 0) {
+			self.avPlayerControllerLayer.frame = insets;
+		}
+	} else {
+		self.avPlayerControllerLayer.frame = self.view.bounds;
+	}
 }
 
 - (void)viewWillDisappear:(BOOL)animated {

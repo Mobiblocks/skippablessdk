@@ -168,7 +168,7 @@ public class SkiAdView extends ViewGroup {
                     }
                 });
                 mWebView.setWebViewClient(new WebViewClient() {
-                    private boolean touchDisabled = false;
+                    private long touchStamp = 0;
                     private boolean hitTypeIsLink(int hitType) {
                         return hitType == WebView.HitTestResult.ANCHOR_TYPE
                                 || hitType == WebView.HitTestResult.IMAGE_ANCHOR_TYPE
@@ -177,10 +177,11 @@ public class SkiAdView extends ViewGroup {
                     }
 
                     private void tryOpenAnyBrowser(Uri uri) {
-                        if (touchDisabled) {
+                        if (System.currentTimeMillis() - touchStamp < 2000) {
                             return;
                         }
-                        touchDisabled = true;
+                        touchStamp = System.currentTimeMillis();
+                        
                         Intent intent = new Intent(Intent.ACTION_VIEW);
                         intent.setData(uri);
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -206,7 +207,6 @@ public class SkiAdView extends ViewGroup {
                             post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    touchDisabled = false;
                                     mAdListener.onAdLeftApplication();
                                 }
                             });
@@ -254,7 +254,7 @@ public class SkiAdView extends ViewGroup {
                             }
                         }
 
-                        return super.shouldOverrideUrlLoading(view, url);
+                        return true;//super.shouldOverrideUrlLoading(view, url);
                     }
 
 //                    @Override
