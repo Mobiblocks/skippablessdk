@@ -9,6 +9,7 @@
 
 #import "SKIConstants.h"
 
+#import "SKIAdRequestError_Private.h"
 #import "SKIAdRequest_Private.h"
 #import "SKIAdRequestResponse.h"
 
@@ -50,6 +51,8 @@
 	self.request.delegate = self;
 	
 	[self.request load];
+	
+	_isLoading = YES;
 }
 
 - (void)presentFromRootViewController:(UIViewController *)rootViewController {
@@ -67,6 +70,8 @@
 
 - (void)skiAdRequest:(SKIAdRequest *)request didReceiveResponse:(SKIAdRequestResponse *)response {
 	if (response.error) {
+		_isLoading = NO;
+		
 		if ([self.delegate respondsToSelector:@selector(skiInterstitial:didFailToReceiveAdWithError:)]) {
 			[self.delegate skiInterstitial:self didFailToReceiveAdWithError:response.error];
 		}
@@ -75,7 +80,13 @@
 	}
 	
 	if (response.htmlSnippet.length == 0 && response.videoVast.length == 0) {
-		//TODO: send error??
+		// at this point on of htmlSnippet or videoVast should not be empty
+		// adding this error just in case
+		_isLoading = NO;
+		SKIAdRequestError *error = [SKIAdRequestError errorNoFillWithUserInfo:nil];
+		if ([self.delegate respondsToSelector:@selector(skiInterstitial:didFailToReceiveAdWithError:)]) {
+			[self.delegate skiInterstitial:self didFailToReceiveAdWithError:error];
+		}
 		return;
 	}
 	
@@ -86,17 +97,22 @@
 }
 
 - (void)skiAdRequest:(SKIAdRequest *)request didFailWithError:(SKIAdRequestError *)error {
+	_isLoading = NO;
 	if ([self.delegate respondsToSelector:@selector(skiInterstitial:didFailToReceiveAdWithError:)]) {
 		[self.delegate skiInterstitial:self didFailToReceiveAdWithError:error];
 	}
 }
 
 - (void)interstitialViewControllerDidFinishLoading:(SKIAdInterstitialViewController *)controller {
+	_isLoading = NO;
 	_isReady = YES;
-	[self.delegate skiInterstitialDidReceiveAd:self];
+	if ([self.delegate respondsToSelector:@selector(skiInterstitialDidReceiveAd:)]) {
+		[self.delegate skiInterstitialDidReceiveAd:self];
+	}
 }
 
 - (void)interstitialViewController:(SKIAdInterstitialViewController *)controller didFailToLoadWithErr:(SKIAdRequestError *)error {
+	_isLoading = NO;
 	if ([self.delegate respondsToSelector:@selector(skiInterstitial:didFailToReceiveAdWithError:)]) {
 		[self.delegate skiInterstitial:self didFailToReceiveAdWithError:error];
 	}

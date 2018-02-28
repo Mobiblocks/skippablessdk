@@ -28,6 +28,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)loadRequest:(SKIAdRequest *)request;
 - (void)presentFromRootViewController:(UIViewController *)rootViewController;
 
+/// Returns YES if the interstitial is currently loading.
+@property(assign, nonatomic, readonly) BOOL isLoading;
+
 /// Returns YES if the interstitial is ready to be displayed. The delegate's
 /// skiInterstitialDidReceiveAd: will be called after this property switches from NO to YES.
 @property(assign, nonatomic, readonly) BOOL isReady;
