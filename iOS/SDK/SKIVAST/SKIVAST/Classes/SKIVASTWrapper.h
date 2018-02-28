@@ -6,8 +6,8 @@
 
 #import <Foundation/Foundation.h>
 #import "SKIVASTAdDefinitionBase.h"
-@class SKIVASTAdVerificationsWrapper;
 @class SKIVASTCreatives;
+@class SKIVASTAdVerificationsWrapper;
 
 @interface SKIVASTWrapper : SKIVASTAdDefinitionBase
 

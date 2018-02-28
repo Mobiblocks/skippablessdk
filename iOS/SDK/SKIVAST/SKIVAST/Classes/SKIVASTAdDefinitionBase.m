@@ -3,10 +3,10 @@
 #import <libxml/xmlreader.h>
 #import "SKILog.h"
 
-#import "SKIVASTViewableImpression.h"
-#import "SKIVASTAdSystem.h"
 #import "SKIVASTImpression.h"
+#import "SKIVASTAdSystem.h"
 #import "SKIVASTPricing.h"
+#import "SKIVASTViewableImpression.h"
 #import "SKIVASTExtensions.h"
 
 @interface SKIVASTAdDefinitionBase ()

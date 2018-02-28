@@ -6,8 +6,8 @@
 
 #import <Foundation/Foundation.h>
 #import "SKIVASTCreativeResourceNonVideo.h"
-@class SKIVASTAdParameters;
 @class SKIVASTCompanionClickTracking;
+@class SKIVASTAdParameters;
 @class SKIVASTCreativeExtensions;
 @class SKIVASTTrackingEvents;
 

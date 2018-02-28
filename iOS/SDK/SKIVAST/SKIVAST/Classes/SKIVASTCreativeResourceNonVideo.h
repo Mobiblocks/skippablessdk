@@ -6,8 +6,8 @@
 
 #import <Foundation/Foundation.h>
 
-@class SKIVASTHTMLResource;
 @class SKIVASTStaticResource;
+@class SKIVASTHTMLResource;
 
 /**
 A base creative resource type (sec 3.13) for non-video creative content.

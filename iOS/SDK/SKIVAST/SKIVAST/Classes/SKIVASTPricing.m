@@ -33,24 +33,24 @@
 * Returns:     (void)
 * Description: Read the attributes for the current XML element
 */
-- (void) readAttributes:(void*) reader {NSNumberFormatter* decFormatter = [[NSNumberFormatter alloc] init];
-decFormatter.locale = self.locale;
-decFormatter.numberStyle = NSNumberFormatterDecimalStyle;
-
-char* modelAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"model");
-if(modelAttrValue) {
-    self.model = [NSString
-    stringWithCString:modelAttrValue
-    encoding:NSUTF8StringEncoding];
-    xmlFree(modelAttrValue);
-}
-char* currencyAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"currency");
-if(currencyAttrValue) {
-    self.currency = [NSString
-    stringWithCString:currencyAttrValue
-    encoding:NSUTF8StringEncoding];
-    xmlFree(currencyAttrValue);
-}
+- (void) readAttributes:(void*) reader {
+    NSNumberFormatter* decFormatter = [[NSNumberFormatter alloc] init];
+    decFormatter.locale = self.locale;
+    decFormatter.numberStyle = NSNumberFormatterDecimalStyle;
+    char* modelAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"model");
+    if(modelAttrValue) {
+        self.model = [NSString
+        stringWithCString:modelAttrValue
+        encoding:NSUTF8StringEncoding];
+        xmlFree(modelAttrValue);
+    }
+    char* currencyAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"currency");
+    if(currencyAttrValue) {
+        self.currency = [NSString
+        stringWithCString:currencyAttrValue
+        encoding:NSUTF8StringEncoding];
+        xmlFree(currencyAttrValue);
+    }
 }
 
 /**
@@ -97,10 +97,10 @@ if(currencyAttrValue) {
 }
 
 - (void)handleElementName:(NSString *)_currentElementName reader:(void *) reader readerOk:(int *)_readerOk currentNodeType:(int *)_currentNodeType currentXmlDept:(int *)_currentXmlDept handledInChild:(BOOL *)handledInChild {
+    
     NSNumberFormatter* decFormatter = [[NSNumberFormatter alloc] init];
     decFormatter.locale = self.locale;
     decFormatter.numberStyle = NSNumberFormatterDecimalStyle;
-    
     if([@"#text" isEqualToString:_currentElementName]){
         const char* contentValue = (const char*) xmlTextReaderConstValue(reader);
         if(contentValue) {

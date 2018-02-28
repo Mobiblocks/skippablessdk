@@ -3,9 +3,9 @@
 #import <libxml/xmlreader.h>
 #import "SKILog.h"
 
+#import "SKIVASTMediaFiles.h"
 #import "SKIVASTVideoClicksInlineChild.h"
 #import "SKIVASTAdParameters.h"
-#import "SKIVASTMediaFiles.h"
 
 @interface SKIVASTLinearInlineChild ()
 
@@ -38,10 +38,10 @@
             timeFormatter.locale = self.locale;
             
             timeFormatterMillis = [[NSDateFormatter alloc] init];
-            timeFormatter.defaultDate = [NSDate dateWithTimeIntervalSinceReferenceDate:0];
-            timeFormatter.dateFormat = @"HH:mm:ss.SSS";
-            timeFormatter.timeZone = [NSTimeZone timeZoneWithName:@"UTC"];
-            timeFormatter.locale = self.locale;
+            timeFormatterMillis.defaultDate = [NSDate dateWithTimeIntervalSinceReferenceDate:0];
+            timeFormatterMillis.dateFormat = @"HH:mm:ss.SSS";
+            timeFormatterMillis.timeZone = [NSTimeZone timeZoneWithName:@"UTC"];
+            timeFormatterMillis.locale = self.locale;
         });
         
         return [timeFormatter dateFromString:string] ?: [timeFormatterMillis dateFromString:string];
@@ -107,10 +107,10 @@
             timeFormatter.locale = self.locale;
             
             timeFormatterMillis = [[NSDateFormatter alloc] init];
-            timeFormatter.defaultDate = [NSDate dateWithTimeIntervalSinceReferenceDate:0];
-            timeFormatter.dateFormat = @"HH:mm:ss.SSS";
-            timeFormatter.timeZone = [NSTimeZone timeZoneWithName:@"UTC"];
-            timeFormatter.locale = self.locale;
+            timeFormatterMillis.defaultDate = [NSDate dateWithTimeIntervalSinceReferenceDate:0];
+            timeFormatterMillis.dateFormat = @"HH:mm:ss.SSS";
+            timeFormatterMillis.timeZone = [NSTimeZone timeZoneWithName:@"UTC"];
+            timeFormatterMillis.locale = self.locale;
         });
         
         return [timeFormatter dateFromString:string] ?: [timeFormatterMillis dateFromString:string];

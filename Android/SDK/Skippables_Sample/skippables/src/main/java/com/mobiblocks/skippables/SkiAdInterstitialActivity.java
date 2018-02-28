@@ -22,6 +22,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.VideoView;
@@ -41,6 +42,8 @@ public class SkiAdInterstitialActivity extends Activity {
     private static final String EXTRA_UID = "EXTRA_UID";
     private static final String EXTRA_AD_INFO = "EXTRA_AD_INFO";
     private static final String EXTRA_VAST_INFO = "EXTRA_VAST_INFO";
+    
+    private static boolean sMuted = false;
 
     private SkiVastCompressedInfo mVastInfo;
     private TextView mSkipView;
@@ -62,6 +65,7 @@ public class SkiAdInterstitialActivity extends Activity {
     private boolean mShownOnce;
 
     private boolean mStateSaved;
+    private MediaPlayer mMediaPlayer;
 
     static Intent getIntent(@NonNull Context context, @NonNull String uid, @NonNull SkiAdInfo adInfo, @NonNull SkiVastCompressedInfo vastInfo) {
         Intent intent = new Intent(context, SkiAdInterstitialActivity.class);
@@ -143,6 +147,11 @@ public class SkiAdInterstitialActivity extends Activity {
         mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
+                mMediaPlayer = mp;
+
+                float volume = sMuted ? 0.f : 1.f;
+                mp.setVolume(volume, volume);
+                
                 mIsReady = true;
                 maybeScheduleTicker();
             }
@@ -309,6 +318,30 @@ public class SkiAdInterstitialActivity extends Activity {
 
             mRelativeLayout.addView(mReportView, reportViewLayoutParams);
         }
+
+        final ImageView soundToggleVideo = new ImageView(this);
+        soundToggleVideo.setImageResource(sMuted ? R.drawable.skippables_interstitial_video_muted : R.drawable.skippables_interstitial_video_volume);
+        soundToggleVideo.setPadding(px(5), px(5), px(5), px(5));
+        soundToggleVideo.setBackgroundColor(Color.argb(178, 51, 51, 51));
+        soundToggleVideo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mMediaPlayer != null) {
+                    sMuted = !sMuted;
+                    float volume = sMuted ? 0.f : 1.f;
+                    mMediaPlayer.setVolume(volume, volume);
+                    soundToggleVideo.setImageResource(sMuted ? R.drawable.skippables_interstitial_video_muted : R.drawable.skippables_interstitial_video_volume);
+                }
+            }
+        });
+
+        RelativeLayout.LayoutParams soundToggleVideoLayoutParams = new RelativeLayout.LayoutParams(px(32), px(32));
+
+        soundToggleVideoLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        soundToggleVideoLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        soundToggleVideoLayoutParams.setMargins(0, 0, 0, 0);
+
+        mRelativeLayout.addView(soundToggleVideo, soundToggleVideoLayoutParams);
 
         updateCloseView(false);
         updateSkipView(false);

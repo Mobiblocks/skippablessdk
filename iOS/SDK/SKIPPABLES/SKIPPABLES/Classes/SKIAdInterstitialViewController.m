@@ -20,6 +20,7 @@
 
 #import "SKIVASTCompressedCreative.h"
 
+#import "SKIRes.h"
 #import "SKIConstants.h"
 #import "SKIAdInterstitial.h"
 #import "SKIAdInterstitial_Private.h"
@@ -39,14 +40,13 @@
 
 @property (strong, nonatomic) UILabel *reportLabelView;
 
+@property (strong, nonatomic) UIImageView *soundToggleImageView;
+
 @property (copy, nonatomic) void (^tapCallback)(void);
 @property (copy, nonatomic) void (^skipCallback)(void);
 @property (copy, nonatomic) void (^closeCallback)(void);
 @property (copy, nonatomic) void (^reportCallback)(void);
-
-@property (strong, nonatomic) UITapGestureRecognizer *skipTapGesture;
-@property (strong, nonatomic) UITapGestureRecognizer *closeTapGesture;
-@property (strong, nonatomic) UITapGestureRecognizer *reportTapGesture;
+@property (copy, nonatomic) bool (^soundToggleCallback)(void);
 
 - (void)updateDurationTimeLabelWithDuration:(NSTimeInterval)duration currentTime:(NSTimeInterval)currentTime;
 - (void)updateSkipTimeLabelWithOffset:(NSTimeInterval)skipOffset currentTime:(NSTimeInterval)currentTime;
@@ -55,6 +55,8 @@
 - (void)showClose;
 
 @end
+
+static BOOL muted = NO;
 
 @interface SKIAdInterstitialViewController () <AVPlayerViewControllerDelegate>
 
@@ -557,6 +559,7 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	NSURL *mediaUrl = self.compressedCreative.localMediaUrl ?: compressedCreative.mediaFile.value;
 	self.avPlayer = [AVPlayer playerWithURL:mediaUrl];
 	self.avPlayer.allowsExternalPlayback = NO;
+	self.avPlayer.muted = muted;
 	
 	[SKIAsync waterfall:@[
 						  ^(id _Nullable result, SKIAsyncWaterfallCallback callback) {
@@ -837,6 +840,16 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 					});
 				}];
 			}
+		}];
+		[self.avPlayerControllerLayer setSoundToggleCallback:^bool{
+			if (!wSelf.avPlayer) {
+				return false;
+			}
+			
+			muted = !muted;
+			wSelf.avPlayer.muted = muted;
+			
+			return true;
 		}];
 
 		if (@available(iOS 9.0, *)) {
@@ -1203,8 +1216,8 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 		self.skipLabelView.textColor = [UIColor colorWithWhite:0.6 alpha:1.f];
 		self.skipLabelView.font = [UIFont monospacedDigitSystemFontOfSize:17 weight:UIFontWeightRegular];
 
-		self.skipTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
-		[self.skipView addGestureRecognizer:self.skipTapGesture];
+		UITapGestureRecognizer *skipTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
+		[self.skipView addGestureRecognizer:skipTapGesture];
 
 		[self.skipView addSubview:self.skipLabelView];
 		[self addSubview:self.skipView];
@@ -1218,8 +1231,8 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 		self.durationLabelView.font = [UIFont monospacedDigitSystemFontOfSize:17 weight:UIFontWeightRegular];
 		self.durationLabelView.textAlignment = NSTextAlignmentCenter;
 
-		self.closeTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
-		[self.durationView addGestureRecognizer:self.closeTapGesture];
+		UITapGestureRecognizer *closeTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
+		[self.durationView addGestureRecognizer:closeTapGesture];
 
 		[self.durationView addSubview:self.durationLabelView];
 		[self addSubview:self.durationView];
@@ -1234,15 +1247,29 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 		[self.reportLabelView sizeToFit];
 		self.reportLabelView.hidden = YES;
 		
-		self.reportTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
-		[self.reportLabelView addGestureRecognizer:self.reportTapGesture];
+		UITapGestureRecognizer *reportTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
+		[self.reportLabelView addGestureRecognizer:reportTapGesture];
 		
 		[self addSubview:self.reportLabelView];
 		
+		self.soundToggleImageView = [[UIImageView alloc] initWithFrame:(CGRect){CGPointZero, {40.f, 40.f}}];
+		self.soundToggleImageView.tintColor = [UIColor whiteColor];
+		self.soundToggleImageView.contentMode = UIViewContentModeCenter;
+		self.soundToggleImageView.userInteractionEnabled = YES;
+		self.soundToggleImageView.backgroundColor = [UIColor colorWithWhite:0.2f alpha:0.7f];
+		
+		[self updateToggleSoundImage];
+		
+		[self addSubview:self.soundToggleImageView];
+		
+		UITapGestureRecognizer *soundToggleTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
+		[self.soundToggleImageView addGestureRecognizer:soundToggleTapGesture];
+		
 		UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
-		[tapGesture requireGestureRecognizerToFail:self.skipTapGesture];
-		[tapGesture requireGestureRecognizerToFail:self.closeTapGesture];
-		[tapGesture requireGestureRecognizerToFail:self.reportTapGesture];
+		[tapGesture requireGestureRecognizerToFail:skipTapGesture];
+		[tapGesture requireGestureRecognizerToFail:closeTapGesture];
+		[tapGesture requireGestureRecognizerToFail:reportTapGesture];
+		[tapGesture requireGestureRecognizerToFail:soundToggleTapGesture];
 		[self addGestureRecognizer:tapGesture];
 		
 		UITapGestureRecognizer *tapDoubleGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleDoubleTapGesture:)];
@@ -1269,6 +1296,11 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	reportFrame.origin.x = frame.size.width - reportFrame.size.width;
 	reportFrame.origin.y = 0;
 	self.reportLabelView.frame = reportFrame;
+	
+	CGRect soundFrame = self.soundToggleImageView.frame;
+	soundFrame.origin.x = frame.size.width - soundFrame.size.width;
+	soundFrame.origin.y = frame.size.height - soundFrame.size.height;
+	self.soundToggleImageView.frame = soundFrame;
 }
 
 - (void)handleTapGesture:(UITapGestureRecognizer *)gesture {
@@ -1284,6 +1316,13 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 		if (self.reportCallback != nil) {
 			self.reportCallback();
 		}
+	} else if (gesture.view == self.soundToggleImageView) {
+		if (self.soundToggleCallback != nil) {
+			bool success = self.soundToggleCallback();
+			if (success) {
+				[self updateToggleSoundImage];
+			}
+		}
 	} else {
 		if (self.tapCallback != nil) {
 			self.tapCallback();
@@ -1292,6 +1331,13 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 }
 
 - (void)handleDoubleTapGesture:(UITapGestureRecognizer *)gesture {
+}
+
+- (void)updateToggleSoundImage {
+	CGSize size = (CGSize){20.f, 20.f};
+	UIImage *image = [(muted ? SKIMuteImageWithSize(size) : SKIVolumeImageWithSize(size))  imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+	
+	self.soundToggleImageView.image = image;
 }
 
 - (void)updateDurationTimeLabelWithDuration:(NSTimeInterval)duration currentTime:(NSTimeInterval)currentTime {

@@ -3,9 +3,9 @@
 #import <libxml/xmlreader.h>
 #import "SKILog.h"
 
+#import "SKIVASTLinearWrapperChild.h"
 #import "SKIVASTNonLinearAds.h"
 #import "SKIVASTCompanionAdsCollection.h"
-#import "SKIVASTLinearWrapperChild.h"
 
 @interface SKIVASTCreativeWrapperChild ()
 

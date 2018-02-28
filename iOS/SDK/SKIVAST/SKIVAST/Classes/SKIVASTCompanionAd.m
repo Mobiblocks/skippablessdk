@@ -3,8 +3,8 @@
 #import <libxml/xmlreader.h>
 #import "SKILog.h"
 
-#import "SKIVASTAdParameters.h"
 #import "SKIVASTCompanionClickTracking.h"
+#import "SKIVASTAdParameters.h"
 #import "SKIVASTCreativeExtensions.h"
 #import "SKIVASTTrackingEvents.h"
 
@@ -38,13 +38,13 @@
 * Description: Read the attributes for the current XML element
 */
 - (void) readAttributes:(void*) reader {
-    [super readAttributes:reader];
+    [super readAttributes:reader];NSNumberFormatter* decFormatter = [[NSNumberFormatter alloc] init];
+    decFormatter.locale = self.locale;
+    decFormatter.numberStyle = NSNumberFormatterDecimalStyle;
+    
     NSNumberFormatter* numFormatter = [[NSNumberFormatter alloc] init];
     numFormatter.numberStyle = NSNumberFormatterDecimalStyle;
     numFormatter.locale = self.locale;
-    NSNumberFormatter* decFormatter = [[NSNumberFormatter alloc] init];
-    decFormatter.locale = self.locale;
-    decFormatter.numberStyle = NSNumberFormatterDecimalStyle;
     char* idAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"id");
     if(idAttrValue) {
         self.identifier = [NSString
@@ -150,13 +150,13 @@
 }
 
 - (void)handleElementName:(NSString *)_currentElementName reader:(void *) reader readerOk:(int *)_readerOk currentNodeType:(int *)_currentNodeType currentXmlDept:(int *)_currentXmlDept handledInChild:(BOOL *)handledInChild {
+    NSNumberFormatter* decFormatter = [[NSNumberFormatter alloc] init];
+    decFormatter.locale = self.locale;
+    decFormatter.numberStyle = NSNumberFormatterDecimalStyle;
     
     NSNumberFormatter* numFormatter = [[NSNumberFormatter alloc] init];
     numFormatter.numberStyle = NSNumberFormatterDecimalStyle;
     numFormatter.locale = self.locale;
-    NSNumberFormatter* decFormatter = [[NSNumberFormatter alloc] init];
-    decFormatter.locale = self.locale;
-    decFormatter.numberStyle = NSNumberFormatterDecimalStyle;
     if([@"AdParameters" isEqualToString:_currentElementName]) {
         
         self.adParameters = [[SKIVASTAdParameters alloc] initWithReader:reader];

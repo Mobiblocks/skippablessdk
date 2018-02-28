@@ -3,8 +3,8 @@
 #import <libxml/xmlreader.h>
 #import "SKILog.h"
 
-#import "SKIVASTHTMLResource.h"
 #import "SKIVASTStaticResource.h"
+#import "SKIVASTHTMLResource.h"
 
 @interface SKIVASTCreativeResourceNonVideo ()
 

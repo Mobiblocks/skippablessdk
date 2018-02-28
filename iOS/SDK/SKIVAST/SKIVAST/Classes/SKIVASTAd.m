@@ -3,8 +3,8 @@
 #import <libxml/xmlreader.h>
 #import "SKILog.h"
 
-#import "SKIVASTInline.h"
 #import "SKIVASTWrapper.h"
+#import "SKIVASTInline.h"
 
 @interface SKIVASTAd ()
 @property (nonatomic, readwrite) NSString *identifier;
@@ -38,27 +38,27 @@
 * Returns:     (void)
 * Description: Read the attributes for the current XML element
 */
-- (void) readAttributes:(void*) reader {NSNumberFormatter* numFormatter = [[NSNumberFormatter alloc] init];
-numFormatter.numberStyle = NSNumberFormatterDecimalStyle;
-numFormatter.locale = self.locale;
-
-char* idAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"id");
-if(idAttrValue) {
-    self.identifier = [NSString
-    stringWithCString:idAttrValue
-    encoding:NSUTF8StringEncoding];
-    xmlFree(idAttrValue);
-}
-char* sequenceAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"sequence");
-if(sequenceAttrValue) {
-    self.sequence = [numFormatter numberFromString:[NSString stringWithCString:sequenceAttrValue encoding:NSUTF8StringEncoding]];
-    xmlFree(sequenceAttrValue);
-}
-char* conditionalAdAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"conditionalAd");
-if(conditionalAdAttrValue) {
-    self.conditionalAd = [NSNumber numberWithBool:[[NSString stringWithCString:conditionalAdAttrValue encoding:NSUTF8StringEncoding] isEqualToString:@"true"]];
-    xmlFree(conditionalAdAttrValue);
-}
+- (void) readAttributes:(void*) reader {
+    NSNumberFormatter* numFormatter = [[NSNumberFormatter alloc] init];
+    numFormatter.numberStyle = NSNumberFormatterDecimalStyle;
+    numFormatter.locale = self.locale;
+    char* idAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"id");
+    if(idAttrValue) {
+        self.identifier = [NSString
+        stringWithCString:idAttrValue
+        encoding:NSUTF8StringEncoding];
+        xmlFree(idAttrValue);
+    }
+    char* sequenceAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"sequence");
+    if(sequenceAttrValue) {
+        self.sequence = [numFormatter numberFromString:[NSString stringWithCString:sequenceAttrValue encoding:NSUTF8StringEncoding]];
+        xmlFree(sequenceAttrValue);
+    }
+    char* conditionalAdAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"conditionalAd");
+    if(conditionalAdAttrValue) {
+        self.conditionalAd = [NSNumber numberWithBool:[[NSString stringWithCString:conditionalAdAttrValue encoding:NSUTF8StringEncoding] isEqualToString:@"true"]];
+        xmlFree(conditionalAdAttrValue);
+    }
 }
 
 /**
@@ -105,10 +105,10 @@ if(conditionalAdAttrValue) {
 }
 
 - (void)handleElementName:(NSString *)_currentElementName reader:(void *) reader readerOk:(int *)_readerOk currentNodeType:(int *)_currentNodeType currentXmlDept:(int *)_currentXmlDept handledInChild:(BOOL *)handledInChild {
+    
     NSNumberFormatter* numFormatter = [[NSNumberFormatter alloc] init];
     numFormatter.numberStyle = NSNumberFormatterDecimalStyle;
     numFormatter.locale = self.locale;
-    
     if([@"InLine" isEqualToString:_currentElementName]) {
         
         self.inLine = [[SKIVASTInline alloc] initWithReader:reader];

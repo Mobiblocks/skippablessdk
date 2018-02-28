@@ -33,36 +33,36 @@
 * Returns:     (void)
 * Description: Read the attributes for the current XML element
 */
-- (void) readAttributes:(void*) reader {NSNumberFormatter* numFormatter = [[NSNumberFormatter alloc] init];
-numFormatter.numberStyle = NSNumberFormatterDecimalStyle;
-numFormatter.locale = self.locale;
-
-char* sequenceAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"sequence");
-if(sequenceAttrValue) {
-    self.sequence = [numFormatter numberFromString:[NSString stringWithCString:sequenceAttrValue encoding:NSUTF8StringEncoding]];
-    xmlFree(sequenceAttrValue);
-}
-char* apiFrameworkAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"apiFramework");
-if(apiFrameworkAttrValue) {
-    self.apiFramework = [NSString
-    stringWithCString:apiFrameworkAttrValue
-    encoding:NSUTF8StringEncoding];
-    xmlFree(apiFrameworkAttrValue);
-}
-char* idAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"id");
-if(idAttrValue) {
-    self.identifier = [NSString
-    stringWithCString:idAttrValue
-    encoding:NSUTF8StringEncoding];
-    xmlFree(idAttrValue);
-}
-char* adIdAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"adId");
-if(adIdAttrValue) {
-    self.adId = [NSString
-    stringWithCString:adIdAttrValue
-    encoding:NSUTF8StringEncoding];
-    xmlFree(adIdAttrValue);
-}
+- (void) readAttributes:(void*) reader {
+    NSNumberFormatter* numFormatter = [[NSNumberFormatter alloc] init];
+    numFormatter.numberStyle = NSNumberFormatterDecimalStyle;
+    numFormatter.locale = self.locale;
+    char* sequenceAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"sequence");
+    if(sequenceAttrValue) {
+        self.sequence = [numFormatter numberFromString:[NSString stringWithCString:sequenceAttrValue encoding:NSUTF8StringEncoding]];
+        xmlFree(sequenceAttrValue);
+    }
+    char* apiFrameworkAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"apiFramework");
+    if(apiFrameworkAttrValue) {
+        self.apiFramework = [NSString
+        stringWithCString:apiFrameworkAttrValue
+        encoding:NSUTF8StringEncoding];
+        xmlFree(apiFrameworkAttrValue);
+    }
+    char* idAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"id");
+    if(idAttrValue) {
+        self.identifier = [NSString
+        stringWithCString:idAttrValue
+        encoding:NSUTF8StringEncoding];
+        xmlFree(idAttrValue);
+    }
+    char* adIdAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"adId");
+    if(adIdAttrValue) {
+        self.adId = [NSString
+        stringWithCString:adIdAttrValue
+        encoding:NSUTF8StringEncoding];
+        xmlFree(adIdAttrValue);
+    }
 }
 
 /**
@@ -109,10 +109,10 @@ if(adIdAttrValue) {
 }
 
 - (void)handleElementName:(NSString *)_currentElementName reader:(void *) reader readerOk:(int *)_readerOk currentNodeType:(int *)_currentNodeType currentXmlDept:(int *)_currentXmlDept handledInChild:(BOOL *)handledInChild {
+    
     NSNumberFormatter* numFormatter = [[NSNumberFormatter alloc] init];
     numFormatter.numberStyle = NSNumberFormatterDecimalStyle;
     numFormatter.locale = self.locale;
-    
     {
         
         DVLog(@"Ignoring unexpected: %@", _currentElementName);

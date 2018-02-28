@@ -6,9 +6,9 @@
 
 #import <Foundation/Foundation.h>
 #import "SKIVASTCreativeBase.h"
+@class SKIVASTLinearWrapperChild;
 @class SKIVASTNonLinearAds;
 @class SKIVASTCompanionAdsCollection;
-@class SKIVASTLinearWrapperChild;
 
 @interface SKIVASTCreativeWrapperChild : SKIVASTCreativeBase
 

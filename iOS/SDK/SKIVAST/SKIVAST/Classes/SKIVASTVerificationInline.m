@@ -3,9 +3,9 @@
 #import <libxml/xmlreader.h>
 #import "SKILog.h"
 
+#import "SKIVASTJavaScriptResource.h"
 #import "SKIVASTViewableImpression.h"
 #import "SKIVASTFlashResource.h"
-#import "SKIVASTJavaScriptResource.h"
 
 @interface SKIVASTVerificationInline ()
 @property (nonatomic, readwrite) NSString *vendor;

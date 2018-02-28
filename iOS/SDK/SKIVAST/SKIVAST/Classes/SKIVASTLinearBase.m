@@ -3,8 +3,8 @@
 #import <libxml/xmlreader.h>
 #import "SKILog.h"
 
-#import "SKIVASTIcons.h"
 #import "SKIVASTTrackingEvents.h"
+#import "SKIVASTIcons.h"
 
 @interface SKIVASTLinearBase ()
 @property (nonatomic, readwrite) NSString *skipoffset;

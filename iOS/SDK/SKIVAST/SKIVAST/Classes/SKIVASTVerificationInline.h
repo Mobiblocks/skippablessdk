@@ -6,9 +6,9 @@
 
 #import <Foundation/Foundation.h>
 
+@class SKIVASTJavaScriptResource;
 @class SKIVASTViewableImpression;
 @class SKIVASTFlashResource;
-@class SKIVASTJavaScriptResource;
 
 /**
 Verification elements are nested under AdVerifications. The Verification element is used to contain the

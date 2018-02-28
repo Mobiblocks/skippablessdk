@@ -3,8 +3,8 @@
 #import <libxml/xmlreader.h>
 #import "SKILog.h"
 
-#import "SKIVASTClickTracking.h"
 #import "SKIVASTCustomClick.h"
+#import "SKIVASTClickTracking.h"
 
 @interface SKIVASTVideoClicksBase ()
 

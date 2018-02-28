@@ -6,8 +6,8 @@
 
 #import <Foundation/Foundation.h>
 
-@class SKIVASTMediaFile;
 @class SKIVASTInteractiveCreativeFile;
+@class SKIVASTMediaFile;
 
 @interface SKIVASTMediaFiles : NSObject
 

@@ -3,8 +3,8 @@
 #import <libxml/xmlreader.h>
 #import "SKILog.h"
 
-#import "SKIVASTMediaFile.h"
 #import "SKIVASTInteractiveCreativeFile.h"
+#import "SKIVASTMediaFile.h"
 
 @interface SKIVASTMediaFiles ()
 

@@ -6,8 +6,8 @@
 
 #import <Foundation/Foundation.h>
 #import "SKIVASTCreativeResourceNonVideo.h"
-@class SKIVASTAdParameters;
 @class SKIVASTNonLinearClickTracking;
+@class SKIVASTAdParameters;
 
 /**
 An ad that is overlain on top of video content during playback */

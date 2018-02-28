@@ -15,6 +15,7 @@
 		65582F371FAB358B0099AC77 /* SKIViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 65582F351FAB358B0099AC77 /* SKIViewController.m */; };
 		65582F3A1FACAE910099AC77 /* SKIObserver.h in Headers */ = {isa = PBXBuildFile; fileRef = 65582F381FACAE910099AC77 /* SKIObserver.h */; };
 		65582F3B1FACAE910099AC77 /* SKIObserver.m in Sources */ = {isa = PBXBuildFile; fileRef = 65582F391FACAE910099AC77 /* SKIObserver.m */; };
+		6593892020458C200057012A /* SKIRes.m in Sources */ = {isa = PBXBuildFile; fileRef = 6593891F20458C200057012A /* SKIRes.m */; };
 		65B9B0391FB461D20093650A /* libSKIVAST-FAT.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65B9B0381FB461C10093650A /* libSKIVAST-FAT.a */; };
 		65D1A66B1FC30356003E91AA /* SKIGeo.h in Headers */ = {isa = PBXBuildFile; fileRef = 65D1A6691FC30356003E91AA /* SKIGeo.h */; };
 		65D1A66C1FC30356003E91AA /* SKIGeo.m in Sources */ = {isa = PBXBuildFile; fileRef = 65D1A66A1FC30356003E91AA /* SKIGeo.m */; };
@@ -81,6 +82,8 @@
 		65582F391FACAE910099AC77 /* SKIObserver.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIObserver.m; sourceTree = "<group>"; };
 		65582F3C1FB45DB00099AC77 /* SKIAdRequestError_Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdRequestError_Private.h; sourceTree = "<group>"; };
 		658EE98D1F99EEEA00628597 /* SKIAdInterstitial_Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdInterstitial_Private.h; sourceTree = "<group>"; };
+		6593891D20458BE60057012A /* SKIRes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIRes.h; sourceTree = "<group>"; };
+		6593891F20458C200057012A /* SKIRes.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIRes.m; sourceTree = "<group>"; };
 		65B9AFEA1FB4612E0093650A /* SKIVAST.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SKIVAST.xcodeproj; path = ../SKIVAST/SKIVAST.xcodeproj; sourceTree = "<group>"; };
 		65D1A6691FC30356003E91AA /* SKIGeo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIGeo.h; sourceTree = "<group>"; };
 		65D1A66A1FC30356003E91AA /* SKIGeo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIGeo.m; sourceTree = "<group>"; };
@@ -173,6 +176,8 @@
 			isa = PBXGroup;
 			children = (
 				65E368C61F86616C00245DFF /* Util */,
+				6593891D20458BE60057012A /* SKIRes.h */,
+				6593891F20458C200057012A /* SKIRes.m */,
 				65E3688E1F85037200245DFF /* SKIConstants.h */,
 				65E36B9C1F8E63AC00245DFF /* SKIConstants.m */,
 				65E36A941F8CBF6100245DFF /* SKILog.h */,
@@ -362,6 +367,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				65E368CA1F86618700245DFF /* SKIAsync.m in Sources */,
+				6593892020458C200057012A /* SKIRes.m in Sources */,
 				65E36B981F8E5D4700245DFF /* SKIAdInterstitialViewController.m in Sources */,
 				65E368861F84E82800245DFF /* SKIAdBannerView.m in Sources */,
 				65582F3B1FACAE910099AC77 /* SKIObserver.m in Sources */,

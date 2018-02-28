@@ -6,8 +6,8 @@
 
 #import <Foundation/Foundation.h>
 
-@class SKIVASTIcons;
 @class SKIVASTTrackingEvents;
+@class SKIVASTIcons;
 
 /**
 Video formatted ad that plays linearly */

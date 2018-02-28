@@ -3,8 +3,8 @@
 #import <libxml/xmlreader.h>
 #import "SKILog.h"
 
-#import "SKIVASTAdParameters.h"
 #import "SKIVASTNonLinearClickTracking.h"
+#import "SKIVASTAdParameters.h"
 
 @interface SKIVASTNonLinearAdInlineChild ()
 

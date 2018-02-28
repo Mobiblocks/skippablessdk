@@ -6,8 +6,8 @@
 
 #import <Foundation/Foundation.h>
 
-@class SKIVASTInline;
 @class SKIVASTWrapper;
+@class SKIVASTInline;
 
 @interface SKIVASTAd : NSObject
 

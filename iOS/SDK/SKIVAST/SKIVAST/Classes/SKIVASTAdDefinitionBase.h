@@ -6,10 +6,10 @@
 
 #import <Foundation/Foundation.h>
 
-@class SKIVASTViewableImpression;
-@class SKIVASTAdSystem;
 @class SKIVASTImpression;
+@class SKIVASTAdSystem;
 @class SKIVASTPricing;
+@class SKIVASTViewableImpression;
 @class SKIVASTExtensions;
 
 /**

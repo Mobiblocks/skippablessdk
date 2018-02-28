@@ -30,14 +30,7 @@
 * Description: Read the attributes for the current XML element
 */
 - (void) readAttributes:(void*) reader {
-    [super readAttributes:reader];NSNumberFormatter* decFormatter = [[NSNumberFormatter alloc] init];
-    decFormatter.locale = self.locale;
-    decFormatter.numberStyle = NSNumberFormatterDecimalStyle;
-    
-    NSNumberFormatter* numFormatter = [[NSNumberFormatter alloc] init];
-    numFormatter.numberStyle = NSNumberFormatterDecimalStyle;
-    numFormatter.locale = self.locale;
-    
+    [super readAttributes:reader];
     NSDate *(^timeFormatter)(NSString *string) = ^NSDate *(NSString *string) {
         static NSDateFormatter* timeFormatter;
         static NSDateFormatter* timeFormatterMillis;
@@ -50,15 +43,22 @@
             timeFormatter.locale = self.locale;
             
             timeFormatterMillis = [[NSDateFormatter alloc] init];
-            timeFormatter.defaultDate = [NSDate dateWithTimeIntervalSinceReferenceDate:0];
-            timeFormatter.dateFormat = @"HH:mm:ss.SSS";
-            timeFormatter.timeZone = [NSTimeZone timeZoneWithName:@"UTC"];
-            timeFormatter.locale = self.locale;
+            timeFormatterMillis.defaultDate = [NSDate dateWithTimeIntervalSinceReferenceDate:0];
+            timeFormatterMillis.dateFormat = @"HH:mm:ss.SSS";
+            timeFormatterMillis.timeZone = [NSTimeZone timeZoneWithName:@"UTC"];
+            timeFormatterMillis.locale = self.locale;
         });
         
         return [timeFormatter dateFromString:string] ?: [timeFormatterMillis dateFromString:string];
     };
     
+    NSNumberFormatter* decFormatter = [[NSNumberFormatter alloc] init];
+    decFormatter.locale = self.locale;
+    decFormatter.numberStyle = NSNumberFormatterDecimalStyle;
+    
+    NSNumberFormatter* numFormatter = [[NSNumberFormatter alloc] init];
+    numFormatter.numberStyle = NSNumberFormatterDecimalStyle;
+    numFormatter.locale = self.locale;
     char* programAttrValue = (char*) xmlTextReaderGetAttribute(reader, (xmlChar*)"program");
     if(programAttrValue) {
         self.program = [NSString
@@ -160,13 +160,6 @@
 }
 
 - (void)handleElementName:(NSString *)_currentElementName reader:(void *) reader readerOk:(int *)_readerOk currentNodeType:(int *)_currentNodeType currentXmlDept:(int *)_currentXmlDept handledInChild:(BOOL *)handledInChild {
-    NSNumberFormatter* decFormatter = [[NSNumberFormatter alloc] init];
-    decFormatter.locale = self.locale;
-    decFormatter.numberStyle = NSNumberFormatterDecimalStyle;
-    
-    NSNumberFormatter* numFormatter = [[NSNumberFormatter alloc] init];
-    numFormatter.numberStyle = NSNumberFormatterDecimalStyle;
-    numFormatter.locale = self.locale;
     
     NSDate *(^timeFormatter)(NSString *string) = ^NSDate *(NSString *string) {
         static NSDateFormatter* timeFormatter;
@@ -180,15 +173,22 @@
             timeFormatter.locale = self.locale;
             
             timeFormatterMillis = [[NSDateFormatter alloc] init];
-            timeFormatter.defaultDate = [NSDate dateWithTimeIntervalSinceReferenceDate:0];
-            timeFormatter.dateFormat = @"HH:mm:ss.SSS";
-            timeFormatter.timeZone = [NSTimeZone timeZoneWithName:@"UTC"];
-            timeFormatter.locale = self.locale;
+            timeFormatterMillis.defaultDate = [NSDate dateWithTimeIntervalSinceReferenceDate:0];
+            timeFormatterMillis.dateFormat = @"HH:mm:ss.SSS";
+            timeFormatterMillis.timeZone = [NSTimeZone timeZoneWithName:@"UTC"];
+            timeFormatterMillis.locale = self.locale;
         });
         
         return [timeFormatter dateFromString:string] ?: [timeFormatterMillis dateFromString:string];
     };
     
+    NSNumberFormatter* decFormatter = [[NSNumberFormatter alloc] init];
+    decFormatter.locale = self.locale;
+    decFormatter.numberStyle = NSNumberFormatterDecimalStyle;
+    
+    NSNumberFormatter* numFormatter = [[NSNumberFormatter alloc] init];
+    numFormatter.numberStyle = NSNumberFormatterDecimalStyle;
+    numFormatter.locale = self.locale;
     if([@"IconClicks" isEqualToString:_currentElementName]) {
         
         self.iconClicks = [[SKIVASTIconClicks alloc] initWithReader:reader];

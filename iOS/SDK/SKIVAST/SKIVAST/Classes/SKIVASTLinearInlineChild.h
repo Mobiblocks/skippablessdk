@@ -6,9 +6,9 @@
 
 #import <Foundation/Foundation.h>
 #import "SKIVASTLinearBase.h"
+@class SKIVASTMediaFiles;
 @class SKIVASTVideoClicksInlineChild;
 @class SKIVASTAdParameters;
-@class SKIVASTMediaFiles;
 
 /**
 Video formatted ad that plays linearly */

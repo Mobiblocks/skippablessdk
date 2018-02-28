@@ -3,8 +3,8 @@
 #import <libxml/xmlreader.h>
 #import "SKILog.h"
 
-#import "SKIVASTAdVerificationsWrapper.h"
 #import "SKIVASTCreatives.h"
+#import "SKIVASTAdVerificationsWrapper.h"
 
 @interface SKIVASTWrapper ()
 @property (nonatomic, readwrite) NSNumber *followAdditionalWrappers;
