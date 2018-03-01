@@ -1,6 +1,6 @@
 package com.mobiblocks.skippables_sample;
 
-import android.support.v7.app.AppCompatActivity;
+import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -12,7 +12,7 @@ import com.mobiblocks.skippables.SkiAdSize;
 import com.mobiblocks.skippables.SkiAdView;
 import com.mobiblocks.skippables.Skippables;
 
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends Activity
 {
 	Button loadButton;
     private SkiAdInterstitial interstitial;
@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity
 		
         Skippables.initialize(getApplicationContext());
 
-        loadButton = findViewById(R.id.loadButton);
+        loadButton = (Button) findViewById(R.id.loadButton);
         loadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -45,8 +45,8 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        final SkiAdView adView = findViewById(R.id.skiAdView);
-        adView.setAdUnitId(".Xler.ShareAndroid");
+        final SkiAdView adView = (SkiAdView) findViewById(R.id.skiAdView);
+        adView.setAdUnitId("9aac45fd-08c8-4394-a3a4-076198782d6c");
         adView.setAdSize(SkiAdSize.BANNER);
         adView.setAdListener(new SkiAdListener() {
             @Override
@@ -72,9 +72,9 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        final SkiAdView adViewMedium = findViewById(R.id.skiAdViewMedium);
-        adViewMedium.setAdUnitId(".Xler.ShareAndroid");
-        adViewMedium.setAdSize(SkiAdSize.MEDIUM_RECTANGLE);
+        final SkiAdView adViewMedium = (SkiAdView) findViewById(R.id.skiAdViewMedium);
+        adViewMedium.setAdUnitId("73f87173-6181-48ae-b149-0e7a29019415");
+        adViewMedium.setAdSize(SkiAdSize.FULL_BANNER);
         adViewMedium.setAdListener(new SkiAdListener() {
             @Override
             public void onAdLoaded() {
@@ -99,9 +99,9 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        final SkiAdView adViewHalfPage = findViewById(R.id.skiAdViewHalfPage);
-        adViewHalfPage.setAdUnitId(".Xler.ShareAndroid");
-        adViewHalfPage.setAdSize(SkiAdSize.HALF_PAGE);
+        final SkiAdView adViewHalfPage = (SkiAdView) findViewById(R.id.skiAdViewHalfPage);
+        adViewHalfPage.setAdUnitId("73f87173-6181-48ae-b149-0e7a29019415");
+        adViewHalfPage.setAdSize(SkiAdSize.LARGE_BANNER);
         adViewHalfPage.setAdListener(new SkiAdListener() {
             @Override
             public void onAdLoaded() {
@@ -127,11 +127,11 @@ public class MainActivity extends AppCompatActivity
         });
 
         request = SkiAdRequest.builder()
-                .setTest(true)
+//                .setTest(true)
                 .build();
 
         interstitial = new SkiAdInterstitial(getApplicationContext());
-        interstitial.setAdUnitId(".Xler.ShareAndroid");
+        interstitial.setAdUnitId("073383e2-0f01-46d6-80f4-93c8024904c4");
         interstitial.setAdListener(new SkiAdListener() {
             @Override
             public void onAdLoaded() {

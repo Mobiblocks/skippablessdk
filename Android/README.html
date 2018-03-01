@@ -493,6 +493,14 @@ pre[class*="language-"] {
     compile (name: &#39;skippables&#39;, ext: &#39;aar&#39;)
 }</code></pre></div>
 
+<p>While there, add Google Mobile Ads dependency.</p>
+
+<div><pre><code class="language-gradle">dependencies {
+    ...
+    implementation (&#39;com.google.android.gms:play-services-ads:11.6.2&#39;)
+    compile (name: &#39;skippables&#39;, ext: &#39;aar&#39;)
+}</code></pre></div>
+
 <h2 id="toc_5">Initialize MobileAds</h2>
 
 <p>Before loading ads, have your app initialize the SDK by calling <code>Skippables.initialize()</code>. Best place is in your <code>Application</code> class.</p>

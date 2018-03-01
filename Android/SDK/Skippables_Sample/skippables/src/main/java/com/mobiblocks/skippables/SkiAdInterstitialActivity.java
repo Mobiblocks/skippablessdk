@@ -66,8 +66,10 @@ public class SkiAdInterstitialActivity extends Activity {
 
     private boolean mStateSaved;
     private MediaPlayer mMediaPlayer;
+    @SuppressWarnings("FieldCanBeLocal")
+    private SkiAdReportActivity.SkiAdReportListener mReportListener;
 
-    static Intent getIntent(@NonNull Context context, @NonNull String uid, @NonNull SkiAdInfo adInfo, @NonNull SkiVastCompressedInfo vastInfo) {
+    static Intent getIntent(@SuppressWarnings("NullableProblems") @NonNull Context context, @NonNull String uid, @NonNull SkiAdInfo adInfo, @NonNull SkiVastCompressedInfo vastInfo) {
         Intent intent = new Intent(context, SkiAdInterstitialActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra(SkiAdInterstitialActivity.EXTRA_UID, uid);
@@ -92,7 +94,7 @@ public class SkiAdInterstitialActivity extends Activity {
     private RelativeLayout mRelativeLayout;
     private InterstitialVideoView mVideoView;
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,7 +106,7 @@ public class SkiAdInterstitialActivity extends Activity {
         }
 
         if (mVastInfo.isMaybeShownInLandscape()) {
-            int orientation = getScreenOrientation(this);
+            int orientation = Util.getScreenOrientation(this);
             switch (orientation) {
                 case ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE:
                 case ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE: {
@@ -116,7 +118,7 @@ public class SkiAdInterstitialActivity extends Activity {
                 }
             }
         } else {
-            int orientation = getScreenOrientation(this);
+            int orientation = Util.getScreenOrientation(this);
             switch (orientation) {
                 case ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE:
                 case ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE: {
@@ -236,7 +238,7 @@ public class SkiAdInterstitialActivity extends Activity {
         mSkipView.setPadding(px(5), px(5), px(5), px(5));
         mSkipView.setBackgroundColor(Color.argb(178, 51, 51, 51));
         mSkipView.setTextColor(Color.WHITE);
-        mSkipView.setText("Skip");
+        mSkipView.setText(R.string.skippables_interstitial_skip);
         mSkipView.setEnabled(false);
         mSkipView.setVisibility(View.GONE);
 
@@ -262,7 +264,7 @@ public class SkiAdInterstitialActivity extends Activity {
         mCloseView.setPadding(px(5), px(5), px(5), px(5));
         mCloseView.setBackgroundColor(Color.argb(178, 51, 51, 51));
         mCloseView.setTextColor(Color.WHITE);
-        mCloseView.setText("Close");
+        mCloseView.setText(R.string.skippables_interstitial_close);
         mCloseView.setGravity(Gravity.CENTER);
         mCloseView.setEnabled(false);
 
@@ -289,23 +291,7 @@ public class SkiAdInterstitialActivity extends Activity {
             mReportView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    SkiAdReportActivity.show(SkiAdInterstitialActivity.this, new SkiAdReportActivity.SkiAdReportListener() {
-                        @Override
-                        public void onResult(boolean canceled, Intent data) {
-                            if (!canceled) {
-                                String email = SkiAdReportActivity.getEmail(data);
-                                String feedback = SkiAdReportActivity.getFeedback(data);
-
-                                SkiEventTracker.getInstance(SkiAdInterstitialActivity.this)
-                                        .trackInfringementReport(
-                                                SkiEventTracker.infringementReport(adInfo)
-                                                        .setEmail(email)
-                                                        .setMessage(feedback));
-
-                                finishInterstitial(true);
-                            }
-                        }
-                    });
+                    SkiAdReportActivity.show(SkiAdInterstitialActivity.this, createReportListener(adInfo));
                 }
             });
 
@@ -351,6 +337,28 @@ public class SkiAdInterstitialActivity extends Activity {
         setContentView(mRelativeLayout);
 
         mVideoView.requestFocus();
+    }
+
+    private SkiAdReportActivity.SkiAdReportListener createReportListener(final SkiAdInfo adInfo) {
+        mReportListener = new SkiAdReportActivity.SkiAdReportListener() {
+            @Override
+            public void onResult(boolean canceled, Intent data) {
+                if (!canceled) {
+                    String email = SkiAdReportActivity.getEmail(data);
+                    String feedback = SkiAdReportActivity.getFeedback(data);
+
+                    SkiEventTracker.getInstance(SkiAdInterstitialActivity.this)
+                            .trackInfringementReport(
+                                    SkiEventTracker.infringementReport(adInfo)
+                                            .setEmail(email)
+                                            .setMessage(feedback));
+
+                    finishInterstitial(true);
+                }
+            }
+        };
+        
+        return mReportListener;
     }
 
     private void finishInterstitial(boolean left) {
@@ -457,27 +465,6 @@ public class SkiAdInterstitialActivity extends Activity {
     private int px(float dp) {
         Resources r = getResources();
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics()));
-    }
-
-    public static int getScreenOrientation(Activity activity) {
-        int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
-        int orientation = activity.getResources().getConfiguration().orientation;
-        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-            if (rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_270) {
-                return ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
-            } else {
-                return ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
-            }
-        }
-        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            if (rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_90) {
-                return ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-            } else {
-                return ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
-            }
-        }
-
-        return ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
     }
 
 
@@ -743,6 +730,7 @@ public class SkiAdInterstitialActivity extends Activity {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void handleVideoClick() {
         mVideoView.setOnTouchListener(null);
         sendClickEvents();

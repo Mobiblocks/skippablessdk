@@ -1,15 +1,15 @@
 package com.mobiblocks.skippables;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.support.v4.content.LocalBroadcastManager;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -20,6 +20,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import java.lang.ref.WeakReference;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 public class SkiAdReportActivity extends Activity {
@@ -28,10 +32,11 @@ public class SkiAdReportActivity extends Activity {
     private static final String EXTRA_FEEDBACK = "extra_feedback";
     private static final String EXTRA_REPORT_ID = "extra_report_id";
     private static final String EXTRA_REPORT_RESULT = "extra_report_result";
-    private LocalBroadcastManager localBroadcastManager;
     private String reportID;
 
-    private static Intent getIntent(@NonNull Context context, String id) {
+    private static final HashMap<String, WeakReference<SkiAdReportListener>> sListeners = new HashMap<>();
+
+    private static Intent getIntent(@SuppressWarnings("NullableProblems") @NonNull Context context, String id) {
         Intent intent = new Intent(context, SkiAdReportActivity.class);
         intent.putExtra(EXTRA_REPORT_ID, id);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -40,23 +45,59 @@ public class SkiAdReportActivity extends Activity {
     }
 
     static void show(@NonNull Context context, @NonNull final SkiAdReportListener listener) {
-        String id = UUID.randomUUID().toString();
+        //noinspection ConstantConditions
+        if (context == null) {
+            return;
+        }
         
-        final LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(context);
-        final BroadcastReceiver[] reportReceiverTest = {null};
-        final BroadcastReceiver reportReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                boolean hz = this == reportReceiverTest[0];
-                localBroadcastManager.unregisterReceiver(this);
-
-                listener.onResult(intent.getBooleanExtra(EXTRA_REPORT_RESULT, false), intent);
+        String uid = UUID.randomUUID().toString();
+        synchronized (sListeners) {
+            sListeners.put(uid, new WeakReference<>(listener));
+        }
+        
+        context.startActivity(getIntent(context, uid));
+    }
+    
+    private static void reportResult(final Intent intent) {
+        String uid = intent.getStringExtra(EXTRA_REPORT_ID);
+        if (uid == null) {
+            return;
+        }
+        
+        synchronized (sListeners) {
+            WeakReference<SkiAdReportListener> weak = sListeners.get(uid);
+            if (weak != null) {
+                final SkiAdReportListener listener = weak.get();
+                if (listener != null) {
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onResult(intent.getBooleanExtra(EXTRA_REPORT_RESULT, false), intent);
+                        }
+                    });
+                }
+                
+                sListeners.remove(uid);
             }
-        };
-        reportReceiverTest[0] = reportReceiver;
-        localBroadcastManager.registerReceiver(reportReceiver, new IntentFilter(id));
-        
-        context.startActivity(getIntent(context, id));
+        }
+
+        compat();
+    }
+
+    private static void compat() {
+        synchronized (sListeners) {
+            Set<String> keySet = new HashSet<>(sListeners.keySet());
+            for (String key :
+                    keySet) {
+                WeakReference<SkiAdReportListener> weak = sListeners.get(key);
+                if (weak != null) {
+                    final SkiAdReportListener listener = weak.get();
+                    if (listener == null) {
+                        sListeners.remove(key);
+                    }
+                }
+            }
+        }
     }
 
     private static Intent getSuccessIntent(String id, String email, String feedback) {
@@ -80,6 +121,20 @@ public class SkiAdReportActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        int orientation = Util.getScreenOrientation(this);
+        switch (orientation) {
+            case ActivityInfo.SCREEN_ORIENTATION_PORTRAIT:
+            case ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT:
+            case ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE:
+            case ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE: {
+                setRequestedOrientation(orientation);
+                break;
+            }
+            default: {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            }
+        }
         
         reportID = getIntent().getStringExtra(EXTRA_REPORT_ID);
         if (reportID == null) {
@@ -92,15 +147,13 @@ public class SkiAdReportActivity extends Activity {
         } else {
             setTheme(android.R.style.Theme_Holo_Dialog);
         }
-        setTitle("Report");
-
-        localBroadcastManager = LocalBroadcastManager.getInstance(this);
+        setTitle(R.string.skippables_report_title);
 
         LinearLayout linearLayout = new LinearLayout(this);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
 
         final EditText emailEdit = new EditText(this);
-        emailEdit.setHint("Email (optional)");
+        emailEdit.setHint(R.string.skippables_report_email_hint);
         emailEdit.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         emailEdit.setSingleLine(true);
         emailEdit.setMinWidth(px(300));
@@ -108,8 +161,9 @@ public class SkiAdReportActivity extends Activity {
         linearLayout.addView(emailEdit);
 
         final EditText feedbackEdit = new EditText(this);
+        feedbackEdit.setHint(R.string.skippables_report_message_hint);
         feedbackEdit.setMinWidth(px(300));
-        feedbackEdit.setMinHeight(px(200));
+        feedbackEdit.setMinHeight(px(100));
         feedbackEdit.setMaxHeight(px(280));
         feedbackEdit.setSingleLine(false);
         feedbackEdit.setMaxLines(7);
@@ -120,11 +174,11 @@ public class SkiAdReportActivity extends Activity {
         buttonsLayout.setOrientation(LinearLayout.HORIZONTAL);
 
         Button cancelButton = new Button(this);
-        cancelButton.setText("Cancel");
+        cancelButton.setText(R.string.skippables_report_cancel);
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                localBroadcastManager.sendBroadcast(getCanceledIntent(reportID));
+                reportResult(getCanceledIntent(reportID));
                 SkiAdReportActivity.this.finish();
             }
         });
@@ -132,12 +186,12 @@ public class SkiAdReportActivity extends Activity {
         buttonsLayout.addView(cancelButton, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
         final Button sendButton = new Button(this);
-        sendButton.setText("Send");
+        sendButton.setText(R.string.skippables_report_send);
         sendButton.setEnabled(false);
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                localBroadcastManager.sendBroadcast(getSuccessIntent(reportID, emailEdit.getText().toString(), feedbackEdit.getText().toString()));
+                reportResult(getSuccessIntent(reportID, emailEdit.getText().toString(), feedbackEdit.getText().toString()));
                 SkiAdReportActivity.this.finish();
             }
         });
@@ -170,7 +224,7 @@ public class SkiAdReportActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        localBroadcastManager.sendBroadcast(getCanceledIntent(reportID));
+        reportResult(getCanceledIntent(reportID));
     }
 
     public static String getEmail(Intent data) {

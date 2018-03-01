@@ -136,7 +136,9 @@ public class SkiAdInterstitial {
         mContext.startActivity(SkiAdInterstitialActivity.getIntent(mContext, mRequest.uid, mAdInfo, mVastInfo));
 
         if (mAdListener != null) {
-            sListeners.put(mRequest.uid, new WeakReference<>(mAdListener));
+            synchronized (sListeners) {
+                sListeners.put(mRequest.uid, new WeakReference<>(mAdListener));
+            }
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {

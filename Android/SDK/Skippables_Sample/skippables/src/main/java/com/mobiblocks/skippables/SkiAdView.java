@@ -9,6 +9,7 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.MotionEvent;
@@ -35,6 +36,8 @@ public class SkiAdView extends ViewGroup {
     private WebView mWebView;
     private TextView mReportView;
     private boolean mLoading;
+    @SuppressWarnings("FieldCanBeLocal")
+    private SkiAdReportActivity.SkiAdReportListener mReportListener;
 
     public SkiAdView(Context context) {
         super(context);
@@ -225,6 +228,9 @@ public class SkiAdView extends ViewGroup {
                         }
                         view.getSettings().setJavaScriptEnabled(false);
                         view.setVisibility(VISIBLE);
+                        if (mReportView != null) {
+                            mReportView.setVisibility(VISIBLE);
+                        }
                     }
 
                     @Override
@@ -268,6 +274,7 @@ public class SkiAdView extends ViewGroup {
 
                 if (response.getAdInfo() != null) {
                     mReportView = new TextView(getContext());
+                    mReportView.setVisibility(INVISIBLE);
                     mReportView.setText(R.string.skippables_ad_report);
                     mReportView.setTextSize(11);
                     mReportView.setTextColor(Color.rgb(70, 130, 180));
@@ -278,36 +285,7 @@ public class SkiAdView extends ViewGroup {
                     mReportView.setOnClickListener(new OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            SkiAdReportActivity.show(getContext(), new SkiAdReportActivity.SkiAdReportListener() {
-                                @Override
-                                public void onResult(boolean canceled, Intent data) {
-                                    if (canceled) {
-                                        return;
-                                    }
-                                    
-                                    String email = SkiAdReportActivity.getEmail(data);
-                                    String feedback = SkiAdReportActivity.getFeedback(data);
-
-                                    SkiEventTracker.getInstance(getContext())
-                                            .trackInfringementReport(
-                                                    SkiEventTracker.infringementReport(response)
-                                                            .setEmail(email)
-                                                            .setMessage(feedback));
-
-                                    if (mAdListener != null) {
-                                        post(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                mAdListener.onAdFailedToLoad(SkiAdRequest.ERROR_NO_FILL);
-                                                
-                                                mWebView = null;
-                                                mReportView = null;
-                                                removeAllViews();
-                                            }
-                                        });
-                                    }
-                                }
-                            });
+                            SkiAdReportActivity.show(getContext(), createReportListener(response));
                         }
                     });
 
@@ -324,6 +302,41 @@ public class SkiAdView extends ViewGroup {
                 }
             }
         });
+    }
+
+    private SkiAdReportActivity.SkiAdReportListener createReportListener(final SkiAdRequestResponse response) {
+        mReportListener = new SkiAdReportActivity.SkiAdReportListener() {
+            @Override
+            public void onResult(boolean canceled, Intent data) {
+                if (canceled) {
+                    return;
+                }
+
+                String email = SkiAdReportActivity.getEmail(data);
+                String feedback = SkiAdReportActivity.getFeedback(data);
+
+                SkiEventTracker.getInstance(getContext())
+                        .trackInfringementReport(
+                                SkiEventTracker.infringementReport(response)
+                                        .setEmail(email)
+                                        .setMessage(feedback));
+
+                post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mAdListener != null) {
+                            mAdListener.onAdFailedToLoad(SkiAdRequest.ERROR_NO_FILL);
+                        }
+
+                        mWebView = null;
+                        mReportView = null;
+                        removeAllViews();
+                    }
+                });
+            }
+        };
+        
+        return mReportListener;
     }
 
     @SuppressWarnings("unused")
