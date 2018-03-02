@@ -77,15 +77,16 @@
 		_webView.frame = (CGRect){point, self.adSize};
 	}
 	
-	if (_reportLabelView) {
+	if (_webView && _reportLabelView) {
 		CGRect frame = _reportLabelView.frame;
-		frame.origin = CGPointZero;
+		frame.origin = _webView.frame.origin;
 		_reportLabelView.frame = frame;
 	}
 }
 
 - (void)loadRequest:(SKIAdRequest *)request {
 	if (_request) {
+		_request.delegate = nil;
 		[_request cancel];
 	}
 	
@@ -145,7 +146,8 @@
 		return _reportLabelView;
 	}
 	
-	_reportLabelView = [[UILabel alloc] initWithFrame:(CGRect){{0.f, 0.f}, CGSizeZero}];
+	CGPoint origin = _webView ? _webView.frame.origin : CGPointZero;
+	_reportLabelView = [[UILabel alloc] initWithFrame:(CGRect){origin, CGSizeZero}];
 	_reportLabelView.textColor = [UIColor colorWithRed:0.27f green:0.5f blue:0.7f alpha:1.f];
 	_reportLabelView.font = [UIFont monospacedDigitSystemFontOfSize:17 weight:UIFontWeightRegular];
 	_reportLabelView.text = @"Report";
@@ -166,6 +168,8 @@
 - (void)handleTapGesture:(UITapGestureRecognizer *)gesture {
 	if (gesture.view == self.reportLabelView) {
 		__weak typeof(self) wSelf = self;
+		UIWebView *webView = _webView;
+		UILabel *reportLabelView = _reportLabelView;
 		[SKIAdReportViewController showFromViewController:self.rootViewController callback:^(BOOL canceled, NSString * _Nullable email, NSString * _Nullable message) {
 			if (canceled) {
 				return;
@@ -174,6 +178,8 @@
 			[[SKIAdEventTracker defaultTracker] sendReportWithDeviceData:wSelf.requestResponse.deviceInfo adId:wSelf.requestResponse.rawResponse[@"AdId"] adUnitId:wSelf.adUnitID email:email message:message];
 			
 			SKIAsyncOnMain(^{
+				webView.hidden = YES;
+				reportLabelView.hidden = YES;
 				if ([wSelf.delegate respondsToSelector:@selector(skiAdView:didFailToReceiveAdWithError:)]) {
 					SKIAdRequestError *requestError = [SKIAdRequestError errorNoFillWithUserInfo:nil];
 					[wSelf.delegate skiAdView:wSelf didFailToReceiveAdWithError:requestError];
@@ -213,6 +219,9 @@
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
 	[webView stringByEvaluatingJavaScriptFromString:@"document.body.style.margin='0';document.body.style.padding='0';"];
+	
+	[self updateFrames];
+	
 	webView.hidden = NO;
 	self.reportLabelView.hidden = NO;
 	

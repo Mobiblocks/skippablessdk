@@ -78,19 +78,19 @@ public class SkiAdView extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        int aw = mAdSize.getWidthInPixels(getContext());
+        int ah = mAdSize.getHeightInPixels(getContext());
+        int wl = (getMeasuredWidth() - aw) / 2;
+        int wt = (getMeasuredHeight() - ah) / 2;
         if (mWebView != null) {
-            int aw = mAdSize.getWidthInPixels(getContext());
-            int ah = mAdSize.getHeightInPixels(getContext());
-            int wl = (getMeasuredWidth() - aw) / 2;
-            int wt = (getMeasuredHeight() - ah) / 2;
             int wr = wl + aw;
             int wb = wt + ah;
             mWebView.layout(wl, wt, wr, wb);
         }
         
         if (mReportView != null) {
-            int rl = 0;
-            int rt = 0;
+            int rl = wl;
+            int rt = wt;
             int rw = mReportView.getMeasuredWidth();
             int rh = mReportView.getMeasuredHeight();
             mReportView.layout(rl, rt, rl + rw, rt + rh);

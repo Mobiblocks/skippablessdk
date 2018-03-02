@@ -41,6 +41,7 @@
 - (void)loadRequest:(SKIAdRequest *)request {
 	if (_request) {
 		self.interstitialViewController = nil;
+		_request.delegate = nil;
 		[_request cancel];
 	}
 	
