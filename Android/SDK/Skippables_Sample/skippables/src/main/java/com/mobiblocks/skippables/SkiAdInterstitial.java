@@ -38,7 +38,7 @@ public class SkiAdInterstitial {
         mHandler = new Handler(Looper.getMainLooper());
     }
 
-    public void loadRequest(SkiAdRequest request) {
+    public void load(SkiAdRequest request) {
         if (isLoading()) {
             return;
         }

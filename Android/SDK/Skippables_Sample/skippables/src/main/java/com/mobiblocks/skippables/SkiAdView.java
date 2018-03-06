@@ -126,7 +126,7 @@ public class SkiAdView extends ViewGroup {
     }
 
     @SuppressWarnings("unused")
-    public void loadRequest(SkiAdRequest request) {
+    public void load(SkiAdRequest request) {
         if (isLoading()) {
             return;
         }

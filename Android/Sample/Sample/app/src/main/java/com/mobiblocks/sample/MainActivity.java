@@ -45,21 +45,21 @@ public class MainActivity extends Activity {
                 super.onAdFailedToLoad(errorCode);
             }
         });
-        banner.loadRequest(request);
+        banner.load(request);
 
         final SkiAdInterstitial interstitial1 = new SkiAdInterstitial(this);
         interstitial1.setAdUnitId(INTERSTITIAL_AD_UNIT_ID_1);
         interstitial1.setAdListener(new SkiAdListener() {
             @Override
             public void onAdClosed() {
-                interstitial1.loadRequest(request);
+                interstitial1.load(request);
             }
 
             @Override
             public void onAdFailedToLoad(int errorCode) {
             }
         });
-        interstitial1.loadRequest(request);
+        interstitial1.load(request);
 
         Button button1 = findViewById(R.id.button1);
         button1.setOnClickListener(new View.OnClickListener() {
@@ -70,9 +70,9 @@ public class MainActivity extends Activity {
                 
                 if (interstitial1.isLoaded()) {
                     interstitial1.show();
-                } else if (!interstitial1.isLoading() || !interstitial1.isBeenUsed()) {
-                    interstitial1.loadRequest(request);
-                }
+                } else if (!interstitial1.isLoading() || interstitial1.isBeenUsed()) {
+                    interstitial1.load(request);
+                } 
             }
         });
 
@@ -81,14 +81,14 @@ public class MainActivity extends Activity {
         interstitial2.setAdListener(new SkiAdListener() {
             @Override
             public void onAdClosed() {
-                interstitial1.loadRequest(request);
+                interstitial1.load(request);
             }
 
             @Override
             public void onAdFailedToLoad(int errorCode) {
             }
         });
-        interstitial2.loadRequest(request);
+        interstitial2.load(request);
 
         Button button2 = findViewById(R.id.button2);
         button2.setOnClickListener(new View.OnClickListener() {
@@ -99,8 +99,8 @@ public class MainActivity extends Activity {
                 
                 if (interstitial2.isLoaded()) {
                     interstitial2.show();
-                } else if (!interstitial2.isLoading() || !interstitial2.isBeenUsed()) {
-                    interstitial2.loadRequest(request);
+                } else if (!interstitial2.isLoading() || interstitial2.isBeenUsed()) {
+                    interstitial2.load(request);
                 }
             }
         });
@@ -110,14 +110,14 @@ public class MainActivity extends Activity {
         interstitial3.setAdListener(new SkiAdListener() {
             @Override
             public void onAdClosed() {
-                interstitial1.loadRequest(request);
+                interstitial1.load(request);
             }
 
             @Override
             public void onAdFailedToLoad(int errorCode) {
             }
         });
-        interstitial3.loadRequest(request);
+        interstitial3.load(request);
 
         Button button3 = findViewById(R.id.button3);
         button3.setOnClickListener(new View.OnClickListener() {
@@ -128,8 +128,8 @@ public class MainActivity extends Activity {
                 
                 if (interstitial3.isLoaded()) {
                     interstitial3.show();
-                } else if (!interstitial3.isLoading() || !interstitial3.isBeenUsed()) {
-                    interstitial3.loadRequest(request);
+                } else if (!interstitial3.isLoading() || interstitial3.isBeenUsed()) {
+                    interstitial3.load(request);
                 }
             }
         });

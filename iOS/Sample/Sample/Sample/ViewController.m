@@ -66,19 +66,19 @@
 	if ([segue.identifier isEqualToString:@"example1"]) {
 		if (self.interstitial1.isReady) {
 			[self.interstitial1 presentFromRootViewController:self];
-		} else if (!self.interstitial1.isLoading && !self.interstitial1.hasBeenUsed) {
+		} else if (!self.interstitial1.isLoading || self.interstitial1.hasBeenUsed) {
 			self.interstitial1 = [self createAndLoadWithAdUnitId:kAdUnitId1];
 		}
 	} else if ([segue.identifier isEqualToString:@"example2"]) {
 		if (self.interstitial2.isReady) {
 			[self.interstitial2 presentFromRootViewController:self];
-		} else if (!self.interstitial2.isLoading && !self.interstitial2.hasBeenUsed) {
+		} else if (!self.interstitial2.isLoading || self.interstitial2.hasBeenUsed) {
 			self.interstitial2 = [self createAndLoadWithAdUnitId:kAdUnitId2];
 		}
 	} else if ([segue.identifier isEqualToString:@"example3"]) {
 		if (self.interstitial3.isReady) {
 			[self.interstitial3 presentFromRootViewController:self];
-		} else if (!self.interstitial3.isLoading && !self.interstitial3.hasBeenUsed) {
+		} else if (!self.interstitial3.isLoading || self.interstitial3.hasBeenUsed) {
 			self.interstitial3 = [self createAndLoadWithAdUnitId:kAdUnitId3];
 		}
 	}
