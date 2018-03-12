@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -134,8 +135,19 @@ public class SkiAdView extends ViewGroup {
             return;
         }
 
-        if (mAdUnitId == null || mAdUnitId.isEmpty()) {
-            throw new IllegalArgumentException("AdUnitId is empty");
+        if (!request.isTest() && (mAdUnitId == null || mAdUnitId.isEmpty())) {
+            if (mAdListener != null) {
+                final SkiAdListener listener = mAdListener;
+                post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("SKIPPABLES", "Ad unit id is empty");
+                        listener.onAdFailedToLoad(ERROR_INVALID_ARGUMENT);
+                    }
+                });
+            }
+            
+            return;
         }
 
         mLoading = true;

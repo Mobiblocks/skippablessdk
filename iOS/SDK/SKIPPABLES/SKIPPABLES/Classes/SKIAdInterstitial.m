@@ -39,6 +39,20 @@
 }
 
 - (void)loadRequest:(SKIAdRequest *)request {
+	if (!request.test && (self.adUnitID == nil || self.adUnitID.length == 0)) {
+		if ([self.delegate respondsToSelector:@selector(skiInterstitial:didFailToReceiveAdWithError:)]) {
+			id<SKIAdInterstitialDelegate> delegate = self.delegate;
+			SKIAsyncOnMain(^{
+				SKIAdRequestError *error = [SKIAdRequestError errorInvalidArgumentWithUserInfo:@{
+																								 NSLocalizedDescriptionKey: @"Ad unit id is empty"
+																								 }];
+				[delegate skiInterstitial:self didFailToReceiveAdWithError:error];
+			});
+		}
+		
+		return;
+	}
+	
 	if (_request) {
 		self.interstitialViewController = nil;
 		_request.delegate = nil;

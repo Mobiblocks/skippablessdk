@@ -587,6 +587,10 @@ public class SkiAdRequest {
         this.adSize = adSize;
     }
 
+    boolean isTest() {
+        return test;
+    }
+
     @SuppressWarnings("unused")
     public static Builder builder() {
         return new Builder();

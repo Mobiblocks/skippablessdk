@@ -3,6 +3,7 @@ package com.mobiblocks.skippables;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import java.lang.ref.WeakReference;
 import java.net.URL;
@@ -10,6 +11,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.mobiblocks.skippables.SkiAdRequest.ERROR_INVALID_ARGUMENT;
 
 /**
  * Created by daniel on 12/19/17.
@@ -43,8 +46,19 @@ public class SkiAdInterstitial {
             return;
         }
 
-        if (mAdUnitId == null || mAdUnitId.isEmpty()) {
-            throw new IllegalArgumentException("AdUnitId is empty");
+        if (!request.isTest() && (mAdUnitId == null || mAdUnitId.isEmpty())) {
+            if (mAdListener != null) {
+                final SkiAdListener listener = mAdListener;
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("SKIPPABLES", "Ad unit id is empty");
+                        listener.onAdFailedToLoad(ERROR_INVALID_ARGUMENT);
+                    }
+                });
+            }
+
+            return;
         }
 
         mLoading = true;
@@ -60,11 +74,12 @@ public class SkiAdInterstitial {
                 mLoading = false;
                 if (response.hasAnyError()) {
                     if (mAdListener != null) {
+                        final SkiAdListener listener = mAdListener;
                         final int errorCode = response.getErrorCode();
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                mAdListener.onAdFailedToLoad(errorCode);
+                                listener.onAdFailedToLoad(errorCode);
                             }
                         });
                     }
@@ -90,10 +105,11 @@ public class SkiAdInterstitial {
                 mVastInfo = response.getVastInfo();
 
                 if (mAdListener != null) {
+                    final SkiAdListener listener = mAdListener;
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            mAdListener.onAdLoaded();
+                            listener.onAdLoaded();
                         }
                     });
                 }
