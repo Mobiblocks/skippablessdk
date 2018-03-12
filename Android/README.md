@@ -140,7 +140,7 @@ In order to load and display ads, `SkiAdView` requires an ad unit id and an ad s
 ~~~
 
 ###Load an ad
-Once the `SkiAdView` configured, it's time to load an ad. This is done by calling `loadRequest()` with a `SkiAdRequest` object:
+Once the `SkiAdView` configured, it's time to load an ad. This is done by calling `load()` with a `SkiAdRequest` object:
 
 ~~~java
 ...
@@ -149,7 +149,7 @@ Once the `SkiAdView` configured, it's time to load an ad. This is done by callin
         ...
         adView.setAdUnitId("your_ad_unit_id");
         adView.setAdSize(SkiAdSize.BANNER);
-        adView.loadRequest(SkiAdRequest.builder().build());
+        adView.load(SkiAdRequest.builder().build());
         ...
     }
 ...
@@ -174,7 +174,7 @@ Example using `BuildConfig.DEBUG` constant:
                 .builder()
                 .setTest(BuildConfig.DEBUG)
                 .build();
-        adView.loadRequest(adRequest);
+        adView.load(adRequest);
         ...
     }
 ...
@@ -262,14 +262,14 @@ public class MainActivity extends Activity {
 `SkiAdInterstitial` is a single-use object that will load and display one interstitial ad. To display multiple interstitial ads, an app needs to create a `SkiAdInterstitial` for each one.
 
 ###Load an ad
-To load an interstitial ad, call `loadRequest:` with a `SKIAdRequest` object:
+To load an interstitial ad, call `load()` with a `SKIAdRequest` object:
 
 ~~~java
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         ...
         interstitial.setAdUnitId("your_ad_unit_id");
-        interstitial.loadRequest(SkiAdRequest.builder().build());
+        interstitial.load(SkiAdRequest.builder().build());
         ...
     }
     ...
@@ -291,7 +291,7 @@ Example using `BuildConfig.DEBUG` constant:
                 .builder()
                 .setTest(BuildConfig.DEBUG)
                 .build();
-        interstitial.loadRequest(adRequest);
+        interstitial.load(adRequest);
         ...
     }
 ...
@@ -382,7 +382,7 @@ As an example you can request another interstitial in `onAdClosed()` so that the
                        .builder()
                        .setTest(BuildConfig.DEBUG)
                        .build();
-               interstitial.loadRequest(adRequest);
+               interstitial.load(adRequest);
             }
             
         });
