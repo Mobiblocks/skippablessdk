@@ -586,7 +586,7 @@ public class MainActivity extends Activity {
 
 <h3 id="toc_8">Load an ad</h3>
 
-<p>Once the <code>SkiAdView</code> configured, it&#39;s time to load an ad. This is done by calling <code>loadRequest()</code> with a <code>SkiAdRequest</code> object:</p>
+<p>Once the <code>SkiAdView</code> configured, it&#39;s time to load an ad. This is done by calling <code>load()</code> with a <code>SkiAdRequest</code> object:</p>
 
 <div><pre><code class="language-java">...
     @Override
@@ -594,7 +594,7 @@ public class MainActivity extends Activity {
         ...
         adView.setAdUnitId(&quot;your_ad_unit_id&quot;);
         adView.setAdSize(SkiAdSize.BANNER);
-        adView.loadRequest(SkiAdRequest.builder().build());
+        adView.load(SkiAdRequest.builder().build());
         ...
     }
 ...</code></pre></div>
@@ -618,7 +618,7 @@ Example using <code>BuildConfig.DEBUG</code> constant:</p>
                 .builder()
                 .setTest(BuildConfig.DEBUG)
                 .build();
-        adView.loadRequest(adRequest);
+        adView.load(adRequest);
         ...
     }
 ...</code></pre></div>
@@ -704,13 +704,13 @@ public class MainActivity extends Activity {
 
 <h3 id="toc_13">Load an ad</h3>
 
-<p>To load an interstitial ad, call <code>loadRequest:</code> with a <code>SKIAdRequest</code> object:</p>
+<p>To load an interstitial ad, call <code>load()</code> with a <code>SKIAdRequest</code> object:</p>
 
 <div><pre><code class="language-java">    @Override
     protected void onCreate(Bundle savedInstanceState) {
         ...
         interstitial.setAdUnitId(&quot;your_ad_unit_id&quot;);
-        interstitial.loadRequest(SkiAdRequest.builder().build());
+        interstitial.load(SkiAdRequest.builder().build());
         ...
     }
     ...</code></pre></div>
@@ -731,7 +731,7 @@ Example using <code>BuildConfig.DEBUG</code> constant:</p>
                 .builder()
                 .setTest(BuildConfig.DEBUG)
                 .build();
-        interstitial.loadRequest(adRequest);
+        interstitial.load(adRequest);
         ...
     }
 ...</code></pre></div>
@@ -818,7 +818,7 @@ Simply call the setAdListener() method:</p>
                        .builder()
                        .setTest(BuildConfig.DEBUG)
                        .build();
-               interstitial.loadRequest(adRequest);
+               interstitial.load(adRequest);
             }
             
         });
