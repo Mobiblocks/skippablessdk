@@ -15,12 +15,15 @@ import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
 
+import static com.mobiblocks.skippables.SkiAdRequest.ERROR_INTERNAL_ERROR;
 import static com.mobiblocks.skippables.SkiAdRequest.ERROR_INVALID_ARGUMENT;
 
 /**
@@ -87,7 +90,7 @@ public class SkiAdView extends ViewGroup {
             int wb = wt + ah;
             mWebView.layout(wl, wt, wr, wb);
         }
-        
+
         if (mReportView != null) {
             int rl = wl;
             int rt = wt;
@@ -149,11 +152,12 @@ public class SkiAdView extends ViewGroup {
                 mLoading = false;
                 if (response.hasError()) {
                     if (mAdListener != null) {
+                        final SkiAdListener listener = mAdListener;
                         final int errorCode = response.getErrorCode();
                         post(new Runnable() {
                             @Override
                             public void run() {
-                                mAdListener.onAdFailedToLoad(errorCode);
+                                listener.onAdFailedToLoad(errorCode);
                             }
                         });
                     }
@@ -172,6 +176,7 @@ public class SkiAdView extends ViewGroup {
                 });
                 mWebView.setWebViewClient(new WebViewClient() {
                     private long touchStamp = 0;
+
                     private boolean hitTypeIsLink(int hitType) {
                         return hitType == WebView.HitTestResult.ANCHOR_TYPE
                                 || hitType == WebView.HitTestResult.IMAGE_ANCHOR_TYPE
@@ -183,8 +188,9 @@ public class SkiAdView extends ViewGroup {
                         if (System.currentTimeMillis() - touchStamp < 2000) {
                             return;
                         }
-                        touchStamp = System.currentTimeMillis();
                         
+                        touchStamp = System.currentTimeMillis();
+
                         Intent intent = new Intent(Intent.ACTION_VIEW);
                         intent.setData(uri);
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -206,11 +212,11 @@ public class SkiAdView extends ViewGroup {
                         }
 
                         if (mAdListener != null) {
-                            final int errorCode = response.getErrorCode();
+                            final SkiAdListener listener = mAdListener;
                             post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    mAdListener.onAdLeftApplication();
+                                    listener.onAdLeftApplication();
                                 }
                             });
                         }
@@ -236,12 +242,27 @@ public class SkiAdView extends ViewGroup {
                     @Override
                     public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                         super.onReceivedError(view, request, error);
-                        post(new Runnable() {
-                            @Override
-                            public void run() {
-                                mAdListener.onAdFailedToLoad(ERROR_INVALID_ARGUMENT);
-                            }
-                        });
+
+                        mWebView = null;
+                        mReportView = null;
+                        removeAllViews();
+                        
+                        if (mAdListener != null) {
+                            mAdListener.onAdFailedToLoad(ERROR_INTERNAL_ERROR);
+                        }
+                    }
+
+                    @Override
+                    public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+                        mWebView = null;
+                        mReportView = null;
+                        removeAllViews();
+                        
+                        if (mAdListener != null) {
+                            mAdListener.onAdFailedToLoad(ERROR_INTERNAL_ERROR);
+                        }
+
+                        return true;
                     }
 
                     @Override
@@ -293,10 +314,11 @@ public class SkiAdView extends ViewGroup {
                 }
 
                 if (mAdListener != null) {
+                    final SkiAdListener listener = mAdListener;
                     post(new Runnable() {
                         @Override
                         public void run() {
-                            mAdListener.onAdLoaded();
+                            listener.onAdLoaded();
                         }
                     });
                 }
@@ -335,7 +357,7 @@ public class SkiAdView extends ViewGroup {
                 });
             }
         };
-        
+
         return mReportListener;
     }
 

@@ -35,6 +35,7 @@ import org.xml.sax.helpers.DefaultHandler;
 public class SaxParser extends DefaultHandler {
     private static boolean configured = false;
     private static SAXParserFactory factory = null;
+    private static final Object sSyncObject = new Object();
     private SAXParser saxParser = null;
     private String elementToSkip = null;
     private int skipedElementDepth = 0;
@@ -66,7 +67,11 @@ public class SaxParser extends DefaultHandler {
      */
     public static SaxParser getInstance() throws ParserConfigurationException, SAXException {
         if (!configured) {
-            configure();
+            synchronized (sSyncObject) {
+                if (!configured) {
+                    configure();
+                }
+            }
         }
         return new SaxParser();
     }
@@ -152,7 +157,7 @@ public class SaxParser extends DefaultHandler {
         if (str == null || str.length() == 0) {
             return null;
         }
-        
+
         InputSource src = new InputSource(new StringReader(str));
         try {
             parse(src);
