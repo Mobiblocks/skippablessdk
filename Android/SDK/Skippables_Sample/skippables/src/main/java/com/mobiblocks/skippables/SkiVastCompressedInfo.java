@@ -1,12 +1,16 @@
 package com.mobiblocks.skippables;
 
 import android.content.Context;
+import android.graphics.Point;
+import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
 import android.util.SparseArray;
+import android.view.Display;
+import android.view.WindowManager;
 
 import com.mobiblocks.skippables.vast.LinearInlineChildType;
 import com.mobiblocks.skippables.vast.TrackingEventsType;
@@ -135,9 +139,27 @@ class SkiVastCompressedInfo implements Parcelable {
     @Nullable
     MediaFile findBestMediaFile(Context context) {
         if (mediaFile == null) {
-            DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-            int screenWidth = (int) (metrics.widthPixels / metrics.density);
-            int screenHeight = (int) (metrics.heightPixels / metrics.density);
+            int screenWidth = -1;
+            int screenHeight = -1;
+            
+            WindowManager windowManager =
+                    (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+            if (windowManager != null) {
+                Display display = windowManager.getDefaultDisplay();
+                Point size = new Point();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    display.getRealSize(size);
+
+                    screenWidth = size.x;
+                    screenHeight = size.y;
+                }
+            }
+            
+            if (screenWidth == -1 || screenHeight == -1) {
+                DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+                screenWidth = metrics.widthPixels;
+                screenHeight = metrics.heightPixels;
+            }
 
             int screenRatio = Math.max(screenWidth, screenHeight) / Math.min(screenWidth, screenHeight);
 

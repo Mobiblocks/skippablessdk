@@ -7,7 +7,6 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.media.MediaPlayer;
@@ -20,7 +19,6 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
-import android.view.Surface;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -136,11 +134,11 @@ public class SkiAdInterstitialActivity extends Activity {
                 RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
 
         RelativeLayout.LayoutParams videoViewLayoutParams = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         videoViewLayoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
-        videoViewLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+//        videoViewLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
 //        videoViewLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        videoViewLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+//        videoViewLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
 //        videoViewLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
 
         mVideoView = new InterstitialVideoView(this);
@@ -150,6 +148,10 @@ public class SkiAdInterstitialActivity extends Activity {
             @Override
             public void onPrepared(MediaPlayer mp) {
                 mMediaPlayer = mp;
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    mMediaPlayer.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT);
+                }
 
                 float volume = sMuted ? 0.f : 1.f;
                 mp.setVolume(volume, volume);
@@ -780,10 +782,10 @@ public class SkiAdInterstitialActivity extends Activity {
         return true;
     }
 
-    private static class InterstitialVideoView extends VideoView {
+    private class InterstitialVideoView extends VideoView {
 
-//        private int mVideoWidth;
-//        private int mVideoHeight;
+        private int mVideoWidth;
+        private int mVideoHeight;
 
         public InterstitialVideoView(Context context) {
             super(context);
@@ -805,34 +807,28 @@ public class SkiAdInterstitialActivity extends Activity {
             super(context, attrs, defStyleAttr, defStyleRes);
         }
 
-//        @Override
-//        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-//            //Log.i("@@@@", "onMeasure");
-//            int width = getDefaultSize(mVideoWidth, widthMeasureSpec);
-//            int height = getDefaultSize(mVideoHeight, heightMeasureSpec);
-//            if (mVideoWidth > 0 && mVideoHeight > 0) {
-//                if ( mVideoWidth * height  > width * mVideoHeight ) {
-//                    //Log.i("@@@", "image too tall, correcting");
-//                    height = width * mVideoHeight / mVideoWidth;
-//                } else if ( mVideoWidth * height  < width * mVideoHeight ) {
-//                    //Log.i("@@@", "image too wide, correcting");
-//                    width = height * mVideoWidth / mVideoHeight;
-//                } else {
-//                    //Log.i("@@@", "aspect ratio is correct: " +
-//                    //width+"/"+height+"="+
-//                    //mVideoWidth+"/"+mVideoHeight);
-//                }
-//            }
-//            //Log.i("@@@@@@@@@@", "setting size: " + width + 'x' + height);
-//            setMeasuredDimension(width, height);
-//        }
-//
-//        @Override
-//        public void onPrepared(MediaPlayer mp) {
-////            mp.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT);
-//            
-//            mVideoWidth = mp.getVideoWidth();
-//            mVideoHeight = mp.getVideoHeight();
-//        }
+        @Override
+        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+            if (mMediaPlayer == null) {
+                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+                return;
+            }
+
+            mVideoWidth = mMediaPlayer.getVideoWidth();
+            mVideoHeight = mMediaPlayer.getVideoHeight();
+            
+            int width = getDefaultSize(mVideoWidth, widthMeasureSpec);
+            int height = getDefaultSize(mVideoHeight, heightMeasureSpec);
+            if (mVideoWidth > 0 && mVideoHeight > 0) {
+                if ( mVideoWidth * height  > width * mVideoHeight ) {
+                    //Log.i("@@@", "image too tall, correcting");
+                    height = width * mVideoHeight / mVideoWidth;
+                } else if ( mVideoWidth * height  < width * mVideoHeight ) {
+                    //Log.i("@@@", "image too wide, correcting");
+                    width = height * mVideoWidth / mVideoHeight;
+                }
+            }
+            setMeasuredDimension(width, height);
+        }
     }
 }
