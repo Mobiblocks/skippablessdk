@@ -66,6 +66,7 @@ public class SkiAdInterstitialActivity extends Activity {
     private MediaPlayer mMediaPlayer;
     @SuppressWarnings("FieldCanBeLocal")
     private SkiAdReportActivity.SkiAdReportListener mReportListener;
+    private int mRestoredPosition;
 
     static Intent getIntent(@SuppressWarnings("NullableProblems") @NonNull Context context, @NonNull String uid, @NonNull SkiAdInfo adInfo, @NonNull SkiVastCompressedInfo vastInfo) {
         Intent intent = new Intent(context, SkiAdInterstitialActivity.class);
@@ -157,6 +158,9 @@ public class SkiAdInterstitialActivity extends Activity {
                 mp.setVolume(volume, volume);
                 
                 mIsReady = true;
+                
+                mVideoView.requestLayout();
+                sendInitialEvents();
                 maybeScheduleTicker();
             }
         });
@@ -376,6 +380,7 @@ public class SkiAdInterstitialActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
+        mRestoredPosition = mVideoView.getCurrentPosition();
         outState.putInt("__savedPosition", mVideoView.getCurrentPosition());
 
         mStateSaved = true;
@@ -385,6 +390,7 @@ public class SkiAdInterstitialActivity extends Activity {
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
 
+        mRestoredPosition = 0;
         int restoredPosition = savedInstanceState.getInt("__savedPosition", 0);
         if (restoredPosition > 0 && mVideoView != null) {
             mVideoView.seekTo(restoredPosition);
@@ -403,33 +409,18 @@ public class SkiAdInterstitialActivity extends Activity {
                 mVideoView.start();
             }
 
-            if (!mShownOnce) {
-                mShownOnce = true;
+            mShownOnce = true;
+            sendInitialEvents();
+        }
+    }
 
-                //noinspection ConstantConditions
-                URL assetURL = mVastInfo.findBestMediaFile(this).getValue();
-                Util.VastUrlMacros builder = Util.VastUrlMacros.builder()
-                        .setAssetUrl(assetURL)
-                        .setContentPlayAhead(0);
-                ArrayList<URL> impressions = mVastInfo.getImpressionUrls();
-                for (URL url : impressions) {
-                    URL macrosed = builder.build(url);
-                    SkiEventTracker.getInstance(this).trackEventRequest(macrosed);
-                }
-
-                for (SkiVastCompressedInfo.MediaFile.Tracking tracking :
-                        mVastInfo.getTrackings()) {
-                    //noinspection ConstantConditions
-                    if (tracking.getValue() == null) {
-                        continue;
-                    }
-                    String event = tracking.getEvent();
-                    if ("start".equalsIgnoreCase(event)) {
-                        URL macrosed = builder.build(tracking.getValue());
-                        SkiEventTracker.getInstance(this).trackEventRequest(macrosed);
-                    }
-                }
-            }
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        
+        mIsReady = false;
+        if (mRestoredPosition > 0 && mVideoView != null) {
+            mVideoView.seekTo(mRestoredPosition);
         }
     }
 
@@ -586,6 +577,42 @@ public class SkiAdInterstitialActivity extends Activity {
             } else {
                 mSkipView.setText(String.format(getString(R.string.skippables_interstitial_skip_in_long), (remaining / 60) % 60, remaining % 60));
             }
+        }
+    }
+    
+    private void sendInitialEvents() {
+        if (mShownOnce && mIsReady) {
+            ArrayList<URL> removeImpression = new ArrayList<>();
+            //noinspection ConstantConditions
+            URL assetURL = mVastInfo.findBestMediaFile(this).getValue();
+            Util.VastUrlMacros builder = Util.VastUrlMacros.builder()
+                    .setAssetUrl(assetURL)
+                    .setContentPlayAhead(0);
+            ArrayList<URL> impressions = mVastInfo.getImpressionUrls();
+            for (URL url : impressions) {
+                removeImpression.add(url);
+                URL macrosed = builder.build(url);
+                SkiEventTracker.getInstance(this).trackEventRequest(macrosed);
+            }
+
+            mVastInfo.getImpressionUrls().removeAll(removeImpression);
+
+            ArrayList<SkiVastCompressedInfo.MediaFile.Tracking> removeTracking = new ArrayList<>();
+            for (SkiVastCompressedInfo.MediaFile.Tracking tracking :
+                    mVastInfo.getTrackings()) {
+                removeTracking.add(tracking);
+                //noinspection ConstantConditions
+                if (tracking.getValue() == null) {
+                    continue;
+                }
+                String event = tracking.getEvent();
+                if ("start".equalsIgnoreCase(event)) {
+                    URL macrosed = builder.build(tracking.getValue());
+                    SkiEventTracker.getInstance(this).trackEventRequest(macrosed);
+                }
+            }
+
+            mVastInfo.getTrackings().removeAll(removeTracking);
         }
     }
 
@@ -809,13 +836,18 @@ public class SkiAdInterstitialActivity extends Activity {
 
         @Override
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            if (mMediaPlayer == null) {
+            if (mMediaPlayer == null || !mIsReady) {
                 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
                 return;
             }
 
-            mVideoWidth = mMediaPlayer.getVideoWidth();
-            mVideoHeight = mMediaPlayer.getVideoHeight();
+            try {
+                mVideoWidth = mMediaPlayer.getVideoWidth();
+                mVideoHeight = mMediaPlayer.getVideoHeight();
+            } catch (IllegalStateException ignore) {
+                //TODO: this is a workaround, only god himself knows when an activity is restored restarted destroyed view requested view valid is prepared is in the middle of destroying the sun
+                return;
+            }
             
             int width = getDefaultSize(mVideoWidth, widthMeasureSpec);
             int height = getDefaultSize(mVideoHeight, heightMeasureSpec);
