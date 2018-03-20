@@ -42,7 +42,7 @@ public class MainActivity extends Activity {
 
             @Override
             public void onAdFailedToLoad(int errorCode) {
-                super.onAdFailedToLoad(errorCode);
+                Log.d("banner", "error: " + errorCode);
             }
         });
         banner.load(request);
@@ -57,6 +57,7 @@ public class MainActivity extends Activity {
 
             @Override
             public void onAdFailedToLoad(int errorCode) {
+                Log.d("interstitial1", "error: " + errorCode);
             }
         });
         interstitial1.load(request);
@@ -81,11 +82,12 @@ public class MainActivity extends Activity {
         interstitial2.setAdListener(new SkiAdListener() {
             @Override
             public void onAdClosed() {
-                interstitial1.load(request);
+                interstitial2.load(request);
             }
 
             @Override
             public void onAdFailedToLoad(int errorCode) {
+                Log.d("interstitial2", "error: " + errorCode);
             }
         });
         interstitial2.load(request);
@@ -110,11 +112,12 @@ public class MainActivity extends Activity {
         interstitial3.setAdListener(new SkiAdListener() {
             @Override
             public void onAdClosed() {
-                interstitial1.load(request);
+                interstitial3.load(request);
             }
 
             @Override
             public void onAdFailedToLoad(int errorCode) {
+                Log.d("interstitial3", "error: " + errorCode);
             }
         });
         interstitial3.load(request);
