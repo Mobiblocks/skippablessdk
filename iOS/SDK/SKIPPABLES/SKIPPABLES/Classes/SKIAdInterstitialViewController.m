@@ -138,7 +138,7 @@ static BOOL muted = NO;
 
 						  NSString *ext = SKIMimeToExtension(httpReponse.MIMEType);
 				          NSString *cachePath = SKICachePath();
-				          NSString *localPath = [cachePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@", @(mediaUrl.hash).stringValue, ext]];
+				          NSString *localPath = [cachePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@", [[NSUUID UUID] UUIDString], ext]];
 				          NSURL *localUrl = [NSURL fileURLWithPath:localPath];
 
 				          NSError *localError = NULL;

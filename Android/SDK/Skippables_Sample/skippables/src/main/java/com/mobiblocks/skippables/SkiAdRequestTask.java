@@ -20,6 +20,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.UUID;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -96,7 +97,7 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
                             return SkiAdRequestResponse.withVastError(VastError.VAST_MEDIA_FILE_NOT_SUPPORTED_ERROR_CODE);
                         }
 
-                        String tempDir = listener.onGetTempDirectory() + "/" + mediaFile.getValue().hashCode() + ".mp4";
+                        String tempDir = listener.onGetTempDirectory() + "/" + UUID.randomUUID().toString() + ".mp4";
                         response.getVastInfo().setLocalMediaFile(tempDir);
                         downloadMediaFile(mediaFile.getValue(), tempDir);
                     }
