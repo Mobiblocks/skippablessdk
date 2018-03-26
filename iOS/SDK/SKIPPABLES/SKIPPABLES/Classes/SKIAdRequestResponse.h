@@ -8,6 +8,7 @@
 #import <Foundation/Foundation.h>
 
 @class SKIAdRequestError;
+@class SKIVASTCompressedCreative;
 
 @interface SKIAdRequestResponse : NSObject
 
@@ -15,6 +16,7 @@
 
 @property (copy, nonatomic) NSString *htmlSnippet;
 @property (copy, nonatomic) NSString *videoVast;
+@property (strong, nonatomic) SKIVASTCompressedCreative *compressedCreative;
 @property (copy, nonatomic) NSString *clickThroughUrl;
 @property (copy, nonatomic) NSString *impressionTrackingUrl;
 @property (copy, nonatomic) NSString *clickTrackingUrl;

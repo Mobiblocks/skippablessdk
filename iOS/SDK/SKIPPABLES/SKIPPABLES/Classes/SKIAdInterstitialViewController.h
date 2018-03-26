@@ -25,6 +25,7 @@
 
 + (instancetype)viewController;
 
-- (void)preloadWithAd:(SKIAdInterstitial *)ad;
+@property (strong, nonatomic) SKIAdInterstitial *ad;
+@property (weak, nonatomic) id<SKIAdInterstitialViewControllerDelegate> delegate;
 
 @end

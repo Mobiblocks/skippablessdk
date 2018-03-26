@@ -13,11 +13,11 @@
 #import "SKIAdRequest_Private.h"
 #import "SKIAdRequestResponse.h"
 
+#import "SKIVASTCompressedCreative.h"
+
 #import "SKIAdInterstitialViewController.h"
 
 @interface SKIAdInterstitial () <SKIAdRequestDelegate, SKIAdInterstitialViewControllerDelegate, UIWebViewDelegate>
-
-@property (strong, nonatomic) SKIAdInterstitialViewController *interstitialViewController;
 
 @property (copy, nonatomic) SKIAdRequest *request;
 @property (strong, nonatomic) SKIAdRequestResponse *response;
@@ -39,6 +39,10 @@
 }
 
 - (void)loadRequest:(SKIAdRequest *)request {
+	if (self.isLoading) {
+		return;
+	}
+	
 	if (!request.test && (self.adUnitID == nil || self.adUnitID.length == 0)) {
 		if ([self.delegate respondsToSelector:@selector(skiInterstitial:didFailToReceiveAdWithError:)]) {
 			id<SKIAdInterstitialDelegate> delegate = self.delegate;
@@ -54,7 +58,6 @@
 	}
 	
 	if (_request) {
-		self.interstitialViewController = nil;
 		_request.delegate = nil;
 		[_request cancel];
 	}
@@ -80,7 +83,10 @@
 		[self.delegate skiInterstitialWillPresent:self];
 	}
 	
-	[rootViewController presentViewController:self.interstitialViewController animated:YES completion:nil];
+	SKIAdInterstitialViewController *viewController = [SKIAdInterstitialViewController viewController];
+	viewController.delegate = self;
+	viewController.ad = self;
+	[rootViewController presentViewController:viewController animated:YES completion:nil];
 }
 
 - (void)skiAdRequest:(SKIAdRequest *)request didReceiveResponse:(SKIAdRequestResponse *)response {
@@ -107,18 +113,6 @@
 	
 	self.response = response;
 	
-	self.interstitialViewController = [SKIAdInterstitialViewController viewController];
-	[self.interstitialViewController preloadWithAd:self];
-}
-
-- (void)skiAdRequest:(SKIAdRequest *)request didFailWithError:(SKIAdRequestError *)error {
-	_isLoading = NO;
-	if ([self.delegate respondsToSelector:@selector(skiInterstitial:didFailToReceiveAdWithError:)]) {
-		[self.delegate skiInterstitial:self didFailToReceiveAdWithError:error];
-	}
-}
-
-- (void)interstitialViewControllerDidFinishLoading:(SKIAdInterstitialViewController *)controller {
 	_isLoading = NO;
 	_isReady = YES;
 	if ([self.delegate respondsToSelector:@selector(skiInterstitialDidReceiveAd:)]) {
@@ -126,10 +120,27 @@
 	}
 }
 
+- (void)interstitialViewControllerDidFinishLoading:(SKIAdInterstitialViewController *)controller {
+//	_isLoading = NO;
+//	_isReady = YES;
+//	if ([self.delegate respondsToSelector:@selector(skiInterstitialDidReceiveAd:)]) {
+//		[self.delegate skiInterstitialDidReceiveAd:self];
+//	}
+}
+
 - (void)interstitialViewController:(SKIAdInterstitialViewController *)controller didFailToLoadWithErr:(SKIAdRequestError *)error {
-	_isLoading = NO;
-	if ([self.delegate respondsToSelector:@selector(skiInterstitial:didFailToReceiveAdWithError:)]) {
-		[self.delegate skiInterstitial:self didFailToReceiveAdWithError:error];
+//	_isLoading = NO;
+//	if ([self.delegate respondsToSelector:@selector(skiInterstitial:didFailToReceiveAdWithError:)]) {
+//		[self.delegate skiInterstitial:self didFailToReceiveAdWithError:error];
+//	}
+}
+
+- (void)dealloc {
+	if (!_hasBeenUsed && _response.compressedCreative.localMediaUrl) {
+		NSError *error = nil;
+		if (![[NSFileManager defaultManager] removeItemAtURL:_response.compressedCreative.localMediaUrl error:&error]) {
+			DLog(@"Failed to delete local media url: %@", error);
+		}
 	}
 }
 

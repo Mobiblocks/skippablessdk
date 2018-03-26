@@ -60,12 +60,11 @@ static BOOL muted = NO;
 
 @interface SKIAdInterstitialViewController () <AVPlayerViewControllerDelegate>
 
-@property (strong, nonatomic) SKIAdInterstitial *ad;
 @property (strong, nonatomic) AVPlayer *avPlayer;
 @property (strong, nonatomic) AVPlayerViewController *avPlayerController;
 @property (strong, nonatomic) SKIAdInterstitialViewLayer *avPlayerControllerLayer;
 
-@property (strong, nonatomic) SKIVASTCompressedCreative *compressedCreative;
+@property (assign, nonatomic, readonly) SKIVASTCompressedCreative *compressedCreative;
 
 @property (strong, nonatomic) NSPointerArray *avPlayerTimeTokens;
 @property (strong, nonatomic) NSMutableArray<id<NSObject>> *avPlayerNotificationTokens;
@@ -91,280 +90,6 @@ static BOOL muted = NO;
 	return self;
 }
 
-- (void)preloadWithAd:(SKIAdInterstitial *)ad {
-	self.ad = ad;
-	[self preloadWithResponse:self.ad.response];
-}
-
-- (void)preloadWithResponse:(SKIAdRequestResponse *)response {
-	if (response.videoVast.length > 0) {
-		__weak typeof(self) wSelf = self;
-		SKIAdInterstitial *ad = self.ad;
-		[SKIAsync waterfall:@[
-			^(id _Nullable result, SKIAsyncWaterfallCallback callback) {
-			    [self loadVastFromXmlString:response.videoVast
-			                       callback:^(SKIVASTVAST *vast, NSError *error) {
-				                       callback(error, vast);
-				                   }];
-			},
-			^(SKIVASTVAST *_Nullable result, SKIAsyncWaterfallCallback callback) {
-			    [wSelf processVAST:result
-			              callback:^(SKIAdRequestError *error) {
-				              callback(error, result);
-				          }];
-			},
-			^(SKIVASTVAST *_Nullable result, SKIAsyncWaterfallCallback callback) {
-			    NSURL *mediaUrl = wSelf.compressedCreative.mediaFile.value;
-			    NSURLSessionDownloadTask *task = [[NSURLSession sharedSession]
-			        downloadTaskWithURL:mediaUrl
-			          completionHandler:^(NSURL *_Nullable location, NSURLResponse *_Nullable response, NSError *_Nullable error) {
-				          if (error) {
-					          callback([SKIAdRequestError errorNetworkErrorWithUserInfo:@{
-						                   NSLocalizedDescriptionKey : @"Could not load video.",
-						                   NSUnderlyingErrorKey : error
-						               }],
-					                   result);
-					          return;
-				          }
-
-				          NSHTTPURLResponse *httpReponse = (NSHTTPURLResponse *)response;
-				          if (httpReponse.statusCode != 200) {
-					          callback([SKIAdRequestError errorNetworkErrorWithUserInfo:@{
-						                   NSLocalizedDescriptionKey : @"Could not load video."
-						               }],
-					                   result);
-					          return;
-				          }
-
-						  NSString *ext = SKIMimeToExtension(httpReponse.MIMEType);
-				          NSString *cachePath = SKICachePath();
-				          NSString *localPath = [cachePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@", [[NSUUID UUID] UUIDString], ext]];
-				          NSURL *localUrl = [NSURL fileURLWithPath:localPath];
-
-				          NSError *localError = NULL;
-						  if ([[NSFileManager defaultManager] fileExistsAtPath:localPath]) {
-							  if (![[NSFileManager defaultManager] removeItemAtURL:localUrl error:&localError]) {
-								  callback([SKIAdRequestError errorInternalErrorWithUserInfo:@{NSUnderlyingErrorKey : localError}], result);
-								  return;
-							  }
-						  }
-				          if (![[NSFileManager defaultManager] moveItemAtURL:location toURL:localUrl error:&localError]) {
-					          callback([SKIAdRequestError errorInternalErrorWithUserInfo:@{NSUnderlyingErrorKey : localError}], result);
-					          return;
-				          }
-						  
-						  DLog(@"localUrl: %@", localUrl.path);
-						  
-				          self.compressedCreative.localMediaUrl = localUrl;
-						  
-				          callback(nil, result);
-				      }];
-			    [task resume];
-			}
-		]
-		         completion:^(NSError *_Nullable error, id _Nullable result) {
-			         if (error) {
-						 SKIAsyncOnMain(^{
-							 [ad interstitialViewController:wSelf didFailToLoadWithErr:(SKIAdRequestError *)error];
-						 });
-			         } else {
-//				         SKIAsyncOnMain(^{
-					         [wSelf prepareAdPlayer];
-//					     });
-			         }
-			     }];
-	} else {
-		__weak typeof(self) wSelf = self;
-		SKIAdInterstitial *ad = self.ad;
-		SKIAsyncOnMain(^{
-			[ad interstitialViewController:wSelf
-			          didFailToLoadWithErr:[SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{
-				          NSLocalizedDescriptionKey : @"Video data is invalid."
-				      }]];
-		});
-	}
-}
-
-- (void)loadVastFromXmlString:(NSString *)xmlString callback:(void (^_Nonnull)(SKIVASTVAST *vast, SKIAdRequestError *error))callback {
-	NSData *xmlData = [xmlString dataUsingEncoding:NSUTF8StringEncoding];
-	SKIVASTVAST *vast = [SKIVASTVAST VASTFromData:xmlData];
-	if (!vast) {
-		callback(nil, [SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{
-																		 NSLocalizedDescriptionKey : @"Video data is invalid."
-																		 }]);
-		return;
-	}
-	
-	if (vast.ads.firstObject.wrapper.vASTAdTagURI) {
-		[self loadVastFromUrlString:vast.ads.firstObject.wrapper.vASTAdTagURI.absoluteString
-						   callback:^(SKIVASTVAST *innerVast, SKIAdRequestError *error) {
-							   vast.ads.firstObject.wrapper.wrappedVast = innerVast;
-							   callback(vast, error);
-						   }];
-	} else {
-		callback(vast, nil);
-	}
-}
-
-- (void)loadVastFromUrlString:(NSString *)urlString callback:(void (^_Nonnull)(SKIVASTVAST *vast, SKIAdRequestError *error))callback {
-	NSURL *url = [NSURL URLWithString:urlString];
-	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
-	request.HTTPMethod = @"GET";
-	request.timeoutInterval = 15;
-	request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
-	
-	NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-		if (error) {
-			callback(nil, [SKIAdRequestError errorNetworkErrorWithUserInfo:@{
-																			 NSLocalizedDescriptionKey : @"Could not load video.",
-																			 NSUnderlyingErrorKey : error
-																			 }]);
-			return;
-		}
-		
-		NSHTTPURLResponse *httpReponse = (NSHTTPURLResponse *)response;
-		if (httpReponse.statusCode != 200 || data.length == 0) {
-			callback(nil, [SKIAdRequestError errorNetworkErrorWithUserInfo:@{
-																			 NSLocalizedDescriptionKey : @"Could not load video."
-																			 }]);
-			return;
-		}
-		
-		SKIVASTVAST *vast = [SKIVASTVAST VASTFromData:data];
-		if (!vast) {
-			callback(nil, [SKIAdRequestError errorNetworkErrorWithUserInfo:@{
-																			 NSLocalizedDescriptionKey : @"Could not load video."
-																			 }]);
-			return;
-		}
-		
-		if (vast.ads.firstObject.wrapper.vASTAdTagURI) {
-			[self loadVastFromUrlString:vast.ads.firstObject.wrapper.vASTAdTagURI.absoluteString
-							   callback:^(SKIVASTVAST *innerVast, SKIAdRequestError *error) {
-								   vast.ads.firstObject.wrapper.wrappedVast = innerVast;
-								   callback(vast, error);
-							   }];
-		} else {
-			callback(vast, nil);
-		}
-	}];
-	[task resume];
-}
-
-- (void)processVAST:(SKIVASTVAST *)vast callback:(void (^_Nonnull)(SKIAdRequestError *error))callback {
-	SKIVASTAd *ad = vast.ads.firstObject;
-	if (!ad) {
-		callback([SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{ NSLocalizedDescriptionKey : @"Response does not contain an ad." }]);
-		return;
-	}
-	
-	DLog(@"%@", ad.debugDescription);
-	
-	NSMutableArray *errorTrackings = [NSMutableArray array];
-	NSMutableArray *additionalTrackings = [NSMutableArray array];
-	NSMutableArray *impressionUrls = [NSMutableArray array];
-	NSMutableArray *additionalImpressionUrls = [NSMutableArray array];
-
-	SKIVASTInline *inLine = ad.inLine;
-	if (!inLine) {
-		SKIVASTWrapper *wrapper = ad.wrapper;
-		if (wrapper.error) {
-			[errorTrackings addObject:wrapper.error];
-		}
-		
-		for (SKIVASTImpression *impression in wrapper.impressions) {
-			if (impression.value) {
-				[additionalImpressionUrls addObject:impression.value];
-			}
-		}
-		
-		for (NSInteger i = 0; i < 20; i++) {
-			SKIVASTAd *wrappedAd = [[[wrapper wrappedVast] ads] firstObject];
-			NSArray *trackings = wrapper.creatives.creatives.firstObject.linear.trackingEvents.trackings;
-			if (trackings.count > 0) {
-				[additionalTrackings addObjectsFromArray:trackings];
-			}
-
-			wrapper = wrappedAd.wrapper;
-
-			if (wrapper == nil) {
-				inLine = wrappedAd.inLine;
-				break;
-			}
-		}
-	}
-	
-	if (!inLine) {
-		[self trackErrorUrls:errorTrackings errorCode:SKIVASTWrapperNoVastErrorCode];
-		
-		callback([SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{ NSLocalizedDescriptionKey : @"Response does not contain an ad." }]);
-		return;
-	}
-	
-	if (inLine.error) {
-		[errorTrackings addObject:inLine.error];
-	}
-	
-	for (SKIVASTImpression *impression in inLine.impressions) {
-		if (impression.value) {
-			[impressionUrls addObject:impression.value];
-		}
-	}
-
-	NSArray *creatives = inLine.creatives.creatives;
-	if (!creatives) {
-		[self trackErrorUrls:errorTrackings errorCode:SKIVASTUndefinedErrorCode];
-		
-		callback([SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{ NSLocalizedDescriptionKey : @"Response does not contain an ad." }]);
-		return;
-	}
-
-	for (SKIVASTCreativeBase *creativeBase in creatives) {
-		if ([creativeBase isKindOfClass:[SKIVASTCreativeInlineChild class]]) {
-			SKIVASTCreativeInlineChild *creative = (SKIVASTCreativeInlineChild *)creativeBase;
-			if (!creative.linear) {
-				continue;
-			}
-
-			SKIVASTMediaFile *bestMediaFile = [self mediaFileToFitScreen:creative.linear.mediaFiles.mediaFiles];
-			if (!bestMediaFile) {
-				[self trackErrorUrls:errorTrackings errorCode:SKIVASTMediaFileNotSupportedErrorCode];
-				callback([SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{
-					NSLocalizedDescriptionKey : @"Response does not contain an ad."
-				}]);
-				return;
-			}
-
-			self.compressedCreative = [SKIVASTCompressedCreative compressed];
-			self.compressedCreative.adId = ad.identifier;
-			self.compressedCreative.errorTrackings = errorTrackings;
-			self.compressedCreative.impressionUrls = impressionUrls;
-			self.compressedCreative.additionalImpressionUrls = additionalImpressionUrls;
-			self.compressedCreative.creative = creativeBase;
-			self.compressedCreative.mediaFile = bestMediaFile;
-			if (additionalTrackings.count > 0) {
-				self.compressedCreative.additionalTrackings = additionalTrackings;
-			}
-			//TODO: add click trackings
-		}
-		//		else if ([creativeBase isKindOfClass:[SKIVASTCreativeWrapperChild class]]) {
-		//			SKIVASTCreativeWrapperChild *creative = (SKIVASTCreativeWrapperChild *)creativeBase;
-		//		}
-		else {
-			continue;
-		}
-	}
-
-	if (self.compressedCreative) {
-		callback(nil);
-	} else {
-		[self trackErrorUrls:errorTrackings errorCode:SKIVASTMediaFileNotSupportedErrorCode];
-		callback([SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{
-			NSLocalizedDescriptionKey : @"Response does not contain any playable media."
-		}]);
-	}
-}
-
 bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	float epsilon;
 	/* May as well do the easy check first. */
@@ -380,167 +105,12 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	return fabs (a - b) < epsilon;
 }
 
-- (SKIVASTMediaFile *)mediaFileToFitScreen:(NSArray<SKIVASTMediaFile *> *)mediaFiles {
-	mediaFiles = [self usableMediaFilesSortedBySize:mediaFiles];
-	if (mediaFiles.count == 0) {
-		return nil;
-	} else if (mediaFiles.count == 1) {
-		return mediaFiles.firstObject;
-	}
-	
-	CGFloat screenScale = [[UIScreen mainScreen] scale];
-	CGSize screenSize = CGSizeZero;
-	if (SKISupportsPortraitOnlyOrientation() || SKIiSPortrait()) {
-		screenSize = SKIScreenBounds().size;
-//		NSArray<SKIVASTMediaFile *> *portraitMediaFiles = [self mediaFilesForPortrait:mediaFiles];
-//		if (portraitMediaFiles.count > 0) {
-//			mediaFiles = portraitMediaFiles;
-//		}
-	} else if (SKISupportsLanscapeOnlyOrientation() || SKIiSLandscape()) {
-		screenSize = SKIScreenBounds().size;
-//		NSArray<SKIVASTMediaFile *> *landscapeMediaFiles = [self mediaFilesForLandscape:mediaFiles];
-//		if (landscapeMediaFiles.count > 0) {
-//			mediaFiles = landscapeMediaFiles;
-//		}
-	} else {
-		screenSize = SKIOrientationIndependentScreenBounds().size;
-	}
-	
-//	kSKIRTBConnectionTypeUnknown         = 0,   ///< Unknown.
-//	kSKIRTBConnectionTypeEthernet        = 1,   ///< Ethernet.
-//	kSKIRTBConnectionTypeWIFI            = 2,   ///< WiFi.
-//	kSKIRTBConnectionTypeCellularUnknown = 3,   ///< Cellular Network – Unknown Generation.
-//	kSKIRTBConnectionTypeCellular2G      = 4,   ///< Cellular Network – 2G.
-//	kSKIRTBConnectionTypeCellular3G      = 5,   ///< Cellular Network – 3G.
-//	kSKIRTBConnectionTypeCellular4G      = 6,   ///< Cellular Network – 4G.
-	SKIRTBConnectionType connectionType = SKIConnectionType();
-	switch (connectionType) {
-		case kSKIRTBConnectionTypeEthernet:
-		case kSKIRTBConnectionTypeWIFI:
-			screenSize.width *= screenScale;
-			screenSize.height *= screenScale;
-			break;
-		case kSKIRTBConnectionTypeCellular4G:
-			if (screenScale > 1.) {
-				screenSize.width *= 1.5;
-				screenSize.height *= 1.5;
-			}
-			break;
-			
-		default:
-			break;
-	}
-	
-	CGFloat widthWeight = 1;
-	CGFloat heightWeight = 1;
-	if (screenSize.width > screenSize.height) {
-		heightWeight = 1.5f;
-	} else if (screenSize.width < screenSize.height) {
-		widthWeight = 1.5f;
-	}
-
-	NSMutableDictionary<NSNumber *, SKIVASTMediaFile*> *pointedMediaFiles = [NSMutableDictionary dictionary];
-	
-	CGFloat screenRatio = MAX(screenSize.width, screenSize.height) / MIN(screenSize.width, screenSize.height);
-	
-	for (SKIVASTMediaFile *mediaFile in mediaFiles) {
-		CGFloat currentWidth = mediaFile.width.floatValue;
-		CGFloat currentHeight = mediaFile.height.floatValue;
-		
-		CGFloat currentRatio = MAX(currentWidth, currentHeight) / MIN(currentWidth, currentHeight);
-		
-		CGFloat ratioDiff = ABS(screenRatio - currentRatio);
-		CGFloat widthDiff = ABS(screenSize.width - currentWidth);
-		CGFloat heightDiff = ABS(screenSize.height - currentHeight);
-		
-		NSInteger pointRatio = round(ratioDiff * 10);
-		NSInteger pointWidth = round(widthDiff / 50. * widthWeight);
-		NSInteger pointHeight = round(heightDiff / 50. * heightWeight);
-		
-		NSInteger pointAcumm = pointRatio + pointWidth + pointHeight;
-		pointedMediaFiles[@(pointAcumm)] = mediaFile;
-	}
-	
-	NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"self" ascending:YES];
-	NSArray *sortedKeys = [pointedMediaFiles.allKeys sortedArrayUsingDescriptors:@[sortDescriptor]];
-	
-	SKIVASTMediaFile *mediaFile = pointedMediaFiles[sortedKeys.firstObject];
-	DLog(@"mediaFile: %@", mediaFile.debugDescription);
-	
-	return mediaFile;
+- (void)setAd:(SKIAdInterstitial *)ad {
+	_ad = ad;
 }
 
-- (NSArray<SKIVASTMediaFile *> *)usableMediaFilesSortedBySize:(NSArray<SKIVASTMediaFile *> *)mediaFiles {
-	NSMutableArray *usable = [NSMutableArray arrayWithCapacity:mediaFiles.count];
-	
-	static NSArray *supportedMimes = nil;
-	static dispatch_once_t onceToken;
-	dispatch_once(&onceToken, ^{
-		supportedMimes = @[@"video/mp4", @"video/quicktime", @"video/x-m4v", @"video/3gpp", @"video/3gpp2"];
-	});
-	
-	for (SKIVASTMediaFile *media in mediaFiles) {
-		if (media.type && [supportedMimes containsObject:media.type]) {
-			[usable addObject:media];
-		}
-	}
-	
-	[usable sortUsingComparator:^NSComparisonResult(SKIVASTMediaFile *_Nonnull obj1, SKIVASTMediaFile *_Nonnull obj2) {
-		CGFloat m1 = obj1.width.floatValue * obj1.height.floatValue;
-		CGFloat m2 = obj2.width.floatValue * obj2.height.floatValue;
-		
-		if (m1 == m2) {
-			return NSOrderedSame;
-		} else if (m1 > m2) {
-			return NSOrderedDescending;
-		} else if (m1 < m2) {
-			return NSOrderedAscending;
-		} else {
-			return NSOrderedSame; // LOL))
-		}
-	}];
-	
-	return usable;
-}
-
-- (NSArray<SKIVASTMediaFile *> *)mediaFilesForPortrait:(NSArray<SKIVASTMediaFile *> *)mediaFiles {
-	NSMutableArray *usable = [NSMutableArray arrayWithCapacity:mediaFiles.count];
-	
-	for (SKIVASTMediaFile *media in mediaFiles) {
-		CGFloat mediaWidth = media.width.floatValue;
-		CGFloat mediaHeight = media.height.floatValue;
-		
-		if (mediaHeight >= mediaWidth) {
-			[usable addObject:media];
-		} else {
-			CGFloat ratio = MAX(mediaWidth, mediaHeight) / MIN(mediaWidth, mediaHeight);
-			if (ratio <= 1.55) {
-				[usable addObject:media];
-			}
-		}
-	}
-	
-	return usable;
-}
-
-- (NSArray<SKIVASTMediaFile *> *)mediaFilesForLandscape:(NSArray<SKIVASTMediaFile *> *)mediaFiles {
-	NSMutableArray *usable = [NSMutableArray arrayWithCapacity:mediaFiles.count];
-	
-	for (SKIVASTMediaFile *media in mediaFiles) {
-		CGFloat mediaWidth = media.width.floatValue;
-		CGFloat mediaHeight = media.height.floatValue;
-		
-		if (mediaWidth >= mediaHeight) {
-			[usable addObject:media];
-		} else {
-			CGFloat ratio = MAX(mediaWidth, mediaHeight) / MIN(mediaWidth, mediaHeight);
-			if (ratio >= 1.55) {
-				[usable addObject:media];
-			}
-		}
-	}
-	
-	return usable;
+- (SKIVASTCompressedCreative *)compressedCreative {
+	return self.ad.response.compressedCreative;
 }
 
 - (void)prepareAdPlayer {
@@ -626,13 +196,13 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 				 if (error) {
 					 //posibile race condition in observers
 					 //do another check))
-					 if (wSelf.avPlayer.status != AVPlayerStatusReadyToPlay) {
+					 if (wSelf.avPlayer.status != AVPlayerStatusReadyToPlay || wSelf.avPlayer.currentItem.status != AVPlayerStatusReadyToPlay) {
 						 DLog(@"sec check");
 						 if (fail) {
 							 DLog(@"self.avPlayer error");
 							 [wSelf trackErrorUrls:errorTrackings errorCode:SKIVASTMediaFileDisplayErrorCode];
 							 SKIAsyncOnMain(^{
-								 [ad interstitialViewController:wSelf didFailToLoadWithErr:(SKIAdRequestError *)error];
+								 [wSelf closeInterstitial];
 							 });
 						 } else {
 							 DLog(@"self.avPlayer error retry on main");
@@ -1088,6 +658,8 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 
 - (void)viewWillAppear:(BOOL)animated {
 	[super viewWillAppear:animated];
+	
+	[self prepareAdPlayer];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -1158,34 +730,34 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 }
 
 - (BOOL)shouldAutorotate {
-	if (SKIiSiPhone()) {
+//	if (SKIiSiPhone()) {
 		if (SKIiSLandscape() && self.compressedCreative.maybeShownInLandscape) {
 			return NO;
 		}
 		return SKIiSLandscape();
-	}
+//	}
 	
-	return NO;
+//	return NO;
 }
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-	if (SKIiSiPhone()) {
+//	if (SKIiSiPhone()) {
 		if (self.compressedCreative.maybeShownInLandscape) {
 			return UIInterfaceOrientationMaskAllButUpsideDown;
 		}
 		
 		return UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown;
-	}
+//	}
 	
-	return UIInterfaceOrientationMaskAll;
+//	return UIInterfaceOrientationMaskAll;
 }
 
 - (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation {
-	if (SKIiSiPhone()) {
+//	if (SKIiSiPhone()) {
 		if (!self.compressedCreative.maybeShownInLandscape) {
 			return UIInterfaceOrientationPortrait;
 		}
-	}
+//	}
 	
 	return SKICurrentOrientation();
 }

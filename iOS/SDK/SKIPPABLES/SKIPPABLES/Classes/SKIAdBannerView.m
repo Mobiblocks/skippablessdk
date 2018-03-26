@@ -132,12 +132,6 @@
 	[self.webView loadHTMLString:response.htmlSnippet baseURL:nil];
 }
 
-- (void)skiAdRequest:(SKIAdRequest *)request didFailWithError:(SKIAdRequestError *)error {
-	if ([self.delegate respondsToSelector:@selector(skiAdView:didFailToReceiveAdWithError:)]) {
-		[self.delegate skiAdView:self didFailToReceiveAdWithError:error];
-	}
-}
-
 - (UIWebView *)webView {
 	if (!_webView) {
 		CGPoint point = (CGPoint){(self.bounds.size.width - self.adSize.width) / 2.f, (self.bounds.size.height - self.adSize.height) / 2.f};

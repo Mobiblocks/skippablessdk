@@ -16,6 +16,11 @@
 #import "SKIAdRequestError_Private.h"
 #import "SKIAdRequestResponse.h"
 
+#import "SKIVASTUrl.h"
+#import "SKIVASTCompressedCreative.h"
+
+#import "SKIAdEventTracker.h"
+
 #import "SKIConstants.h"
 #import "SKIGeo.h"
 #import "SKIAsync.h"
@@ -615,31 +620,487 @@ NSString *SKIUserAgent() {
 			return;
 		}
 		
-		SKIAdRequestResponse *requestResponse = [SKIAdRequestResponse response];
-		requestResponse.deviceInfo = dictionary[@"device"];
-		requestResponse.rawResponse = responseData;
-		
-		if (self.adType == kSKIAdTypeInterstitialVideo) {
-			NSString *videoVast = responseData[@"content"] ?: responseData[@"Content"];
-			if ([[NSNull null] isEqual:videoVast] || videoVast.length == 0) {
-				requestResponse.error = [SKIAdRequestError errorWithCode:kSKIErrorNoFill userInfo:nil];
-			} else {
-				requestResponse.videoVast = videoVast;
-			}
+		[self processResponseData:responseData deviceInfo:dictionary];
+	}];
+	[task resume];
+}
+
+- (void)processResponseData:(NSDictionary *)responseData deviceInfo:(NSDictionary *)deviceInfo {
+	SKIAdRequestResponse *requestResponse = [SKIAdRequestResponse response];
+	requestResponse.deviceInfo = deviceInfo[@"device"];
+	requestResponse.rawResponse = responseData;
+
+	if (self.adType == kSKIAdTypeInterstitialVideo) {
+		NSString *videoVast = responseData[@"content"] ?: responseData[@"Content"];
+		if ([[NSNull null] isEqual:videoVast] || videoVast.length == 0) {
+			requestResponse.error = [SKIAdRequestError errorWithCode:kSKIErrorNoFill userInfo:nil];
+
+			SKIAsyncOnMain(^{
+				[self.delegate skiAdRequest:self didReceiveResponse:requestResponse];
+			});
+
+			return;
 		} else {
-			NSString *maybeHtml = responseData[@"data"] ?: responseData[@"Data"];
-			if ([[NSNull null] isEqual:maybeHtml] || maybeHtml.length == 0) {
-				requestResponse.error = [SKIAdRequestError errorWithCode:kSKIErrorNoFill userInfo:nil];
-			} else {
-				requestResponse.htmlSnippet = maybeHtml;
+			// TODO: temp here
+			requestResponse.videoVast = videoVast;
+			//--
+			__weak typeof(self) wSelf = self;
+			[SKIAsync waterfall:@[
+				^(id _Nullable result, SKIAsyncWaterfallCallback callback) {
+				    [self loadVastFromXmlString:videoVast
+				                       callback:^(SKIVASTVAST *vast, SKIAdRequestError *error) {
+					                       callback(error, vast);
+					                   }];
+				},
+				^(SKIVASTVAST *result, SKIAsyncWaterfallCallback callback) {
+				    [wSelf processVAST:result
+				              callback:^(SKIVASTCompressedCreative *creative, SKIAdRequestError *error) {
+					              callback(error, creative);
+					          }];
+				},
+				^(SKIVASTCompressedCreative *_Nullable creative, SKIAsyncWaterfallCallback callback) {
+				    NSURL *mediaUrl = creative.mediaFile.value;
+				    NSURLSessionDownloadTask *task = [[NSURLSession sharedSession]
+				        downloadTaskWithURL:mediaUrl
+				          completionHandler:^(NSURL *_Nullable location, NSURLResponse *_Nullable response, NSError *_Nullable error) {
+					          if (error) {
+						          callback([SKIAdRequestError errorNetworkErrorWithUserInfo:@{
+							                   NSLocalizedDescriptionKey : @"Could not load video.",
+							                   NSUnderlyingErrorKey : error
+							               }],
+						                   creative);
+						          return;
+					          }
+
+					          NSHTTPURLResponse *httpReponse = (NSHTTPURLResponse *)response;
+					          if (httpReponse.statusCode != 200) {
+						          callback([SKIAdRequestError errorNetworkErrorWithUserInfo:@{
+							                   NSLocalizedDescriptionKey : @"Could not load video."
+							               }],
+						                   creative);
+						          return;
+					          }
+
+					          NSString *ext = SKIMimeToExtension(httpReponse.MIMEType);
+					          NSString *cachePath = SKICachePath();
+					          NSString *localPath =
+					              [cachePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@", [[NSUUID UUID] UUIDString], ext]];
+					          NSURL *localUrl = [NSURL fileURLWithPath:localPath];
+
+					          NSError *localError = NULL;
+					          if ([[NSFileManager defaultManager] fileExistsAtPath:localPath]) {
+						          if (![[NSFileManager defaultManager] removeItemAtURL:localUrl error:&localError]) {
+							          callback([SKIAdRequestError errorInternalErrorWithUserInfo:@{NSUnderlyingErrorKey : localError}], creative);
+							          return;
+						          }
+					          }
+					          if (![[NSFileManager defaultManager] moveItemAtURL:location toURL:localUrl error:&localError]) {
+						          callback([SKIAdRequestError errorInternalErrorWithUserInfo:@{NSUnderlyingErrorKey : localError}], creative);
+						          return;
+					          }
+
+					          DLog(@"localUrl: %@", localUrl.path);
+
+					          creative.localMediaUrl = localUrl;
+
+					          callback(nil, creative);
+					      }];
+				    [task resume];
+				}
+			] completion:^(NSError *_Nullable error, SKIVASTCompressedCreative *creative) {
+				  requestResponse.error = (SKIAdRequestError *)error;
+				  requestResponse.compressedCreative = creative;
+				  SKIAsyncOnMain(^{
+				 	 [wSelf.delegate skiAdRequest:wSelf didReceiveResponse:requestResponse];
+				  });
+			  }];
+		}
+	} else {
+		NSString *maybeHtml = responseData[@"data"] ?: responseData[@"Data"];
+		if ([[NSNull null] isEqual:maybeHtml] || maybeHtml.length == 0) {
+			requestResponse.error = [SKIAdRequestError errorWithCode:kSKIErrorNoFill userInfo:nil];
+
+			SKIAsyncOnMain(^{
+				[self.delegate skiAdRequest:self didReceiveResponse:requestResponse];
+			});
+
+			return;
+		} else {
+			requestResponse.htmlSnippet = maybeHtml;
+
+			SKIAsyncOnMain(^{
+				[self.delegate skiAdRequest:self didReceiveResponse:requestResponse];
+			});
+		}
+	}
+}
+
+- (void)loadVastFromXmlString:(NSString *)xmlString callback:(void (^_Nonnull)(SKIVASTVAST *vast, SKIAdRequestError *error))callback {
+	NSData *xmlData = [xmlString dataUsingEncoding:NSUTF8StringEncoding];
+	SKIVASTVAST *vast = [SKIVASTVAST VASTFromData:xmlData];
+	if (!vast) {
+		callback(nil, [SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{
+																					NSLocalizedDescriptionKey : @"Video data is invalid."
+																					}]);
+		return;
+	}
+	
+	if (vast.ads.firstObject.wrapper.vASTAdTagURI) {
+		[self loadVastFromUrlString:vast.ads.firstObject.wrapper.vASTAdTagURI.absoluteString
+						   callback:^(SKIVASTVAST *innerVast, SKIAdRequestError *error) {
+							   vast.ads.firstObject.wrapper.wrappedVast = innerVast;
+							   callback(vast, error);
+						   }];
+	} else {
+		callback(vast, nil);
+	}
+}
+
+- (void)loadVastFromUrlString:(NSString *)urlString callback:(void (^_Nonnull)(SKIVASTVAST *vast, SKIAdRequestError *error))callback {
+	NSURL *url = [NSURL URLWithString:urlString];
+	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
+	request.HTTPMethod = @"GET";
+	request.timeoutInterval = 15;
+	request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
+	
+	NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+		if (error) {
+			callback(nil, [SKIAdRequestError errorNetworkErrorWithUserInfo:@{
+																			 NSLocalizedDescriptionKey : @"Could not load video.",
+																			 NSUnderlyingErrorKey : error
+																			 }]);
+			return;
+		}
+		
+		NSHTTPURLResponse *httpReponse = (NSHTTPURLResponse *)response;
+		if (httpReponse.statusCode != 200 || data.length == 0) {
+			callback(nil, [SKIAdRequestError errorNetworkErrorWithUserInfo:@{
+																			 NSLocalizedDescriptionKey : @"Could not load video."
+																			 }]);
+			return;
+		}
+		
+		SKIVASTVAST *vast = [SKIVASTVAST VASTFromData:data];
+		if (!vast) {
+			callback(nil, [SKIAdRequestError errorNetworkErrorWithUserInfo:@{
+																			 NSLocalizedDescriptionKey : @"Could not load video."
+																			 }]);
+			return;
+		}
+		
+		if (vast.ads.firstObject.wrapper.vASTAdTagURI) {
+			[self loadVastFromUrlString:vast.ads.firstObject.wrapper.vASTAdTagURI.absoluteString
+							   callback:^(SKIVASTVAST *innerVast, SKIAdRequestError *error) {
+								   vast.ads.firstObject.wrapper.wrappedVast = innerVast;
+								   callback(vast, error);
+							   }];
+		} else {
+			callback(vast, nil);
+		}
+	}];
+	[task resume];
+}
+
+- (void)processVAST:(SKIVASTVAST *)vast callback:(void (^_Nonnull)(SKIVASTCompressedCreative *creative, SKIAdRequestError *error))callback {
+	SKIVASTAd *ad = vast.ads.firstObject;
+	if (!ad) {
+		callback(nil, [SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{ NSLocalizedDescriptionKey : @"Response does not contain an ad." }]);
+		return;
+	}
+	
+	DLog(@"%@", ad.debugDescription);
+	
+	NSMutableArray *errorTrackings = [NSMutableArray array];
+	NSMutableArray *additionalTrackings = [NSMutableArray array];
+	NSMutableArray *impressionUrls = [NSMutableArray array];
+	NSMutableArray *additionalImpressionUrls = [NSMutableArray array];
+	
+	SKIVASTInline *inLine = ad.inLine;
+	if (!inLine) {
+		SKIVASTWrapper *wrapper = ad.wrapper;
+		if (wrapper.error) {
+			[errorTrackings addObject:wrapper.error];
+		}
+		
+		for (SKIVASTImpression *impression in wrapper.impressions) {
+			if (impression.value) {
+				[additionalImpressionUrls addObject:impression.value];
 			}
 		}
 		
-		SKIAsyncOnMain(^{
-			[wSelf.delegate skiAdRequest:wSelf didReceiveResponse:requestResponse];
-		});
+		for (NSInteger i = 0; i < 20; i++) {
+			SKIVASTAd *wrappedAd = [[[wrapper wrappedVast] ads] firstObject];
+			NSArray *trackings = wrapper.creatives.creatives.firstObject.linear.trackingEvents.trackings;
+			if (trackings.count > 0) {
+				[additionalTrackings addObjectsFromArray:trackings];
+			}
+			
+			wrapper = wrappedAd.wrapper;
+			
+			if (wrapper == nil) {
+				inLine = wrappedAd.inLine;
+				break;
+			}
+		}
+	}
+	
+	if (!inLine) {
+		[self trackErrorUrls:errorTrackings errorCode:SKIVASTWrapperNoVastErrorCode];
+		
+		callback(nil, [SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{ NSLocalizedDescriptionKey : @"Response does not contain an ad." }]);
+		return;
+	}
+	
+	if (inLine.error) {
+		[errorTrackings addObject:inLine.error];
+	}
+	
+	for (SKIVASTImpression *impression in inLine.impressions) {
+		if (impression.value) {
+			[impressionUrls addObject:impression.value];
+		}
+	}
+	
+	NSArray *creatives = inLine.creatives.creatives;
+	if (!creatives) {
+		[self trackErrorUrls:errorTrackings errorCode:SKIVASTUndefinedErrorCode];
+		
+		callback(nil, [SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{ NSLocalizedDescriptionKey : @"Response does not contain an ad." }]);
+		return;
+	}
+	
+	SKIVASTCompressedCreative *compressedCreative = nil;
+	for (SKIVASTCreativeBase *creativeBase in creatives) {
+		if ([creativeBase isKindOfClass:[SKIVASTCreativeInlineChild class]]) {
+			SKIVASTCreativeInlineChild *creative = (SKIVASTCreativeInlineChild *)creativeBase;
+			if (!creative.linear) {
+				continue;
+			}
+			
+			SKIVASTMediaFile *bestMediaFile = [self mediaFileToFitScreen:creative.linear.mediaFiles.mediaFiles];
+			if (!bestMediaFile) {
+				[self trackErrorUrls:errorTrackings errorCode:SKIVASTMediaFileNotSupportedErrorCode];
+				callback(nil, [SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{
+																					   NSLocalizedDescriptionKey : @"Response does not contain an ad."
+																					   }]);
+				return;
+			}
+			
+			compressedCreative = [SKIVASTCompressedCreative compressed];
+			compressedCreative.adId = ad.identifier;
+			compressedCreative.errorTrackings = errorTrackings;
+			compressedCreative.impressionUrls = impressionUrls;
+			compressedCreative.additionalImpressionUrls = additionalImpressionUrls;
+			compressedCreative.creative = creativeBase;
+			compressedCreative.mediaFile = bestMediaFile;
+			if (additionalTrackings.count > 0) {
+				compressedCreative.additionalTrackings = additionalTrackings;
+			}
+			//TODO: add click trackings
+		}
+		//		else if ([creativeBase isKindOfClass:[SKIVASTCreativeWrapperChild class]]) {
+		//			SKIVASTCreativeWrapperChild *creative = (SKIVASTCreativeWrapperChild *)creativeBase;
+		//		}
+		else {
+			continue;
+		}
+	}
+	
+	if (compressedCreative) {
+		callback(compressedCreative, nil);
+	} else {
+		[self trackErrorUrls:errorTrackings errorCode:SKIVASTMediaFileNotSupportedErrorCode];
+		callback(nil, [SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{
+																			   NSLocalizedDescriptionKey : @"Response does not contain any playable media."
+																			   }]);
+	}
+}
+
+- (SKIVASTMediaFile *)mediaFileToFitScreen:(NSArray<SKIVASTMediaFile *> *)mediaFiles {
+	mediaFiles = [self usableMediaFilesSortedBySize:mediaFiles];
+	if (mediaFiles.count == 0) {
+		return nil;
+	} else if (mediaFiles.count == 1) {
+		return mediaFiles.firstObject;
+	}
+	
+	CGFloat screenScale = 1;//[[UIScreen mainScreen] scale];
+	CGSize screenSize = CGSizeZero;
+	if (SKISupportsPortraitOnlyOrientation() || SKIiSPortrait()) {
+		screenSize = SKIScreenBounds().size;
+		//		NSArray<SKIVASTMediaFile *> *portraitMediaFiles = [self mediaFilesForPortrait:mediaFiles];
+		//		if (portraitMediaFiles.count > 0) {
+		//			mediaFiles = portraitMediaFiles;
+		//		}
+	} else if (SKISupportsLanscapeOnlyOrientation() || SKIiSLandscape()) {
+		screenSize = SKIScreenBounds().size;
+		//		NSArray<SKIVASTMediaFile *> *landscapeMediaFiles = [self mediaFilesForLandscape:mediaFiles];
+		//		if (landscapeMediaFiles.count > 0) {
+		//			mediaFiles = landscapeMediaFiles;
+		//		}
+	} else {
+		screenSize = SKIOrientationIndependentScreenBounds().size;
+	}
+	
+	//	kSKIRTBConnectionTypeUnknown         = 0,   ///< Unknown.
+	//	kSKIRTBConnectionTypeEthernet        = 1,   ///< Ethernet.
+	//	kSKIRTBConnectionTypeWIFI            = 2,   ///< WiFi.
+	//	kSKIRTBConnectionTypeCellularUnknown = 3,   ///< Cellular Network – Unknown Generation.
+	//	kSKIRTBConnectionTypeCellular2G      = 4,   ///< Cellular Network – 2G.
+	//	kSKIRTBConnectionTypeCellular3G      = 5,   ///< Cellular Network – 3G.
+	//	kSKIRTBConnectionTypeCellular4G      = 6,   ///< Cellular Network – 4G.
+	SKIRTBConnectionType connectionType = SKIConnectionType();
+	switch (connectionType) {
+		case kSKIRTBConnectionTypeEthernet:
+		case kSKIRTBConnectionTypeWIFI:
+			screenSize.width *= screenScale;
+			screenSize.height *= screenScale;
+			break;
+		case kSKIRTBConnectionTypeCellular4G:
+			if (screenScale > 1.) {
+				screenSize.width *= 1.5;
+				screenSize.height *= 1.5;
+			}
+			break;
+			
+		default:
+			break;
+	}
+	
+	CGFloat widthWeight = 1;
+	CGFloat heightWeight = 1;
+	if (screenSize.width > screenSize.height) {
+		heightWeight = 1.5f;
+	} else if (screenSize.width < screenSize.height) {
+		widthWeight = 1.5f;
+	}
+	
+	NSMutableDictionary<NSNumber *, SKIVASTMediaFile*> *pointedMediaFiles = [NSMutableDictionary dictionary];
+	
+	CGFloat screenRatio = MAX(screenSize.width, screenSize.height) / MIN(screenSize.width, screenSize.height);
+	
+	for (SKIVASTMediaFile *mediaFile in mediaFiles) {
+		CGFloat currentWidth = mediaFile.width.floatValue;
+		CGFloat currentHeight = mediaFile.height.floatValue;
+		
+		CGFloat currentRatio = MAX(currentWidth, currentHeight) / MIN(currentWidth, currentHeight);
+		
+		CGFloat ratioDiff = ABS(screenRatio - currentRatio);
+		CGFloat widthDiff = ABS(screenSize.width - currentWidth);
+		CGFloat heightDiff = ABS(screenSize.height - currentHeight);
+		
+		NSInteger pointRatio = round(ratioDiff * 10);
+		NSInteger pointWidth = round(widthDiff / 50. * widthWeight);
+		NSInteger pointHeight = round(heightDiff / 50. * heightWeight);
+		
+		NSInteger pointAcumm = pointRatio + pointWidth + pointHeight;
+		pointedMediaFiles[@(pointAcumm)] = mediaFile;
+	}
+	
+	NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"self" ascending:YES];
+	NSArray *sortedKeys = [pointedMediaFiles.allKeys sortedArrayUsingDescriptors:@[sortDescriptor]];
+	
+	SKIVASTMediaFile *mediaFile = pointedMediaFiles[sortedKeys.firstObject];
+	DLog(@"mediaFile: %@", mediaFile.debugDescription);
+	
+	return mediaFile;
+}
+
+- (NSArray<SKIVASTMediaFile *> *)usableMediaFilesSortedBySize:(NSArray<SKIVASTMediaFile *> *)mediaFiles {
+	NSMutableArray *usable = [NSMutableArray arrayWithCapacity:mediaFiles.count];
+	
+	static NSArray *supportedMimes = nil;
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+		supportedMimes = @[@"video/mp4", @"video/quicktime", @"video/x-m4v", @"video/3gpp", @"video/3gpp2"];
+	});
+	
+	for (SKIVASTMediaFile *media in mediaFiles) {
+		if (media.type && [supportedMimes containsObject:media.type]) {
+			[usable addObject:media];
+		}
+	}
+	
+	[usable sortUsingComparator:^NSComparisonResult(SKIVASTMediaFile *_Nonnull obj1, SKIVASTMediaFile *_Nonnull obj2) {
+		CGFloat m1 = obj1.width.floatValue * obj1.height.floatValue;
+		CGFloat m2 = obj2.width.floatValue * obj2.height.floatValue;
+		
+		if (m1 == m2) {
+			return NSOrderedSame;
+		} else if (m1 > m2) {
+			return NSOrderedDescending;
+		} else if (m1 < m2) {
+			return NSOrderedAscending;
+		} else {
+			return NSOrderedSame; // LOL))
+		}
 	}];
-	[task resume];
+	
+	return usable;
+}
+
+- (NSArray<SKIVASTMediaFile *> *)mediaFilesForPortrait:(NSArray<SKIVASTMediaFile *> *)mediaFiles {
+	NSMutableArray *usable = [NSMutableArray arrayWithCapacity:mediaFiles.count];
+	
+	for (SKIVASTMediaFile *media in mediaFiles) {
+		CGFloat mediaWidth = media.width.floatValue;
+		CGFloat mediaHeight = media.height.floatValue;
+		
+		if (mediaHeight >= mediaWidth) {
+			[usable addObject:media];
+		} else {
+			CGFloat ratio = MAX(mediaWidth, mediaHeight) / MIN(mediaWidth, mediaHeight);
+			if (ratio <= 1.55) {
+				[usable addObject:media];
+			}
+		}
+	}
+	
+	return usable;
+}
+
+- (NSArray<SKIVASTMediaFile *> *)mediaFilesForLandscape:(NSArray<SKIVASTMediaFile *> *)mediaFiles {
+	NSMutableArray *usable = [NSMutableArray arrayWithCapacity:mediaFiles.count];
+	
+	for (SKIVASTMediaFile *media in mediaFiles) {
+		CGFloat mediaWidth = media.width.floatValue;
+		CGFloat mediaHeight = media.height.floatValue;
+		
+		if (mediaWidth >= mediaHeight) {
+			[usable addObject:media];
+		} else {
+			CGFloat ratio = MAX(mediaWidth, mediaHeight) / MIN(mediaWidth, mediaHeight);
+			if (ratio >= 1.55) {
+				[usable addObject:media];
+			}
+		}
+	}
+	
+	return usable;
+}
+
+- (void)trackErrorUrl:(NSURL *)url errorCode:(SKIVASTErrorCode)errorCode {
+	if (!url) {
+		return;
+	}
+	
+	NSURL *macrosed = [SKIVASTUrl urlFromUrlAfterReplacingMacros:url
+														 builder:^(SKIVASTUrlMacroValues *_Nonnull macroValues) {
+															 macroValues.errorCode = errorCode;
+														 }];
+	if (macrosed) {
+		[[SKIAdEventTracker defaultTracker] trackErrorRequestWithUrl:macrosed];
+	}
+}
+
+- (void)trackErrorUrls:(NSArray<NSURL *> *)urls errorCode:(SKIVASTErrorCode)errorCode {
+	if (urls.count == 0) {
+		return;
+	}
+	
+	for (NSURL *url in urls) {
+		[self trackErrorUrl:url errorCode:errorCode];
+	}
 }
 
 - (void)cancel {

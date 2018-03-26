@@ -15,7 +15,7 @@
 
 @property (strong, nonatomic) SKIObserver *observer;
 
-@property (assign, nonatomic) BOOL observing;
+@property (assign, atomic) BOOL observing;
 
 @property (weak, nonatomic) NSObject *object;
 @property (copy, nonatomic) NSString *keyPath;

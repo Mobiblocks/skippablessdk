@@ -26,7 +26,6 @@ extern SKIAdSize const kSKIAdSizeFullscreen;
 @protocol SKIAdRequestDelegate<NSObject>
 
 - (void)skiAdRequest:(SKIAdRequest *)request didReceiveResponse:(SKIAdRequestResponse *)response;
-- (void)skiAdRequest:(SKIAdRequest *)request didFailWithError:(SKIAdRequestError *)error;
 
 @end
 
