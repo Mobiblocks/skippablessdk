@@ -61,22 +61,22 @@
 //#endif
 
 //#ifdef LOCAL
-//#define SKIPPABLES_API_BANNER_URL @"http://10.0.0.56/ad/AdServer/GetBanner"
-//#define SKIPPABLES_API_VIDEO_URL @"http://10.0.0.56/ad/AdServer/GetVideo"
-//#define SKIPPABLES_INSTALL_URL @"http://10.0.0.56/ad/InstallServer/Track"
-//#define SKIPPABLES_REPORT_URL @"http://10.0.0.56/ad/api/Feedback/InfringementReport"
+//#define SKIPPABLES_API_BANNER_URL @"http://10.0.0.35/ad/AdServer/GetBanner"
+//#define SKIPPABLES_API_VIDEO_URL @"http://10.0.0.35/ad/AdServer/GetVideo"
+//#define SKIPPABLES_INSTALL_URL @"http://10.0.0.35/ad/InstallServer/Track"
+//#define SKIPPABLES_REPORT_URL @"http://10.0.0.35/ad/api/Feedback/InfringementReport"
 
 //#else
-#define SKIPPABLES_API_BANNER_URL @"https://www.skippables.com/ad/AdServer/GetBanner"
-#define SKIPPABLES_API_VIDEO_URL @"https://www.skippables.com/ad/AdServer/GetVideo"
-#define SKIPPABLES_INSTALL_URL @"https://www.skippables.com/ad/InstallServer/Track"
-#define SKIPPABLES_REPORT_URL @"https://www.skippables.com/ad/api/Feedback/InfringementReport"
+#define SKIPPABLES_API_BANNER_URL @"https://www.skippables.com/x/srv/GetImage"
+#define SKIPPABLES_API_VIDEO_URL @"https://www.skippables.com/x/srv/GetVideo"
+#define SKIPPABLES_INSTALL_URL @"https://www.skippables.com/x/InstallServer/Track"
+#define SKIPPABLES_REPORT_URL @"https://www.skippables.com/x/api/Feedback/InfringementReport"
 
 
-//#define SKIPPABLES_API_BANNER_URL @"http://test.skippables.com/ad/AdServer/GetBanner"
-//#define SKIPPABLES_API_VIDEO_URL @"http://test.skippables.com/ad/AdServer/GetVideo"
-//#define SKIPPABLES_INSTALL_URL @"http://test.skippables.com/ad/InstallServer/Track"
-//#define SKIPPABLES_REPORT_URL @"http://test.skippables.com/ad/api/Feedback/InfringementReport"
+//#define SKIPPABLES_API_BANNER_URL @"http://test.skippables.com/x/srv/GetImage"
+//#define SKIPPABLES_API_VIDEO_URL @"http://test.skippables.com/x/srv/GetVideo"
+//#define SKIPPABLES_INSTALL_URL @"http://test.skippables.com/x/InstallServer/Track"
+//#define SKIPPABLES_REPORT_URL @"http://test.skippables.com/x/api/Feedback/InfringementReport"
 //#endif
 
 typedef NS_ENUM(NSInteger, SKIRTBDeviceType) {
