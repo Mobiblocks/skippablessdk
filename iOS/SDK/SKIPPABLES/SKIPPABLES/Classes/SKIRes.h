@@ -12,7 +12,13 @@
 extern UIImage *SKIMuteImage(void);
 extern UIImage *SKIVolumeImage(void);
 
+extern UIImage *SKIPlayImage(void);
+extern UIImage *SKIPauseImage(void);
+
 extern UIImage *SKIMuteImageWithSize(CGSize size);
 extern UIImage *SKIVolumeImageWithSize(CGSize size);
+
+extern UIImage *SKIPlayImageWithSize(CGSize size);
+extern UIImage *SKIPauseImageWithSize(CGSize size);
 
 #endif /* SKIRes_h */

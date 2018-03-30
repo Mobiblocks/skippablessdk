@@ -13,9 +13,12 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -40,33 +43,33 @@ public class SkiAdInterstitialActivity extends Activity {
     private static final String EXTRA_UID = "EXTRA_UID";
     private static final String EXTRA_AD_INFO = "EXTRA_AD_INFO";
     private static final String EXTRA_VAST_INFO = "EXTRA_VAST_INFO";
-    
-    private static boolean sMuted = false;
 
     private SkiVastCompressedInfo mVastInfo;
     private TextView mSkipView;
     private TextView mCloseView;
+    private ImageView mMediaControl;
     private TextView mReportView;
     private Timer myTimer;
     private Runnable mTimerTick = new Runnable() {
         @Override
         public void run() {
+            if (mState.isReady() && mVideoView != null) {
+                mState.setCurrentPosition(mVideoView.getCurrentPosition());
+            }
+
             updateCloseView(false);
             updateSkipView(false);
             sendTimedEvents();
         }
     };
 
-    private boolean mIsReady;
-    private boolean mCompleted;
-
-    private boolean mShownOnce;
+    private final State mState = new State();
 
     private boolean mStateSaved;
+
     private MediaPlayer mMediaPlayer;
     @SuppressWarnings("FieldCanBeLocal")
     private SkiAdReportActivity.SkiAdReportListener mReportListener;
-    private int mRestoredPosition;
 
     static Intent getIntent(@SuppressWarnings("NullableProblems") @NonNull Context context, @NonNull String uid, @NonNull SkiAdInfo adInfo, @NonNull SkiVastCompressedInfo vastInfo) {
         Intent intent = new Intent(context, SkiAdInterstitialActivity.class);
@@ -154,11 +157,15 @@ public class SkiAdInterstitialActivity extends Activity {
                     mMediaPlayer.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT);
                 }
 
-                float volume = sMuted ? 0.f : 1.f;
+                mState.setReady(true);
+
+                updateMediaControl();
+
+                float volume = State.isMuted() ? 0.f : 1.f;
                 mp.setVolume(volume, volume);
-                
-                mIsReady = true;
-                
+
+                restoreSavedPosition(null);
+
                 mVideoView.requestLayout();
                 sendInitialEvents();
                 maybeScheduleTicker();
@@ -168,10 +175,14 @@ public class SkiAdInterstitialActivity extends Activity {
             @Override
             public void onCompletion(MediaPlayer mp) {
                 maybeUnscheduleTicker();
+
+                mState.setReady(false);
+                mState.setCompleted(true);
+
                 updateCloseView(true);
                 updateSkipView(true);
-                mIsReady = false;
-                mCompleted = true;
+                updateMediaControl();
+
                 sendCompleteEvents();
             }
         });
@@ -196,12 +207,13 @@ public class SkiAdInterstitialActivity extends Activity {
         mVideoView.setOnTouchListener(new View.OnTouchListener() {
             float startX = 0;
             float startY = 0;
+
             private boolean isAClick(float startX, float endX, float startY, float endY) {
                 float differenceX = Math.abs(startX - endX);
                 float differenceY = Math.abs(startY - endY);
                 return !(differenceX > 50 || differenceY > 50);
             }
-            
+
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
@@ -265,7 +277,9 @@ public class SkiAdInterstitialActivity extends Activity {
         closeViewLayoutParams.setMargins(0, 0, 0, 0);
 
         mCloseView = new TextView(this);
+        mCloseView.setId(Util.generateViewId());
         mCloseView.setMinWidth(px(70));
+        mCloseView.setHeight(px(32));
         mCloseView.setLayoutParams(closeViewLayoutParams);
         mCloseView.setPadding(px(5), px(5), px(5), px(5));
         mCloseView.setBackgroundColor(Color.argb(178, 51, 51, 51));
@@ -282,6 +296,43 @@ public class SkiAdInterstitialActivity extends Activity {
         });
 
         mRelativeLayout.addView(mCloseView);
+
+
+        if (!mState.isCompleted()) {
+            mMediaControl = new ImageView(this);
+            mMediaControl.setImageResource(mState.isPaused() ? R.drawable.skippables_interstitial_video_play : R.drawable.skippables_interstitial_video_pause);
+
+            mMediaControl.setPadding(px(5), px(5), px(5), px(5));
+            mMediaControl.setBackgroundColor(Color.argb(178, 51, 51, 51));
+            mMediaControl.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mState.isCompleted() || mMediaPlayer == null || !mState.isReady()) {
+                        return;
+                    }
+
+                    if (mMediaPlayer.isPlaying()) {
+                        mMediaPlayer.pause();
+                        mState.setPaused(true);
+                    } else {
+                        mMediaPlayer.start();
+                        mState.setPaused(false);
+                    }
+
+                    updateMediaControl();
+                }
+            });
+
+            updateMediaControl();
+
+            RelativeLayout.LayoutParams mediaControlLayoutParams = new RelativeLayout.LayoutParams(px(32), px(32));
+
+            mediaControlLayoutParams.addRule(RelativeLayout.RIGHT_OF, mCloseView.getId());
+            mediaControlLayoutParams.addRule(RelativeLayout.ALIGN_BOTTOM, mCloseView.getId());
+            mediaControlLayoutParams.setMargins(0, 0, 0, 0);
+
+            mRelativeLayout.addView(mMediaControl, mediaControlLayoutParams);
+        }
 
         final SkiAdInfo adInfo = getAdInfo(getIntent());
         if (adInfo != null) {
@@ -312,17 +363,17 @@ public class SkiAdInterstitialActivity extends Activity {
         }
 
         final ImageView soundToggleVideo = new ImageView(this);
-        soundToggleVideo.setImageResource(sMuted ? R.drawable.skippables_interstitial_video_muted : R.drawable.skippables_interstitial_video_volume);
+        soundToggleVideo.setImageResource(State.isMuted() ? R.drawable.skippables_interstitial_video_muted : R.drawable.skippables_interstitial_video_volume);
         soundToggleVideo.setPadding(px(5), px(5), px(5), px(5));
         soundToggleVideo.setBackgroundColor(Color.argb(178, 51, 51, 51));
         soundToggleVideo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mMediaPlayer != null) {
-                    sMuted = !sMuted;
-                    float volume = sMuted ? 0.f : 1.f;
+                    boolean muted = State.toggleMute();
+                    float volume = muted ? 0.f : 1.f;
                     mMediaPlayer.setVolume(volume, volume);
-                    soundToggleVideo.setImageResource(sMuted ? R.drawable.skippables_interstitial_video_muted : R.drawable.skippables_interstitial_video_volume);
+                    soundToggleVideo.setImageResource(muted ? R.drawable.skippables_interstitial_video_muted : R.drawable.skippables_interstitial_video_volume);
                 }
             }
         });
@@ -335,8 +386,8 @@ public class SkiAdInterstitialActivity extends Activity {
 
         mRelativeLayout.addView(soundToggleVideo, soundToggleVideoLayoutParams);
 
-        updateCloseView(false);
-        updateSkipView(false);
+        updateCloseView(mState.isCompleted());
+        updateSkipView(mState.isCompleted());
 
         hideEverything();
 
@@ -363,7 +414,7 @@ public class SkiAdInterstitialActivity extends Activity {
                 }
             }
         };
-        
+
         return mReportListener;
     }
 
@@ -380,8 +431,7 @@ public class SkiAdInterstitialActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        mRestoredPosition = mVideoView.getCurrentPosition();
-        outState.putInt("__savedPosition", mVideoView.getCurrentPosition());
+        saveCurrentPosition(outState);
 
         mStateSaved = true;
     }
@@ -390,11 +440,8 @@ public class SkiAdInterstitialActivity extends Activity {
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
 
-        mRestoredPosition = 0;
-        int restoredPosition = savedInstanceState.getInt("__savedPosition", 0);
-        if (restoredPosition > 0 && mVideoView != null) {
-            mVideoView.seekTo(restoredPosition);
-        }
+        restoreSavedPosition(savedInstanceState);
+
         mStateSaved = false;
     }
 
@@ -403,13 +450,13 @@ public class SkiAdInterstitialActivity extends Activity {
         super.onResume();
 
         hideEverything();
-        if (!mCompleted) {
+        if (!mState.isCompleted()) {
             maybeScheduleTicker();
-            if (!mVideoView.isPlaying()) {
+            if (!mVideoView.isPlaying() && !mState.isPaused()) {
                 mVideoView.start();
             }
 
-            mShownOnce = true;
+            mState.setShownOnce(true);
             sendInitialEvents();
         }
     }
@@ -417,21 +464,19 @@ public class SkiAdInterstitialActivity extends Activity {
     @Override
     protected void onRestart() {
         super.onRestart();
-        
-        mIsReady = false;
-        if (mRestoredPosition > 0 && mVideoView != null) {
-            mVideoView.seekTo(mRestoredPosition);
-        }
+
+        mState.setReady(false);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
 
-        if (!mCompleted) {
+        if (!mState.isCompleted()) {
             maybeUnscheduleTicker();
             if (mVideoView.isPlaying()) {
                 mVideoView.pause();
+                mState.setPaused(true);
             }
         }
     }
@@ -450,8 +495,41 @@ public class SkiAdInterstitialActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (mCompleted) {
+        if (mState.isCompleted()) {
             super.onBackPressed();
+        }
+    }
+
+    private void saveCurrentPosition(Bundle bundle) {
+        if (mVideoView == null || !mState.isReady()) {
+            return;
+        }
+
+        mState.setCurrentPosition(mVideoView.getCurrentPosition());
+        if (bundle != null) {
+            bundle.putParcelable("__savedState", mState);
+        }
+    }
+
+    private void restoreSavedPosition(Bundle bundle) {
+        if (bundle != null) {
+            State savedState = bundle.getParcelable("__savedState");
+            if (savedState != null) {
+                mState.restore(savedState);
+            }
+        }
+
+        if (!mState.isCompleted() && mState.isReady() && mState.getCurrentPosition() > 0 && mVideoView != null) {
+            if (mState.getCurrentPosition() == mVideoView.getCurrentPosition()) {
+                return;
+            }
+
+            Log.d("skippables-state", mState.getCurrentPosition() + ":" + mVideoView.getCurrentPosition());
+            if (mMediaPlayer != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                mMediaPlayer.seekTo(mState.getCurrentPosition(), MediaPlayer.SEEK_CLOSEST);
+            } else {
+                mVideoView.seekTo(mState.getCurrentPosition());
+            }
         }
     }
 
@@ -472,7 +550,7 @@ public class SkiAdInterstitialActivity extends Activity {
     }
 
     private void maybeScheduleTicker() {
-        if (!mIsReady || myTimer != null) {
+        if (mState.isCompleted() || !mState.isReady() || myTimer != null) {
             return;
         }
 
@@ -497,7 +575,7 @@ public class SkiAdInterstitialActivity extends Activity {
     }
 
     private int getAnyDuration() {
-        if (mIsReady) {
+        if (mState.isReady()) {
             return mVideoView.getDuration() / 1000;
         } else {
             VastTime vastTime = mVastInfo.getDuration();
@@ -510,6 +588,20 @@ public class SkiAdInterstitialActivity extends Activity {
         }
 
         return 0;
+    }
+
+    private void updateMediaControl() {
+        if (mMediaControl == null) {
+            return;
+        }
+
+        if (mState.isCompleted() || !mState.isReady()) {
+            mMediaControl.setVisibility(View.INVISIBLE);
+        } else {
+            mMediaControl.setVisibility(View.VISIBLE);
+        }
+
+        mMediaControl.setImageResource(mState.isPaused() ? R.drawable.skippables_interstitial_video_play : R.drawable.skippables_interstitial_video_pause);
     }
 
     private void updateCloseView(boolean completed) {
@@ -579,9 +671,9 @@ public class SkiAdInterstitialActivity extends Activity {
             }
         }
     }
-    
+
     private void sendInitialEvents() {
-        if (mShownOnce && mIsReady) {
+        if (mState.isShownOnce() && mState.isReady()) {
             ArrayList<URL> removeImpression = new ArrayList<>();
             //noinspection ConstantConditions
             URL assetURL = mVastInfo.findBestMediaFile(this).getValue();
@@ -836,7 +928,7 @@ public class SkiAdInterstitialActivity extends Activity {
 
         @Override
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            if (mMediaPlayer == null || !mIsReady) {
+            if (mMediaPlayer == null || !mState.isReady()) {
                 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
                 return;
             }
@@ -848,19 +940,153 @@ public class SkiAdInterstitialActivity extends Activity {
                 //TODO: this is a workaround, only god himself knows when an activity is restored restarted destroyed view requested view valid is prepared is in the middle of destroying the sun
                 return;
             }
-            
+
             int width = getDefaultSize(mVideoWidth, widthMeasureSpec);
             int height = getDefaultSize(mVideoHeight, heightMeasureSpec);
             if (mVideoWidth > 0 && mVideoHeight > 0) {
-                if ( mVideoWidth * height  > width * mVideoHeight ) {
+                if (mVideoWidth * height > width * mVideoHeight) {
                     //Log.i("@@@", "image too tall, correcting");
                     height = width * mVideoHeight / mVideoWidth;
-                } else if ( mVideoWidth * height  < width * mVideoHeight ) {
+                } else if (mVideoWidth * height < width * mVideoHeight) {
                     //Log.i("@@@", "image too wide, correcting");
                     width = height * mVideoWidth / mVideoHeight;
                 }
             }
             setMeasuredDimension(width, height);
+        }
+    }
+
+    private static class State implements Parcelable {
+        private static boolean sMuted = false;
+
+        private boolean isReady;
+        private boolean isPaused;
+        private boolean completed;
+
+        private boolean shownOnce;
+        private int currentPosition;
+
+        State() {
+
+        }
+
+        @SuppressWarnings("WeakerAccess")
+        protected State(Parcel in) {
+            isReady = in.readByte() != 0;
+            isPaused = in.readByte() != 0;
+            completed = in.readByte() != 0;
+            shownOnce = in.readByte() != 0;
+            currentPosition = in.readInt();
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeByte((byte) (isReady ? 1 : 0));
+            dest.writeByte((byte) (isPaused ? 1 : 0));
+            dest.writeByte((byte) (completed ? 1 : 0));
+            dest.writeByte((byte) (shownOnce ? 1 : 0));
+            dest.writeInt(currentPosition);
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        public static final Creator<State> CREATOR = new Creator<State>() {
+            @Override
+            public State createFromParcel(Parcel in) {
+                return new State(in);
+            }
+
+            @Override
+            public State[] newArray(int size) {
+                return new State[size];
+            }
+        };
+
+        static boolean isMuted() {
+            return sMuted;
+        }
+
+        static void setMuted(boolean muted) {
+            sMuted = muted;
+        }
+
+        static boolean toggleMute() {
+            sMuted = !sMuted;
+
+            return sMuted;
+        }
+
+        boolean isReady() {
+            return isReady;
+        }
+
+        void setReady(boolean ready) {
+            printState("current", this);
+            isReady = ready;
+        }
+
+        public boolean isPaused() {
+            return isPaused;
+        }
+
+        public void setPaused(boolean paused) {
+            isPaused = paused;
+        }
+
+        boolean isCompleted() {
+            return completed;
+        }
+
+        void setCompleted(boolean completed) {
+            printState("current", this);
+            this.completed = completed;
+        }
+
+        boolean isShownOnce() {
+            return shownOnce;
+        }
+
+        void setShownOnce(boolean shownOnce) {
+            printState("current", this);
+            this.shownOnce = shownOnce;
+        }
+
+        int getCurrentPosition() {
+            return currentPosition;
+        }
+
+        void setCurrentPosition(int currentPosition) {
+            printState("current", this);
+            this.currentPosition = currentPosition;
+        }
+
+        void restore(State savedState) {
+            printState("current", this);
+            printState("saved", savedState);
+            this.isReady = savedState.isReady;
+            this.completed = savedState.completed;
+            this.shownOnce = savedState.shownOnce;
+            this.currentPosition = savedState.currentPosition;
+        }
+
+        @Override
+        public String toString() {
+            return "State{" +
+                    ", muted=" + sMuted +
+                    ", isReady=" + isReady +
+                    ", completed=" + completed +
+                    ", shownOnce=" + shownOnce +
+                    ", currentPosition=" + currentPosition +
+                    '}';
+        }
+
+        private static void printState(String name, State state) {
+            if (BuildConfig.DEBUG) {
+                Log.d("skippables-state", name + ": " + state.toString());
+            }
         }
     }
 }

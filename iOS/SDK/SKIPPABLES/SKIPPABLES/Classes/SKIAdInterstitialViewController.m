@@ -38,6 +38,8 @@
 @property (strong, nonatomic) UIView *durationView;
 @property (strong, nonatomic) UILabel *durationLabelView;
 
+@property (strong, nonatomic) UIImageView *videoControlView;
+
 @property (strong, nonatomic) UILabel *reportLabelView;
 
 @property (strong, nonatomic) UIImageView *soundToggleImageView;
@@ -47,9 +49,12 @@
 @property (copy, nonatomic) void (^closeCallback)(void);
 @property (copy, nonatomic) void (^reportCallback)(void);
 @property (copy, nonatomic) bool (^soundToggleCallback)(void);
+@property (copy, nonatomic) bool (^playToggleCallback)(void);
 
 - (void)updateDurationTimeLabelWithDuration:(NSTimeInterval)duration currentTime:(NSTimeInterval)currentTime;
 - (void)updateSkipTimeLabelWithOffset:(NSTimeInterval)skipOffset currentTime:(NSTimeInterval)currentTime;
+
+- (void)updateVideoControlView:(BOOL)paused;
 
 - (void)showSkip;
 - (void)showClose;
@@ -70,6 +75,7 @@ static BOOL muted = NO;
 @property (strong, nonatomic) NSMutableArray<id<NSObject>> *avPlayerNotificationTokens;
 
 @property (assign, nonatomic) BOOL viewShownOnce;
+@property (assign, nonatomic) BOOL isPlaying;
 
 @end
 
@@ -122,7 +128,6 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 
 - (void)prepareAdPlayerWithFail:(BOOL)fail {
 	__weak typeof(self) wSelf = self;
-	SKIAdInterstitial *ad = self.ad;
 	SKIVASTCompressedCreative *compressedCreative = self.compressedCreative;
 	NSArray *errorTrackings = compressedCreative.errorTrackings;
 	
@@ -421,6 +426,21 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 			
 			return true;
 		}];
+		[self.avPlayerControllerLayer setPlayToggleCallback:^bool{
+			if (!wSelf.avPlayer) {
+				return false;
+			}
+			
+			if (wSelf.isPlaying) {
+				wSelf.isPlaying = NO;
+				[wSelf.avPlayer pause];
+				return true;
+			}
+			
+			wSelf.isPlaying = YES;
+			[wSelf.avPlayer play];
+			return false;
+		}];
 
 		if (@available(iOS 9.0, *)) {
 			_avPlayerController.allowsPictureInPicturePlayback = NO;
@@ -651,6 +671,12 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	}
 }
 
+- (void)setIsPlaying:(BOOL)isPlaying {
+	_isPlaying = isPlaying;
+	
+	[self.avPlayerControllerLayer updateVideoControlView:!isPlaying];
+}
+
 - (void)viewDidLoad {
 	[super viewDidLoad];
 	// Do any additional setup after loading the view.
@@ -664,10 +690,11 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 
 - (void)viewDidAppear:(BOOL)animated {
 	[super viewDidAppear:animated];
-
-	[self.avPlayer play];
 	
 	if (!_viewShownOnce) {
+		[self.avPlayer play];
+		self.isPlaying = YES;
+		
 		_viewShownOnce = YES;
 		for (NSURL *url in self.compressedCreative.impressionUrls) {
 			[self trackUrl:url playhead:0.0f];
@@ -684,9 +711,9 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 - (void)applicationDidBecomeActive:(BOOL)previouslyVisible {
 	[super applicationDidBecomeActive:previouslyVisible];
 	
-	if (previouslyVisible) {
-		[self.avPlayer play];
-	}
+//	if (previouslyVisible) {
+//		[self.avPlayer play];
+//	}
 }
 
 - (void)viewDidLayoutSubviews {
@@ -706,14 +733,18 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	[super viewWillDisappear:animated];
 
 	[self.avPlayer pause];
+	self.isPlaying = NO;
 }
 
 - (void)applicationWillResignActive:(BOOL)previouslyVisible {
 	[super applicationWillResignActive:previouslyVisible];
 	
-	if (previouslyVisible) {
-		[self.avPlayer pause];
-	}
+	
+	[self.avPlayer pause];
+	self.isPlaying = NO;
+//	if (previouslyVisible) {
+//		[self.avPlayer pause];
+//	}
 }
 
 - (void)didReceiveMemoryWarning {
@@ -802,6 +833,19 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 		self.durationLabelView.textColor = [UIColor whiteColor];
 		self.durationLabelView.font = [UIFont monospacedDigitSystemFontOfSize:17 weight:UIFontWeightRegular];
 		self.durationLabelView.textAlignment = NSTextAlignmentCenter;
+		
+		self.videoControlView = [[UIImageView alloc] initWithFrame:(CGRect){CGPointZero, {40.f, 40.f}}];
+		self.videoControlView.tintColor = [UIColor whiteColor];
+		self.videoControlView.contentMode = UIViewContentModeCenter;
+		self.videoControlView.userInteractionEnabled = YES;
+		self.videoControlView.backgroundColor = [UIColor colorWithWhite:0.1f alpha:0.7f];
+		
+		UITapGestureRecognizer *videoControlTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
+		[self.videoControlView addGestureRecognizer:videoControlTapGesture];
+		
+		[self updateVideoControlView:NO];
+		
+		[self addSubview:self.videoControlView];
 
 		UITapGestureRecognizer *closeTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
 		[self.durationView addGestureRecognizer:closeTapGesture];
@@ -828,7 +872,7 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 		self.soundToggleImageView.tintColor = [UIColor whiteColor];
 		self.soundToggleImageView.contentMode = UIViewContentModeCenter;
 		self.soundToggleImageView.userInteractionEnabled = YES;
-		self.soundToggleImageView.backgroundColor = [UIColor colorWithWhite:0.2f alpha:0.7f];
+		self.soundToggleImageView.backgroundColor = [UIColor colorWithWhite:0.1f alpha:0.7f];;
 		
 		[self updateToggleSoundImage];
 		
@@ -842,6 +886,7 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 		[tapGesture requireGestureRecognizerToFail:closeTapGesture];
 		[tapGesture requireGestureRecognizerToFail:reportTapGesture];
 		[tapGesture requireGestureRecognizerToFail:soundToggleTapGesture];
+		[tapGesture requireGestureRecognizerToFail:videoControlTapGesture];
 		[self addGestureRecognizer:tapGesture];
 		
 		UITapGestureRecognizer *tapDoubleGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleDoubleTapGesture:)];
@@ -873,6 +918,11 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	soundFrame.origin.x = frame.size.width - soundFrame.size.width;
 	soundFrame.origin.y = frame.size.height - soundFrame.size.height;
 	self.soundToggleImageView.frame = soundFrame;
+	
+	CGRect controlFrame = self.videoControlView.frame;
+	controlFrame.origin.x = durationFrame.origin.x + durationFrame.size.width;
+	controlFrame.origin.y = durationFrame.origin.y;
+	self.videoControlView.frame = controlFrame;
 }
 
 - (void)handleTapGesture:(UITapGestureRecognizer *)gesture {
@@ -895,6 +945,11 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 				[self updateToggleSoundImage];
 			}
 		}
+	} else if (gesture.view == self.videoControlView) {
+		if (self.playToggleCallback != nil) {
+			bool paused = self.playToggleCallback();
+			[self updateVideoControlView:paused];
+		}
 	} else {
 		if (self.tapCallback != nil) {
 			self.tapCallback();
@@ -903,6 +958,12 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 }
 
 - (void)handleDoubleTapGesture:(UITapGestureRecognizer *)gesture {
+}
+
+- (void)updateVideoControlView:(BOOL)paused {
+	CGSize size = (CGSize){20.f, 20.f};
+	UIImage *image = [(paused ? SKIPlayImageWithSize(size) : SKIPauseImageWithSize(size))  imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+	self.videoControlView.image = image;
 }
 
 - (void)updateToggleSoundImage {
@@ -956,6 +1017,7 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	    animations:^{
 //		    self.skipView.alpha = 0.0f;
 		    self.durationLabelView.alpha = 0.0f;
+			self.videoControlView.alpha = 0.0f;
 		}
 	    completion:^(BOOL finished) {
 //		    self.skipView.hidden = YES;

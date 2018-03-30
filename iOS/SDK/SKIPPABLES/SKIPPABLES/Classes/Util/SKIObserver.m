@@ -92,11 +92,13 @@
 	dispatch_source_set_timer(_timer,
 							  dispatch_time(DISPATCH_TIME_NOW, self.timeoutInterval * NSEC_PER_SEC),
 							  DISPATCH_TIME_FOREVER, 0);
+	
+	dispatch_source_t bTimer = _timer;
 	dispatch_source_set_event_handler(_timer, ^{
 		[wSelf handleTimeout];
 		
-		if (_timer != NULL) {
-			dispatch_source_cancel(_timer);
+		if (bTimer != NULL) {
+			dispatch_source_cancel(bTimer);
 		}
 	});
 	
