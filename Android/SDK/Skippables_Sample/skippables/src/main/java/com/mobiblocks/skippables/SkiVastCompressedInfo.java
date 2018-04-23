@@ -161,7 +161,8 @@ class SkiVastCompressedInfo implements Parcelable {
                 screenHeight = metrics.heightPixels;
             }
 
-            int screenRatio = Math.max(screenWidth, screenHeight) / Math.min(screenWidth, screenHeight);
+            float screenRatio = (float)Math.max(screenWidth, screenHeight) / (float)Math.min(screenWidth, screenHeight);
+            int screenPixels = screenWidth - screenHeight;
 
             float widthWeight = 1;
             float heightWeight = 1;
@@ -180,17 +181,20 @@ class SkiVastCompressedInfo implements Parcelable {
                 int currentWidth = media.width;
                 int currentHeight = media.height;
 
-                int currentRatio = Math.max(currentWidth, currentHeight) / Math.min(currentWidth, currentHeight);
+                float currentRatio = (float)Math.max(currentWidth, currentHeight) / (float)Math.min(currentWidth, currentHeight);
+                int currentPixels = currentWidth - currentHeight;
 
-                int ratioDiff = Math.abs(screenRatio - currentRatio);
+                float ratioDiff = Math.abs(screenRatio - currentRatio);
                 int widthDiff = Math.abs(screenWidth - currentWidth);
                 int heightDiff = Math.abs(screenHeight - currentHeight);
+                int pixelsDiff = Math.abs(screenPixels - currentPixels);
 
-                int pointRatio = Math.round(ratioDiff * 10);
-                int pointWidth = Math.round(widthDiff / 50.f * widthWeight);
-                int pointHeight = Math.round(heightDiff / 50.f * heightWeight);
+                int pointRatio = Math.round(ratioDiff * 100.f);
+                int pointWidth = Math.round(widthDiff / 100.f * widthWeight);
+                int pointHeight = Math.round(heightDiff / 100.f * heightWeight);
+                int pointPixels = Math.round(pixelsDiff / 100.f * 1);
 
-                int points = pointRatio + pointWidth + pointHeight;
+                int points = pointRatio + pointWidth + pointHeight + pointPixels;
                 pointedMediaFiles.put(points, media);
             }
 

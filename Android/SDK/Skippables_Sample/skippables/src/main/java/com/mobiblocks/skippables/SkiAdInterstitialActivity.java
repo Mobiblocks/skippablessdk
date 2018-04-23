@@ -524,7 +524,10 @@ public class SkiAdInterstitialActivity extends Activity {
                 return;
             }
 
-            Log.d("skippables-state", mState.getCurrentPosition() + ":" + mVideoView.getCurrentPosition());
+            if (BuildConfig.DEBUG) {
+                Log.d("skippables-state", mState.getCurrentPosition() + ":" + mVideoView.getCurrentPosition());
+            }
+            
             if (mMediaPlayer != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 mMediaPlayer.seekTo(mState.getCurrentPosition(), MediaPlayer.SEEK_CLOSEST);
             } else {

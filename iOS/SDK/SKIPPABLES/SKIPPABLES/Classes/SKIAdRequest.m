@@ -978,30 +978,51 @@ NSString *SKIUserAgent() {
 	NSMutableDictionary<NSNumber *, SKIVASTMediaFile*> *pointedMediaFiles = [NSMutableDictionary dictionary];
 	
 	CGFloat screenRatio = MAX(screenSize.width, screenSize.height) / MIN(screenSize.width, screenSize.height);
+	CGFloat screenPixels = screenSize.width - screenSize.height;
+	
+#ifdef DEBUG
+	NSMutableString *pointLogger = [NSMutableString string];
+	[pointLogger appendString:@"\n-----------------\n"];
+	[pointLogger appendFormat:@"%dx%d %d - w:%f h:%f r:%f\n", (int)screenSize.width, (int)screenSize.height, (int)screenPixels, widthWeight, heightWeight, screenRatio];
+#endif
 	
 	for (SKIVASTMediaFile *mediaFile in mediaFiles) {
 		CGFloat currentWidth = mediaFile.width.floatValue;
 		CGFloat currentHeight = mediaFile.height.floatValue;
 		
 		CGFloat currentRatio = MAX(currentWidth, currentHeight) / MIN(currentWidth, currentHeight);
+		CGFloat currentPixels = currentWidth - currentHeight;
 		
 		CGFloat ratioDiff = ABS(screenRatio - currentRatio);
 		CGFloat widthDiff = ABS(screenSize.width - currentWidth);
 		CGFloat heightDiff = ABS(screenSize.height - currentHeight);
+		CGFloat pixelsDiff = ABS(screenPixels - currentPixels);
 		
-		NSInteger pointRatio = round(ratioDiff * 10);
-		NSInteger pointWidth = round(widthDiff / 50. * widthWeight);
-		NSInteger pointHeight = round(heightDiff / 50. * heightWeight);
+		NSInteger pointRatio = round(ratioDiff * 100.);
+		NSInteger pointWidth = round(widthDiff / 100. * widthWeight);
+		NSInteger pointHeight = round(heightDiff / 100. * heightWeight);
+		NSInteger pointPixels = round(pixelsDiff / 100. * 1);
 		
-		NSInteger pointAcumm = pointRatio + pointWidth + pointHeight;
+		NSInteger pointAcumm = pointRatio + pointWidth + pointHeight + pointPixels;
 		pointedMediaFiles[@(pointAcumm)] = mediaFile;
+		
+#ifdef DEBUG
+		[pointLogger appendString:@"-----------------\n"];
+		[pointLogger appendFormat:@"%dx%d p:%d pd:%d - r:%f rd:%f wd:%f hd:%f rp:%d rpw:%d, rph:%d ppx:%d pa:%d\n", (int)currentWidth, (int)currentHeight, (int)currentPixels, (int)pixelsDiff, currentRatio, ratioDiff, screenSize.width - currentWidth, screenSize.height - currentHeight, (int)pointRatio, (int)pointWidth, (int)pointHeight, (int)pointPixels, (int)pointAcumm];
+		[pointLogger appendString:@"-----------------\n"];
+#endif
 	}
 	
 	NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"self" ascending:YES];
 	NSArray *sortedKeys = [pointedMediaFiles.allKeys sortedArrayUsingDescriptors:@[sortDescriptor]];
-	
 	SKIVASTMediaFile *mediaFile = pointedMediaFiles[sortedKeys.firstObject];
-	DLog(@"mediaFile: %@", mediaFile.debugDescription);
+	
+#ifdef DEBUG
+	[pointLogger appendString:@"-----------------\n"];
+	[pointLogger appendString:mediaFile.debugDescription];
+	[pointLogger appendString:@"\n-----------------\n"];
+	DLog(@"%@", pointLogger);
+#endif
 	
 	return mediaFile;
 }
