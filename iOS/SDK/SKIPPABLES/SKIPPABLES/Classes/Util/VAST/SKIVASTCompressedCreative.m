@@ -24,10 +24,10 @@
 	CGFloat mediaHeight = self.mediaFile.height.floatValue;
 	
 	if (mediaWidth > mediaHeight) {
-		CGFloat ratio = mediaWidth / mediaHeight;
-		if (ratio > 1.50) {
+//		CGFloat ratio = mediaWidth / mediaHeight;
+//		if (ratio > 1.50) {
 			return YES;
-		}
+//		}
 	}
 	
 	return NO;

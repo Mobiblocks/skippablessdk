@@ -762,9 +762,10 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 
 - (BOOL)shouldAutorotate {
 //	if (SKIiSiPhone()) {
-		if (SKIiSLandscape() && self.compressedCreative.maybeShownInLandscape) {
-			return NO;
+		if (self.compressedCreative.maybeShownInLandscape) {
+			return SKIiSPortrait();
 		}
+	
 		return SKIiSLandscape();
 //	}
 	
