@@ -187,7 +187,7 @@ class SkiEventTracker {
             data.put("event_unix", (int)(System.currentTimeMillis() / 1000L));
             
             data.put("aid", applicationContext.getPackageName());
-            data.put("aaid", Util.getAAID(applicationContext));
+            data.put("ifa", Util.getAAID(applicationContext));
             String ua = Util.getDefaultUserAgentString(applicationContext);
             if (ua != null) {
                 data.put("ua", ua);

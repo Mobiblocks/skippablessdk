@@ -196,7 +196,7 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 	data[@"event_unix"] = [NSString stringWithFormat:@"%.f", [[NSDate date] timeIntervalSince1970]];
 	
 	data[@"bundle"] = bundle;
-	data[@"idfa"] = idfa;
+	data[@"ifa"] = idfa;
 	data[@"ua"] = SKIUserAgent();
 	
 	NSString *deviceName = SKIDeviceName();
