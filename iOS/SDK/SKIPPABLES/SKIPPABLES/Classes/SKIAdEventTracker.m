@@ -10,6 +10,8 @@
 #import "SKIConstants.h"
 
 #import <AdSupport/ASIdentifierManager.h>
+#import <CoreTelephony/CTCarrier.h>
+#import <CoreTelephony/CTTelephonyNetworkInfo.h>
 
 static void *event_dispatch_queue_tag = NULL;
 dispatch_queue_t get_event_dispatch_queue() {
@@ -175,9 +177,7 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 	NSString *installPath = [SKIDocumentsPath() stringByAppendingPathComponent:@"install"];
 	if (![[NSFileManager defaultManager] fileExistsAtPath:installPath]) {
 		if ([[NSFileManager defaultManager] createFileAtPath:installPath contents:nil attributes:nil]) {
-			NSString *bundle = [[[NSBundle mainBundle] infoDictionary] objectForKey:(id)kCFBundleIdentifierKey];
-			NSString *idfa = [[[ASIdentifierManager sharedManager] advertisingIdentifier] UUIDString] ?: @"00000000-0000-0000-0000-000000000000";
-			NSData *data = [NSJSONSerialization dataWithJSONObject:@{@"bundle" : bundle ?: @"", @"idfa" : bundle ?: idfa} options:0 error:nil];
+			NSData *data = [NSJSONSerialization dataWithJSONObject:[self installData] options:0 error:nil];
 			[self trackEventRequestWithUrl:[NSURL URLWithString:SKIPPABLES_INSTALL_URL] expirationDate:[NSDate distantFuture] data:data];
 		}
 	}
@@ -185,6 +185,55 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 
 - (void)applicationWillTerminateNotification:(NSNotification *)notification {
 	[self saveEvents];
+}
+
+- (NSDictionary *)installData {
+	NSMutableDictionary *data = [NSMutableDictionary dictionary];
+	
+	NSString *bundle = [[[NSBundle mainBundle] infoDictionary] objectForKey:(id)kCFBundleIdentifierKey];
+	NSString *idfa = [[[ASIdentifierManager sharedManager] advertisingIdentifier] UUIDString] ?: @"00000000-0000-0000-0000-000000000000";
+	
+	data[@"event_unix"] = [NSString stringWithFormat:@"%.f", [[NSDate date] timeIntervalSince1970]];
+	
+	data[@"bundle"] = bundle;
+	data[@"idfa"] = idfa;
+	data[@"ua"] = SKIUserAgent();
+	
+	NSString *deviceName = SKIDeviceName();
+	if (deviceName) {
+		data[@"model"] = deviceName;
+		
+		NSString *deviceModelName = SKIDeviceModelName();
+		if (deviceModelName) {
+			data[@"hwv"] = deviceModelName;
+		}
+	}
+	
+	data[@"os"] = @"iOS";
+	data[@"osv"] = [[UIDevice currentDevice] systemVersion];
+	data[@"devicetype"] = @(SKIDeviceType());
+	
+	CGSize screenSize = SKIOrientationIndependentScreenBounds().size;
+	CGFloat scale = [[UIScreen mainScreen] scale];
+	data[@"screen"] = @{@"w": @(screenSize.width), @"h": @(screenSize.height), @"s":@(scale)};
+	
+	CTTelephonyNetworkInfo *networkInfo = [[CTTelephonyNetworkInfo alloc] init];
+	CTCarrier *carrier = [networkInfo subscriberCellularProvider];
+	
+	NSString *carrierName = carrier.carrierName;
+	if (carrierName) {
+		data[@"carrier"] = carrierName;
+	}
+	
+	NSString *mcc = carrier.mobileCountryCode;
+	NSString *mnc = carrier.mobileNetworkCode;
+	if (mcc && mnc) {
+		data[@"carriercode"] = [mcc stringByAppendingString:mnc];
+	}
+	
+	data[@"utcoffset"] = @(SKIUTCOffset());
+	
+	return data;
 }
 
 - (void)setIsReachable:(BOOL)isReachable {

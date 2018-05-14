@@ -62,19 +62,6 @@ NSString *SKIGenderToString(SKIGender gender) {
 	}
 }
 
-NSString *SKIUserAgent() {
-	static NSString *ua = nil;
-	static dispatch_once_t onceToken;
-	dispatch_once(&onceToken, ^{
-		SKISyncOnMain(^{
-			UIWebView *webView = [[UIWebView alloc] initWithFrame:CGRectZero];
-			ua = [webView stringByEvaluatingJavaScriptFromString:@"navigator.userAgent"];
-		});
-	});
-	
-	return ua;
-}
-
 @interface SKIAdRequest ()
 
 @property (copy, nonatomic) NSString *adUnitID;

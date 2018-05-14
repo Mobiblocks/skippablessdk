@@ -1,15 +1,23 @@
 package com.mobiblocks.skippables;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
+import android.support.annotation.UiThread;
+import android.telephony.TelephonyManager;
+import android.util.DisplayMetrics;
 import android.view.Surface;
 import android.view.View;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
@@ -18,6 +26,7 @@ import com.mobiblocks.skippables.vast.VastError;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -241,5 +250,101 @@ class Util {
         } else {
             return _generateViewId();
         }
+    }
+
+    @UiThread
+    public static String getDefaultUserAgentString(final Context context) {
+        if (Build.VERSION.SDK_INT >= 17) {
+            return NewApiWrapper.getDefaultUserAgent(context);
+        }
+
+        try {
+            Constructor<WebSettings> constructor = WebSettings.class.getDeclaredConstructor(Context.class, WebView.class);
+            constructor.setAccessible(true);
+            try {
+                WebSettings settings = constructor.newInstance(context, null);
+                return settings.getUserAgentString();
+            } finally {
+                constructor.setAccessible(false);
+            }
+        } catch (Exception e) {
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                return new WebView(context).getSettings().getUserAgentString();
+            } else {
+                final StringBuilder uadBuilder = new StringBuilder();
+                final Handler handler = new Handler(Looper.getMainLooper());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        synchronized (handler) {
+                            uadBuilder.append(new WebView(context).getSettings().getUserAgentString());
+                            handler.notifyAll();
+                        }
+                    }
+                });
+                try {
+                    synchronized (handler) {
+                        handler.wait(2000);
+                    }
+
+                    String ua = uadBuilder.toString();
+                    return ua.length() > 0 ? ua : null;
+                } catch (InterruptedException e1) {
+                    return null;
+                }
+            }
+        }
+    }
+
+    @TargetApi(17)
+    private static class NewApiWrapper {
+        static String getDefaultUserAgent(Context context) {
+            return WebSettings.getDefaultUserAgent(context);
+        }
+    }
+
+    private static int rtbDeviceType = -1;
+
+    public static int getRTBDeviceType(Context context) {
+        if (rtbDeviceType == -1) {
+            TelephonyManager manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            if (manager != null) {
+                if (manager.getPhoneType() == TelephonyManager.PHONE_TYPE_NONE) {
+                    rtbDeviceType = 5;
+                } else {
+                    DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+
+                    float yInches = metrics.heightPixels / metrics.ydpi;
+                    float xInches = metrics.widthPixels / metrics.xdpi;
+                    double diagonalInches = Math.sqrt(xInches * xInches + yInches * yInches);
+                    if (diagonalInches >= 6.5) {
+                        rtbDeviceType = 1;
+                    } else {
+                        rtbDeviceType = 4;
+                    }
+                }
+            }
+
+            rtbDeviceType = 6;
+        }
+
+        return rtbDeviceType;
+    }
+
+    private static SkiSize screenSize;
+
+    public static SkiSize getScreenSize(Context context) {
+        if (screenSize == null) {
+            DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+            int orientation = context.getResources().getConfiguration().orientation;
+            if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                //noinspection SuspiciousNameCombination
+                screenSize = new SkiSize(metrics.heightPixels, metrics.widthPixels);
+            } else {
+                screenSize = new SkiSize(metrics.widthPixels, metrics.heightPixels);
+            }
+
+        }
+        return screenSize;
     }
 }

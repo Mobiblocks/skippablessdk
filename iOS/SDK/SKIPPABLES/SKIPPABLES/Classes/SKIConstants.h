@@ -115,6 +115,8 @@ extern NSString *SKIDeviceName(void);
 
 extern NSString *SKIDeviceModelName(void);
 
+extern NSString *SKIUserAgent(void);
+
 extern SKIRTBDeviceType SKIDeviceType(void);
 
 extern SKIRTBConnectionType SKIConnectionType(void);

@@ -6,7 +6,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.support.annotation.NonNull;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.UUID;
 
 /**
@@ -181,8 +184,56 @@ class SkiEventTracker {
 
         JSONObject data = new JSONObject();
         try {
+            data.put("event_unix", (int)(System.currentTimeMillis() / 1000L));
+            
             data.put("aid", applicationContext.getPackageName());
-            data.put("idfa", Util.getAAID(applicationContext));
+            data.put("aaid", Util.getAAID(applicationContext));
+            String ua = Util.getDefaultUserAgentString(applicationContext);
+            if (ua != null) {
+                data.put("ua", ua);
+            }
+            
+            String model = Build.MODEL;
+            if (model != null) {
+                data.put("model", model);
+            }
+
+            String product = Build.PRODUCT;
+            if (product != null) {
+                data.put("hwv", product);
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                data.put("os", Build.VERSION.BASE_OS == null || Build.VERSION.BASE_OS.isEmpty() ? "Android" : Build.VERSION.BASE_OS);
+            } else {
+                data.put("os", "Android");
+            }
+            data.put("osv", Build.VERSION.RELEASE);
+            data.put("devicetype", Util.getRTBDeviceType(applicationContext));
+
+            SkiSize screenSize = Util.getScreenSize(applicationContext);
+            JSONObject screen = new JSONObject();
+            screen.put("w", screenSize.getWidth());
+            screen.put("h", screenSize.getHeight());
+            screen.put("s", applicationContext.getResources().getDisplayMetrics().density);
+            
+            data.put("screen", screen);
+
+            TelephonyManager telephonyManager = ((TelephonyManager) applicationContext.getSystemService(Context.TELEPHONY_SERVICE));
+            if (telephonyManager != null) {
+                String operatorName = telephonyManager.getNetworkOperatorName();
+                if (operatorName != null && !operatorName.isEmpty()) {
+                    data.put("carrier", operatorName);
+                }
+                String operatorCode = telephonyManager.getNetworkOperator();
+                if (operatorCode != null && !operatorCode.isEmpty()) {
+                    data.put("carriercode", operatorCode);
+                }
+            }
+
+            TimeZone tz = TimeZone.getDefault();
+            int offsetFromUtc = tz.getOffset(System.currentTimeMillis()) / 1000 / 60;
+            data.put("utcoffset", offsetFromUtc);
 
             //noinspection ResultOfMethodCallIgnored
             installFile.createNewFile();
