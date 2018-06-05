@@ -1,5 +1,6 @@
 package com.mobiblocks.skippables;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -11,6 +12,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.provider.Settings;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -253,6 +255,11 @@ public class SkiAdRequest {
 
                     deviceObject.put("session", getCurrentSession());
                     deviceObject.put("ifa", Util.getAAID(context));
+
+                    @SuppressLint("HardwareIds") String androidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+                    if (androidId != null) {
+                        deviceObject.put("ssaid", androidId);
+                    }
 
                     requestObject.put("device", deviceObject);
 

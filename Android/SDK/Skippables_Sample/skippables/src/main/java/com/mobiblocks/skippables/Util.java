@@ -195,11 +195,6 @@ class Util {
             }
         }
 
-        @SuppressLint("HardwareIds") String androidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-        if (androidId != null) {
-            return androidId;
-        }
-
         return "00000000-0000-0000-0000-000000000000";
     }
 

@@ -1,5 +1,6 @@
 package com.mobiblocks.skippables;
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -7,6 +8,7 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -188,6 +190,11 @@ class SkiEventTracker {
             
             data.put("aid", applicationContext.getPackageName());
             data.put("ifa", Util.getAAID(applicationContext));
+            @SuppressLint("HardwareIds") String androidId = Settings.Secure.getString(applicationContext.getContentResolver(), Settings.Secure.ANDROID_ID);
+            if (androidId != null) {
+                data.put("ssaid", androidId);
+            }
+            
             String ua = Util.getDefaultUserAgentString(applicationContext);
             if (ua != null) {
                 data.put("ua", ua);
