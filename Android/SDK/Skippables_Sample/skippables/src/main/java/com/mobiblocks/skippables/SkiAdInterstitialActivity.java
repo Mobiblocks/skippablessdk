@@ -955,7 +955,10 @@ public class SkiAdInterstitialActivity extends Activity {
                     width = height * mVideoWidth / mVideoHeight;
                 }
             }
-            setMeasuredDimension(width, height);
+
+            try {
+                setMeasuredDimension(width, height);
+            } catch (IllegalStateException ignore) { }
         }
     }
 
