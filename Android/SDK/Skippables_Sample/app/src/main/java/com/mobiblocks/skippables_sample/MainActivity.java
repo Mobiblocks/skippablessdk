@@ -160,16 +160,16 @@ public class MainActivity extends Activity
             }
         });
 
-        adView.loadRequest(request);
+        adView.load(request);
 
-        adViewMedium.loadRequest(request);
+        adViewMedium.load(request);
 
-        adViewHalfPage.loadRequest(request);
+        adViewHalfPage.load(request);
 	}
 	
 	void loadInterstitial() {
         loadButton.setEnabled(false);
         
-        interstitial.loadRequest(request);
+        interstitial.load(request);
     }
 }
