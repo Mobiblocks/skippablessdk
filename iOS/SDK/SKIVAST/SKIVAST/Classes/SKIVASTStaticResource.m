@@ -79,7 +79,7 @@
             [self handleElementName:_currentElementName reader:reader readerOk:&_readerOk currentNodeType:&_currentNodeType currentXmlDept:&_currentXmlDept handledInChild:&handledInChild];
         }
         
-        _readerOk = handledInChild ? xmlTextReaderReadState(reader) : xmlTextReaderRead(reader);
+        _readerOk = /* handledInChild ? xmlTextReaderReadState(reader) : */xmlTextReaderRead(reader);
         _currentNodeType = xmlTextReaderNodeType(reader);
         _currentXmlDept = xmlTextReaderDepth(reader);
     }
