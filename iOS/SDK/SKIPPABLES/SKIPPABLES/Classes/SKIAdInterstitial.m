@@ -43,6 +43,9 @@
 		return;
 	}
 	
+	_isReady = NO;
+	_hasBeenUsed = NO;
+	
 	if (!request.test && (self.adUnitID == nil || self.adUnitID.length == 0)) {
 		if ([self.delegate respondsToSelector:@selector(skiInterstitial:didFailToReceiveAdWithError:)]) {
 			id<SKIAdInterstitialDelegate> delegate = self.delegate;
