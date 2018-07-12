@@ -685,7 +685,9 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 - (void)viewWillAppear:(BOOL)animated {
 	[super viewWillAppear:animated];
 	
-	[self prepareAdPlayer];
+	if (!_viewShownOnce) {
+		[self prepareAdPlayer];
+	}
 }
 
 - (void)viewDidAppear:(BOOL)animated {
