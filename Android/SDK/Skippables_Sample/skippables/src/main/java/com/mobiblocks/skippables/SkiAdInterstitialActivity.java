@@ -455,6 +455,8 @@ public class SkiAdInterstitialActivity extends Activity {
             if (!mVideoView.isPlaying() && !mState.isPaused()) {
                 mVideoView.start();
             }
+            
+            mMediaControl.setImageResource(mState.isPaused() ? R.drawable.skippables_interstitial_video_play : R.drawable.skippables_interstitial_video_pause);
 
             mState.setShownOnce(true);
             sendInitialEvents();
@@ -478,6 +480,8 @@ public class SkiAdInterstitialActivity extends Activity {
                 mVideoView.pause();
                 mState.setPaused(true);
             }
+
+            mMediaControl.setImageResource(mState.isPaused() ? R.drawable.skippables_interstitial_video_play : R.drawable.skippables_interstitial_video_pause);
         }
     }
 
