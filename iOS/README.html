@@ -289,6 +289,21 @@ sup {
     vertical-align: super;
     line-height: 0;
 }
+
+kbd {
+  display: inline-block;
+  padding: 3px 5px;
+  font-size: 11px;
+  line-height: 10px;
+  color: #555;
+  vertical-align: middle;
+  background-color: #fcfcfc;
+  border: solid 1px #ccc;
+  border-bottom-color: #bbb;
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0 #bbb
+}
+
 * {
 	-webkit-print-color-adjust: exact;
 }
@@ -564,6 +579,13 @@ pre[class*="language-"] {
 <h3 id="toc_8">Configure SKIAdBannerView properties</h3>
 
 <p>In order to load and display ads, <code>SKIAdBannerView</code> requires an ad unit id and an ad size to be set (default ad size is <code>kSKIAdSizeBanner</code> 320x50).</p>
+
+<p>Banner Ad size: </br>
+<code>kSKIAdSizeBanner</code> 320x50 </br>
+<code>kSKIAdSizeLargeBanner</code> 320x100 </br>
+<code>kSKIAdSizeFullBanner</code> 468x60 </br>
+<code>kSKIAdSizeLeaderboard</code> 728x90 </br>
+<code>kSKIAdSizeLargeLeaderboard</code> 970x90</p>
 
 <p>Here&#39;s a code example showing how to set the two required properties in the <code>viewDidLoad</code> method of a <code>UIViewController</code>:</p>
 

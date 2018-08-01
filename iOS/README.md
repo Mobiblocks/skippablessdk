@@ -98,6 +98,13 @@ A `SKIAdBannerView` can also be instantiated directly. Here's an example on how 
 ###Configure SKIAdBannerView properties
 In order to load and display ads, `SKIAdBannerView` requires an ad unit id and an ad size to be set (default ad size is `kSKIAdSizeBanner` 320x50).
 
+Banner Ad size: </br>
+`kSKIAdSizeBanner` 320x50 </br>
+`kSKIAdSizeLargeBanner` 320x100 </br>
+`kSKIAdSizeFullBanner` 468x60 </br>
+`kSKIAdSizeLeaderboard` 728x90 </br>
+`kSKIAdSizeLargeLeaderboard` 970x90
+
 Here's a code example showing how to set the two required properties in the `viewDidLoad` method of a `UIViewController`:
 
 ~~~objc

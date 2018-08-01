@@ -127,6 +127,13 @@ You can alternatively create the `SkiAdView` programmatically:
 ###Configure SKIAdBannerView properties
 In order to load and display ads, `SkiAdView` requires an ad unit id and an ad size to be set (default ad size is `SkiAdSize.BANNER` 320x50). 
 
+Banner Ad size: </br>
+`SkiAdSize.BANNER` 320x50 </br>
+`SkiAdSize.LARGE_BANNER` 320x100 </br>
+`SkiAdSize.FULL_BANNER` 468x60 </br>
+`SkiAdSize.LEADERBOARD` 728x90 </br>
+`SkiAdSize.LARGE_LEADERBOARD` 970x90
+
 ~~~java
 ...
     @Override
