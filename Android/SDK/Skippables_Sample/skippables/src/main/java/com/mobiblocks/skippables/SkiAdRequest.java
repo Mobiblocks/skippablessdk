@@ -140,7 +140,7 @@ public class SkiAdRequest {
                 JSONObject requestObject = new JSONObject();
                 try {
                     requestObject.put("test", adRequest.test);
-                    requestObject.put(SKIConstants.UNIT_ID_KEY, adRequest.getAdUnitId());
+                    requestObject.put("adUnitId", adRequest.getAdUnitId());
 
                     SkiAdSize adSize = adRequest.getAdSize();
                     switch (adRequest.adType) {

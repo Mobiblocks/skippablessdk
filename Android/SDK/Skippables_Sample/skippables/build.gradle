@@ -2,49 +2,25 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 26
-    defaultPublishConfig "pubDebug"
 
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
     buildTypes {
-        debug {
-            debuggable true
-            minifyEnabled false
-        }
         release {
-            debuggable false
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
     flavorDimensions 'skipp'
-    productFlavors {
-        sc {
-            dimension 'skipp'
-            minSdkVersion 15
-            targetSdkVersion 26
-            versionCode 1
-            versionName "1.0"
-            testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        }
-        pub {
-            dimension 'skipp'
-            minSdkVersion 15
-            targetSdkVersion 26
-            testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
-            versionCode 1
-            versionName '1.0'
-        }
-    }
 }
 
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation ('com.android.support:support-annotations:26.1.0') { transitive = true }
     implementation ('com.google.android.gms:play-services-ads:11.6.2') { transitive = true }
 }
