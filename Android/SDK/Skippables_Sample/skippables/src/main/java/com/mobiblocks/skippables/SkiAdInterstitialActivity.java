@@ -944,7 +944,7 @@ public class SkiAdInterstitialActivity extends Activity {
                 mVideoWidth = mMediaPlayer.getVideoWidth();
                 mVideoHeight = mMediaPlayer.getVideoHeight();
             } catch (IllegalStateException ignore) {
-                //TODO: this is a workaround, only god himself knows when an activity is restored restarted destroyed view requested view valid is prepared is in the middle of destroying the sun
+                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
                 return;
             }
 
@@ -952,17 +952,13 @@ public class SkiAdInterstitialActivity extends Activity {
             int height = getDefaultSize(mVideoHeight, heightMeasureSpec);
             if (mVideoWidth > 0 && mVideoHeight > 0) {
                 if (mVideoWidth * height > width * mVideoHeight) {
-                    //Log.i("@@@", "image too tall, correcting");
                     height = width * mVideoHeight / mVideoWidth;
                 } else if (mVideoWidth * height < width * mVideoHeight) {
-                    //Log.i("@@@", "image too wide, correcting");
                     width = height * mVideoWidth / mVideoHeight;
                 }
             }
 
-            try {
-                setMeasuredDimension(width, height);
-            } catch (IllegalStateException ignore) { }
+            setMeasuredDimension(width, height);
         }
     }
 
