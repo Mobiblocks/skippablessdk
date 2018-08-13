@@ -122,20 +122,6 @@ public class SkiAdReportActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        int orientation = Util.getScreenOrientation(this);
-        switch (orientation) {
-            case ActivityInfo.SCREEN_ORIENTATION_PORTRAIT:
-            case ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT:
-            case ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE:
-            case ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE: {
-                setRequestedOrientation(orientation);
-                break;
-            }
-            default: {
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-            }
-        }
-        
         reportID = getIntent().getStringExtra(EXTRA_REPORT_ID);
         if (reportID == null) {
             finish();
