@@ -464,13 +464,6 @@ public class SkiAdInterstitialActivity extends Activity {
     }
 
     @Override
-    protected void onRestart() {
-        super.onRestart();
-
-        mState.setReady(false);
-    }
-
-    @Override
     protected void onPause() {
         super.onPause();
 
