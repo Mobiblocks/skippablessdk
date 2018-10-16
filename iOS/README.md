@@ -21,7 +21,7 @@ Then from the command line run:
 If you're new to CocoaPods, see their [official documentation](https://guides.cocoapods.org/using/using-cocoapods) for info on how to create and use Podfiles.
 
 ###Manual download
-You can also [download](https://www.skippables.com/sdk/ios) a copy of the SDK framework directly, unzip the file.
+You can also [download](https://cloud.app.net/skippables-sdk/ios.zip) a copy of the SDK framework directly, unzip the file.
 
 1. Drag and drop *SKIPPABLES.framework* inside a file group of your XCode project (usually, 'Frameworks').
 2. Be sure to check the box for 'Copy items into destination group's folder if needed' on the following window.

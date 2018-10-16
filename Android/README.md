@@ -11,7 +11,7 @@
 ##Import the SDK
 
 ###Manual
-You can also [download](https://www.skippables.com/sdk/android) a copy of the SDK framework directly, unzip the file.
+You can also [download](https://cloud.app.net/skippables-sdk/android.zip) a copy of the SDK framework directly, unzip the file.
 
 If you are using Android Studio, right click on your project add select **New Module**. Then select **Import .JAR/.AAR Package** option and from the file browser locate *skippables.aar* file. Right click again on your project and in **Module Dependencies** tab choose to add *skippables* module that you recently added, as a dependency.
 
