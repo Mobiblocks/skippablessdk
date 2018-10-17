@@ -992,7 +992,7 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 		[self showSkip];
 		return;
 	}
-	NSTimeInterval remaining = ceil(skipOffset - currentTime);
+	NSTimeInterval remaining = ceil(skipOffset - MAX(currentTime, 0));
 	if (remaining < 60.) {
 		NSString *durationString = [NSString stringWithFormat:@"Skip in %d", (int)remaining];
 		self.skipLabelView.text = durationString;
