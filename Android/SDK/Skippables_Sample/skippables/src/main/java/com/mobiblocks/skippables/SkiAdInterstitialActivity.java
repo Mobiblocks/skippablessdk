@@ -54,7 +54,9 @@ public class SkiAdInterstitialActivity extends Activity {
         @Override
         public void run() {
             if (mState.isReady() && mVideoView != null) {
-                mState.setCurrentPosition(mVideoView.getCurrentPosition());
+                if (mState.getCurrentPosition() == 0) {
+                    mState.setCurrentPosition(mVideoView.getCurrentPosition());
+                }
             }
 
             updateCloseView(false);
@@ -431,7 +433,6 @@ public class SkiAdInterstitialActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        saveCurrentPosition(outState);
 
         mStateSaved = true;
     }
@@ -467,6 +468,8 @@ public class SkiAdInterstitialActivity extends Activity {
     protected void onPause() {
         super.onPause();
 
+        saveCurrentPosition(null);
+        
         if (!mState.isCompleted()) {
             maybeUnscheduleTicker();
             if (mVideoView.isPlaying()) {
