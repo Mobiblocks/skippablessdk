@@ -12,6 +12,10 @@
 @implementation SKIVASTUrl
 
 + (NSURL *)urlFromUrlAfterReplacingMacros:(NSURL *)url builder:(void (^)(SKIVASTUrlMacroValues *))builder {
+	if (url == nil) {
+		return url;
+	}
+	
 	NSURLComponents *urlComponents = [NSURLComponents componentsWithURL:url resolvingAgainstBaseURL:YES];
 	
 	if (urlComponents.queryItems.count == 0) {
@@ -43,6 +47,13 @@
 		if ([macro isEqualToString:@"ERRORCODE"]) {
 			NSString *value = values.errorCode != SKIVASTNoErrorCode ? @"" : [NSString stringWithFormat:@"%i", (int)values.errorCode];
 			NSURLQueryItem *item = [NSURLQueryItem queryItemWithName:queryItem.name value:value];
+			[queryItems addObject:item];
+		} else if ([macro isEqualToString:@"SKIERRORDESC"]) {
+			NSString *value = values.skiErrorDescription;
+			if (value.length > 0) {
+				value = [[value dataUsingEncoding:NSUTF8StringEncoding] base64EncodedStringWithOptions:0];
+			}
+			NSURLQueryItem *item = [NSURLQueryItem queryItemWithName:queryItem.name value:value ?: @""];
 			[queryItems addObject:item];
 		} else if ([macro isEqualToString:@"CONTENTPLAYHEAD"]) {
 			NSString *value = values.contentPlayhead > -1 ? @"" : SKIFormattedStringFromInterval(values.contentPlayhead);

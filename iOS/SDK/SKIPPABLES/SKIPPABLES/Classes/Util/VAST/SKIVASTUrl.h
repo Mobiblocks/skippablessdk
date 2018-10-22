@@ -14,6 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface SKIVASTUrlMacroValues : NSObject
 
 @property (assign, nonatomic) SKIVASTErrorCode errorCode;
+@property (copy, nonatomic) NSString *skiErrorDescription;
 @property (assign, nonatomic) NSTimeInterval contentPlayhead;
 @property (strong, nonatomic, nullable) NSURL *assetUrl;
 
