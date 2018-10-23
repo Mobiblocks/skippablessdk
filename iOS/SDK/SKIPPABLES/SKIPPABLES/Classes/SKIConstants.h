@@ -71,12 +71,16 @@
 #define SKIPPABLES_API_VIDEO_URL @"https://www.skippables.com/x/srv/GetVideo"
 #define SKIPPABLES_INSTALL_URL @"https://www.skippables.com/x/InstallServer/Track"
 #define SKIPPABLES_REPORT_URL @"https://www.skippables.com/x/api/Feedback/InfringementReport"
+#define SKIPPABLES_ERROR_REPORT_URL @"https://www.skippables.com/x/error"
+#define SKIPPABLES_SDK_ERROR_REPORT_URL @"https://www.skippables.com/x/error/sdk"
 
 
 //#define SKIPPABLES_API_BANNER_URL @"http://test.skippables.com/x/srv/GetImage"
 //#define SKIPPABLES_API_VIDEO_URL @"http://test.skippables.com/x/srv/GetVideo"
 //#define SKIPPABLES_INSTALL_URL @"http://test.skippables.com/x/InstallServer/Track"
 //#define SKIPPABLES_REPORT_URL @"http://test.skippables.com/x/api/Feedback/InfringementReport"
+//#define SKIPPABLES_ERROR_REPORT_URL @"https://test.skippables.com/x/error"
+//#define SKIPPABLES_SDK_ERROR_REPORT_URL @"https://www.skippables.com/x/error/sdk"
 //#endif
 
 typedef NS_ENUM(NSInteger, SKIRTBDeviceType) {

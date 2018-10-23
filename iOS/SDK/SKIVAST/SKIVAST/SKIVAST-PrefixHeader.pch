@@ -1,0 +1,17 @@
+//
+//  SKIVATS-PrefixHeader.pch
+//  SKIVAST
+//
+//  Created by Daniel on 10/22/18.
+//  Copyright © 2018 Mobiblocks. All rights reserved.
+//
+
+#ifndef SKIVATS_PrefixHeader_pch
+#define SKIVATS_PrefixHeader_pch
+
+#import "SKIVASTUrlUtil.h"
+
+// Include any system framework and library headers here that should be included in all compilation units.
+// You will also need to set the Prefix Header build setting of one or more of your targets to reference this file.
+
+#endif /* SKIVATS_PrefixHeader_pch */

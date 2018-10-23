@@ -20,4 +20,33 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
+typedef enum : NSInteger {
+	SKIErrorCollectorTypeHTTP,
+	SKIErrorCollectorTypeVAST,
+	SKIErrorCollectorTypePlayer,
+	SKIErrorCollectorTypeOther
+} SKIErrorCollectorType;
+
+@interface SKIErrorCollectorBuilder : NSObject
+
+@property (assign, nonatomic) SKIErrorCollectorType type;
+@property (copy, nonatomic) NSString *place;
+@property (copy, nonatomic) NSString *desc;
+@property (strong, nonatomic) NSError *underlyingError;
+@property (strong, nonatomic) NSDictionary *otherInfo;
+
+@property (copy, nonatomic, readonly) NSData *jsonDataValue;
+@property (copy, nonatomic, readonly) NSString *jsonStringValue;
+
+@end
+
+@interface SKIErrorCollector : NSObject
+
+- (void)collect:(void (^)(SKIErrorCollectorBuilder *err))block;
+
+@property (copy, nonatomic) NSString *sessionID;
+@property (assign, nonatomic, readonly) NSSet *reportURLS;
+
+@end
+
 NS_ASSUME_NONNULL_END

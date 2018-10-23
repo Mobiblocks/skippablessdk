@@ -22,6 +22,7 @@ extern SKIAdSize const kSKIAdSizeFullscreen;
 
 @class SKIAdRequestResponse;
 @class SKIAdRequestError;
+@class SKIErrorCollector;
 
 @protocol SKIAdRequestDelegate<NSObject>
 
@@ -40,6 +41,7 @@ extern SKIAdSize const kSKIAdSizeFullscreen;
 @property (weak, nonatomic) id<SKIAdRequestDelegate> delegate;
 
 @property (copy, nonatomic) NSString *adUnitID;
+@property (strong, nonatomic) SKIErrorCollector *errorCollector;
 
 @end
 

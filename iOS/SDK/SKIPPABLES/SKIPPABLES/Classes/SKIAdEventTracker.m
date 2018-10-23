@@ -313,6 +313,7 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 	if (!url) {
 		return;
 	}
+	
 	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
 	request.timeoutInterval = 15;
 	request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
@@ -387,6 +388,86 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 	[aCoder encodeObject:_url forKey:@"url"];
 	[aCoder encodeObject:_date forKey:@"date"];
 	[aCoder encodeObject:_data forKey:@"data"];
+}
+
+@end
+
+@interface SKIErrorCollector ()
+
+@property (strong, atomic) NSMutableArray<SKIErrorCollectorBuilder *> *errorInfos;
+
+@end
+
+@implementation SKIErrorCollector
+
+- (instancetype)init
+{
+	self = [super init];
+	if (self) {
+		self.errorInfos = [NSMutableArray array];
+	}
+	return self;
+}
+
+- (void)collect:(void (^)(SKIErrorCollectorBuilder *))block {
+	SKIErrorCollectorBuilder *build = [[SKIErrorCollectorBuilder alloc] init];
+	block(build);
+	
+	NSURL *url = nil;
+	if (self.sessionID) {
+		NSURLComponents *components = [NSURLComponents componentsWithString:SKIPPABLES_ERROR_REPORT_URL];
+		NSMutableArray<NSURLQueryItem *> *query = components.queryItems.mutableCopy;
+		[query addObject:[NSURLQueryItem queryItemWithName:@"sessionID" value:self.sessionID]];
+		components.queryItems = query;
+		url = components.URL;
+	}
+	
+	url = url ?: [NSURL URLWithString:SKIPPABLES_ERROR_REPORT_URL];
+	
+	NSData *data = build.jsonDataValue;
+	if (data) {
+		[[SKIAdEventTracker defaultTracker] trackEventRequestWithUrl:url expirationDate:[[NSDate date] dateByAddingTimeInterval:86400] data:data];
+	}
+	
+//	[_errorInfos addObject:build];
+}
+
+@end
+
+@implementation SKIErrorCollectorBuilder
+
+- (NSString *)jsonStringValue {
+	NSData *data = self.jsonDataValue;
+	if (data) {
+		NSString *stringValue = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+		return  stringValue;
+	}
+	
+	return nil;
+}
+
+- (NSData *)jsonDataValue {
+	NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+	dict[@"type"] = @(self.type);
+	if (_place.length > 0) {
+		dict[@"place"] = _place;
+	}
+	if (_desc.length > 0) {
+		dict[@"description"] = _desc;
+	}
+	if (_underlyingError) {
+		dict[@"underlyingError"] = @{
+									 @"domain": _underlyingError.domain,
+									 @"code": @(_underlyingError.code),
+									 @"description": _underlyingError.localizedDescription,
+									 @"userInfo": _underlyingError.userInfo
+									 };
+	}
+	if (_otherInfo.count > 0) {
+		dict[@"info"] = _otherInfo;
+	}
+	
+	return [NSJSONSerialization dataWithJSONObject:dict options:0 error:nil];
 }
 
 @end

@@ -64,3 +64,20 @@ fastlane/test_output
 iOSInjectionProject/
 
 .DS_Store
+
+*.ipr
+*.iws
+.gradle
+.idea
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
+/build
+/captures
+.externalNativeBuild
+
+# Project
+/iOS/SDK/SKIPPABLES.framework
+/iOS/SDK/SKIPPABLES/SKIPPABLES.framework
+/iOS/Sample/Sample/Sample/SKIPPABLES.framework
+

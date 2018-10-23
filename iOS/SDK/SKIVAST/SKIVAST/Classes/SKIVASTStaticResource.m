@@ -7,6 +7,7 @@
 @property (nonatomic, readwrite) NSString *creativeType;
 
 @property (nonatomic, readwrite) NSURL *value;
+@property (nonatomic, readwrite) BOOL hadInvalidURL;
 
 @end
 
@@ -90,9 +91,7 @@
     if([@"#text" isEqualToString:_currentElementName]){
         const char* contentValue = (const char*) xmlTextReaderConstValue(reader);
         if(contentValue) {
-            NSString *value = [NSString stringWithCString:contentValue encoding:NSUTF8StringEncoding];
-            value = [value stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-            self.value = [NSURL URLWithString:value];
+			self.value = [SKIVASTUrlUtil URLWithCString:contentValue errorFixed:&_hadInvalidURL];
         }
     } else  {
         

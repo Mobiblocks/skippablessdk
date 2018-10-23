@@ -26,6 +26,8 @@ the type's underlying value
 */
 @property (nonatomic, readonly) NSURL *value;
 
+@property (nonatomic, readonly) BOOL hadInvalidURL;
+
 /** Returns a dictionary representation of this class (recursivly making dictionaries of properties) */
 @property (nonatomic, readonly) NSDictionary* dictionary;
 

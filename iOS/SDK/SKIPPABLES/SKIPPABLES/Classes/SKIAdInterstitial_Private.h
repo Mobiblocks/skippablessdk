@@ -9,10 +9,12 @@
 #define SKIAdInterstitial_Private_h
 
 @class SKIAdRequestResponse;
+@class SKIErrorCollector;
 
 @interface SKIAdInterstitial (Private) <SKIAdInterstitialViewControllerDelegate>
 
 @property (strong, nonatomic) SKIAdRequestResponse *response;
+@property (strong, nonatomic) SKIErrorCollector *errorCollector;
 
 @end
 

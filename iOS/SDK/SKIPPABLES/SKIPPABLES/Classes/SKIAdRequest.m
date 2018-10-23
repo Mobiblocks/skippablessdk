@@ -76,6 +76,7 @@ NSString *SKIGenderToString(SKIGender gender) {
 @property (assign, nonatomic) SKIAdGeoLocation geoProvidedByDescriptionLocation;
 
 @property (weak, nonatomic) id<SKIAdRequestDelegate> delegate;
+@property (strong, nonatomic) SKIErrorCollector *errorCollector;
 
 @end
 
@@ -91,6 +92,7 @@ NSString *SKIGenderToString(SKIGender gender) {
 		self.geoGPSLocation = SKIAdGeoLocationZero;
 		self.geoProvidedLocation = SKIAdGeoLocationZero;
 		self.geoProvidedByDescriptionLocation = SKIAdGeoLocationZero;
+		self.errorCollector = [[SKIErrorCollector alloc] init];
 	}
 	return self;
 }
@@ -555,6 +557,12 @@ NSString *SKIGenderToString(SKIGender gender) {
 		DLog(@"data: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
 		
 		if (error) {
+			[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+				err.type = SKIErrorCollectorTypeHTTP;
+				err.place = @"loadRequestWithData";
+				err.underlyingError = error;
+			}];
+			
 			SKIAdRequestResponse *requestResponse = [SKIAdRequestResponse response];
 			requestResponse.error = [SKIAdRequestError errorWithCode:kSKIErrorNetworkError
 															userInfo:@{NSUnderlyingErrorKey : error}];
@@ -568,6 +576,15 @@ NSString *SKIGenderToString(SKIGender gender) {
 		NSHTTPURLResponse *httpReponse = (NSHTTPURLResponse *)response;
 		if (httpReponse.statusCode == 400) {
 			NSDictionary *responseData = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+			[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+				err.type = SKIErrorCollectorTypeHTTP;
+				err.place = @"loadRequestWithData";
+				err.otherInfo = @{
+								  @"url": urlString,
+								  @"statusCode": @(httpReponse.statusCode),
+								  @"data": [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] ?: @""
+								  };
+			}];
 			SKIAdRequestResponse *requestResponse = [SKIAdRequestResponse response];
 			requestResponse.error = [SKIAdRequestError errorWithCode:kSKIErrorInvalidRequest
 															userInfo:@{
@@ -582,6 +599,15 @@ NSString *SKIGenderToString(SKIGender gender) {
 		}
 		
 		if (httpReponse.statusCode == 500) {
+			[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+				err.type = SKIErrorCollectorTypeHTTP;
+				err.place = @"loadRequestWithData";
+				err.otherInfo = @{
+								  @"url": urlString,
+								  @"statusCode": @(httpReponse.statusCode),
+								  @"data": [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] ?: @""
+								  };
+			}];
 			SKIAdRequestResponse *requestResponse = [SKIAdRequestResponse response];
 			requestResponse.error = [SKIAdRequestError errorWithCode:kSKIErrorServerError
 															userInfo:nil];
@@ -596,6 +622,11 @@ NSString *SKIGenderToString(SKIGender gender) {
 		NSDictionary *responseData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
 		if (error) {
 			DLog(@"err: %@", error);
+			[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+				err.type = SKIErrorCollectorTypeHTTP;
+				err.place = @"loadRequestWithData";
+				err.underlyingError = error;
+			}];
 			
 			SKIAdRequestResponse *requestResponse = [SKIAdRequestResponse response];
 			requestResponse.error = [SKIAdRequestError errorWithCode:kSKIErrorReceivedInvalidResponse
@@ -617,6 +648,8 @@ NSString *SKIGenderToString(SKIGender gender) {
 	requestResponse.deviceInfo = deviceInfo[@"device"];
 	requestResponse.rawResponse = responseData;
 
+	self.errorCollector.sessionID = responseData[@"SessionID"];
+	
 	if (self.adType == kSKIAdTypeInterstitialVideo) {
 		NSString *videoVast = responseData[@"content"] ?: responseData[@"Content"];
 		if ([[NSNull null] isEqual:videoVast] || videoVast.length == 0) {
@@ -651,6 +684,19 @@ NSString *SKIGenderToString(SKIGender gender) {
 				        downloadTaskWithURL:mediaUrl
 				          completionHandler:^(NSURL *_Nullable location, NSURLResponse *_Nullable response, NSError *_Nullable error) {
 					          if (error) {
+								  if ([error.domain isEqualToString:NSURLErrorDomain]) {
+									  if (error.code == NSURLErrorTimedOut) {
+										  [self trackError:creative errorCode:SKIVASTMediaFileTimeoutErrorCode];
+									  } else if (error.code == NSURLErrorCannotFindHost) {
+										  [self trackError:creative errorCode:SKIVASTMediaFileNotFoundErrorCode];
+									  }
+								  }
+								  [self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+									  err.type = SKIErrorCollectorTypeHTTP;
+									  err.place = @"processResponseData";
+									  err.desc = @"Failed to download media file";
+									  err.underlyingError = error;
+								  }];
 						          callback([SKIAdRequestError errorNetworkErrorWithUserInfo:@{
 							                   NSLocalizedDescriptionKey : @"Could not load video.",
 							                   NSUnderlyingErrorKey : error
@@ -661,6 +707,16 @@ NSString *SKIGenderToString(SKIGender gender) {
 
 					          NSHTTPURLResponse *httpReponse = (NSHTTPURLResponse *)response;
 					          if (httpReponse.statusCode != 200) {
+								  [self trackError:creative errorCode:SKIVASTMediaFileNotFoundErrorCode];
+								  [self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+									  err.type = SKIErrorCollectorTypeHTTP;
+									  err.place = @"processResponseData";
+									  err.desc = @"Failed to download media file";
+									  err.otherInfo = @{
+														@"url": mediaUrl.absoluteString,
+														@"statusCode": @(httpReponse.statusCode)
+														};
+								  }];
 						          callback([SKIAdRequestError errorNetworkErrorWithUserInfo:@{
 							                   NSLocalizedDescriptionKey : @"Could not load video."
 							               }],
@@ -677,11 +733,25 @@ NSString *SKIGenderToString(SKIGender gender) {
 					          NSError *localError = NULL;
 					          if ([[NSFileManager defaultManager] fileExistsAtPath:localPath]) {
 						          if (![[NSFileManager defaultManager] removeItemAtURL:localUrl error:&localError]) {
+									  [self trackError:creative errorCode:SKIVASTUndefinedErrorCode];
+									  [self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+										  err.type = SKIErrorCollectorTypeOther;
+										  err.place = @"processResponseData";
+										  err.desc = @"Filemanager error";
+										  err.underlyingError = error;
+									  }];
 							          callback([SKIAdRequestError errorInternalErrorWithUserInfo:@{NSUnderlyingErrorKey : localError}], creative);
 							          return;
 						          }
 					          }
 					          if (![[NSFileManager defaultManager] moveItemAtURL:location toURL:localUrl error:&localError]) {
+								  [self trackError:creative errorCode:SKIVASTUndefinedErrorCode];
+								  [self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+									  err.type = SKIErrorCollectorTypeOther;
+									  err.place = @"processResponseData";
+									  err.desc = @"Filemanager error";
+									  err.underlyingError = error;
+								  }];
 						          callback([SKIAdRequestError errorInternalErrorWithUserInfo:@{NSUnderlyingErrorKey : localError}], creative);
 						          return;
 					          }
@@ -726,6 +796,11 @@ NSString *SKIGenderToString(SKIGender gender) {
 	NSData *xmlData = [xmlString dataUsingEncoding:NSUTF8StringEncoding];
 	SKIVASTVAST *vast = [SKIVASTVAST VASTFromData:xmlData];
 	if (!vast) {
+		[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+			err.type = SKIErrorCollectorTypeVAST;
+			err.place = @"loadVastFromXmlString";
+			err.desc = @"Failed to parse xml string";
+		}];
 		callback(nil, [SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{
 																					NSLocalizedDescriptionKey : @"Video data is invalid."
 																					}]);
@@ -736,6 +811,12 @@ NSString *SKIGenderToString(SKIGender gender) {
 		[self loadVastFromUrlString:vast.ads.firstObject.wrapper.vASTAdTagURI.absoluteString
 						   callback:^(SKIVASTVAST *innerVast, SKIAdRequestError *error) {
 							   vast.ads.firstObject.wrapper.wrappedVast = innerVast;
+							   if (error) {
+								   NSError *sub = error.userInfo[NSUnderlyingErrorKey];
+								   if ([sub isKindOfClass:[NSError class]]) {
+									   [self trackErrorUrl:vast.error errorCode:SKIVASTGeneralWrapperErrorCode];
+								   }
+							   }
 							   callback(vast, error);
 						   }];
 	} else {
@@ -752,6 +833,14 @@ NSString *SKIGenderToString(SKIGender gender) {
 	
 	NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
 		if (error) {
+			[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+				err.type = SKIErrorCollectorTypeVAST;
+				err.place = @"loadVastFromUrlString";
+				err.underlyingError = error;
+				err.otherInfo = @{
+								  @"url": urlString
+								  };
+			}];
 			callback(nil, [SKIAdRequestError errorNetworkErrorWithUserInfo:@{
 																			 NSLocalizedDescriptionKey : @"Could not load video.",
 																			 NSUnderlyingErrorKey : error
@@ -761,6 +850,16 @@ NSString *SKIGenderToString(SKIGender gender) {
 		
 		NSHTTPURLResponse *httpReponse = (NSHTTPURLResponse *)response;
 		if (httpReponse.statusCode != 200 || data.length == 0) {
+			[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+				err.type = SKIErrorCollectorTypeHTTP;
+				err.place = @"loadVastFromUrlString";
+				err.underlyingError = error;
+				err.otherInfo = @{
+								  @"url": urlString,
+								  @"statusCode": @(httpReponse.statusCode),
+								  @"data": [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] ?: @""
+								  };
+			}];
 			callback(nil, [SKIAdRequestError errorNetworkErrorWithUserInfo:@{
 																			 NSLocalizedDescriptionKey : @"Could not load video."
 																			 }]);
@@ -769,6 +868,14 @@ NSString *SKIGenderToString(SKIGender gender) {
 		
 		SKIVASTVAST *vast = [SKIVASTVAST VASTFromData:data];
 		if (!vast) {
+			[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+				err.type = SKIErrorCollectorTypeVAST;
+				err.place = @"loadVastFromUrlString";
+				err.desc = @"Failed to parse wrapper xml string";
+				err.otherInfo = @{
+								  @"url": urlString
+								  };
+			}];
 			callback(nil, [SKIAdRequestError errorNetworkErrorWithUserInfo:@{
 																			 NSLocalizedDescriptionKey : @"Could not load video."
 																			 }]);
@@ -791,6 +898,14 @@ NSString *SKIGenderToString(SKIGender gender) {
 - (void)processVAST:(SKIVASTVAST *)vast callback:(void (^_Nonnull)(SKIVASTCompressedCreative *creative, SKIAdRequestError *error))callback {
 	SKIVASTAd *ad = vast.ads.firstObject;
 	if (!ad) {
+		[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+			err.type = SKIErrorCollectorTypeVAST;
+			err.place = @"processVAST";
+			err.desc = @"VAST does not contain ad.";
+			err.otherInfo = @{
+							  @"identifier": ad.identifier ?: @""
+							  };
+		}];
 		callback(nil, [SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{ NSLocalizedDescriptionKey : @"Response does not contain an ad." }]);
 		return;
 	}
@@ -833,6 +948,14 @@ NSString *SKIGenderToString(SKIGender gender) {
 	
 	if (!inLine) {
 		[self trackErrorUrls:errorTrackings errorCode:SKIVASTWrapperNoVastErrorCode];
+		[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+			err.type = SKIErrorCollectorTypeVAST;
+			err.place = @"processVAST";
+			err.desc = @"VAST wrapper does not contain inline ad.";
+			err.otherInfo = @{
+							  @"identifier": ad.identifier ?: @""
+							  };
+		}];
 		
 		callback(nil, [SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{ NSLocalizedDescriptionKey : @"Response does not contain an ad." }]);
 		return;
@@ -851,6 +974,14 @@ NSString *SKIGenderToString(SKIGender gender) {
 	NSArray *creatives = inLine.creatives.creatives;
 	if (!creatives) {
 		[self trackErrorUrls:errorTrackings errorCode:SKIVASTUndefinedErrorCode];
+		[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+			err.type = SKIErrorCollectorTypeVAST;
+			err.place = @"processVAST";
+			err.desc = @"VAST does not contain creatives.";
+			err.otherInfo = @{
+							  @"identifier": ad.identifier ?: @""
+							  };
+		}];
 		
 		callback(nil, [SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{ NSLocalizedDescriptionKey : @"Response does not contain an ad." }]);
 		return;
@@ -867,6 +998,14 @@ NSString *SKIGenderToString(SKIGender gender) {
 			SKIVASTMediaFile *bestMediaFile = [self mediaFileToFitScreen:creative.linear.mediaFiles.mediaFiles];
 			if (!bestMediaFile) {
 				[self trackErrorUrls:errorTrackings errorCode:SKIVASTMediaFileNotSupportedErrorCode];
+				[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+					err.type = SKIErrorCollectorTypeVAST;
+					err.place = @"processVAST";
+					err.desc = @"VAST does not contain playable media.";
+					err.otherInfo = @{
+									  @"identifier": ad.identifier ?: @""
+									  };
+				}];
 				callback(nil, [SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{
 																					   NSLocalizedDescriptionKey : @"Response does not contain an ad."
 																					   }]);
@@ -885,9 +1024,6 @@ NSString *SKIGenderToString(SKIGender gender) {
 			}
 			//TODO: add click trackings
 		}
-		//		else if ([creativeBase isKindOfClass:[SKIVASTCreativeWrapperChild class]]) {
-		//			SKIVASTCreativeWrapperChild *creative = (SKIVASTCreativeWrapperChild *)creativeBase;
-		//		}
 		else {
 			continue;
 		}
@@ -897,6 +1033,14 @@ NSString *SKIGenderToString(SKIGender gender) {
 		callback(compressedCreative, nil);
 	} else {
 		[self trackErrorUrls:errorTrackings errorCode:SKIVASTMediaFileNotSupportedErrorCode];
+		[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+			err.type = SKIErrorCollectorTypeVAST;
+			err.place = @"processVAST";
+			err.desc = @"VAST does not contain playable media after processing.";
+			err.otherInfo = @{
+							  @"identifier": ad.identifier ?: @""
+							  };
+		}];
 		callback(nil, [SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{
 																			   NSLocalizedDescriptionKey : @"Response does not contain any playable media."
 																			   }]);
@@ -1085,6 +1229,18 @@ NSString *SKIGenderToString(SKIGender gender) {
 	}
 	
 	return usable;
+}
+
+- (void)trackError:(SKIVASTCompressedCreative *)creative errorCode:(SKIVASTErrorCode)errorCode {
+	for (NSURL *url in creative.errorTrackings) {
+		NSURL *macrosed = [SKIVASTUrl urlFromUrlAfterReplacingMacros:url
+															 builder:^(SKIVASTUrlMacroValues *_Nonnull macroValues) {
+																 macroValues.errorCode = errorCode;
+															 }];
+		if (macrosed) {
+			[[SKIAdEventTracker defaultTracker] trackErrorRequestWithUrl:macrosed];
+		}
+	}
 }
 
 - (void)trackErrorUrl:(NSURL *)url errorCode:(SKIVASTErrorCode)errorCode {

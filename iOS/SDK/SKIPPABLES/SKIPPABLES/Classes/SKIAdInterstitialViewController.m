@@ -160,6 +160,7 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 							  }
 						  } timeout:^(SKIObserver *observer) {
 							  [observer remove];
+							  
 							  callback([SKIAdRequestError errorInternalErrorWithUserInfo:@{
 																						   NSLocalizedDescriptionKey : @"Video failed to prepare."
 																						   }], nil);
@@ -180,7 +181,7 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 								  [observer remove];
 								  
 								  callback([SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{
-																										 NSLocalizedDescriptionKey : @"Video data is invalid."
+																										 NSLocalizedDescriptionKey : @"Video data is invalid.",
 																										 }], nil);
 								  
 								  return;
@@ -189,6 +190,7 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 							  }
 						  } timeout:^(SKIObserver *observer) {
 							  [observer remove];
+							  
 							  callback([SKIAdRequestError errorInternalErrorWithUserInfo:@{
 																						   NSLocalizedDescriptionKey : @"Video failed to prepare."
 																						   }], nil);
@@ -206,6 +208,11 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 						 if (fail) {
 							 DLog(@"self.avPlayer error");
 							 [wSelf trackErrorUrls:errorTrackings errorCode:SKIVASTMediaFileDisplayErrorCode];
+							 [wSelf.ad.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+								 err.type = SKIErrorCollectorTypePlayer;
+								 err.place = @"prepareAdPlayerWithFail";
+								 err.underlyingError = wSelf.avPlayer.error;
+							 }];
 							 SKIAsyncOnMain(^{
 								 [wSelf closeInterstitial];
 							 });
@@ -511,6 +518,14 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 			                        if (note.object != playerItem) {
 				                        return;
 			                        }
+									id obj = note.userInfo[AVPlayerItemFailedToPlayToEndTimeErrorKey];
+									if ([obj isKindOfClass:[NSError class]]) {
+										[wSelf.ad.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+											err.type = SKIErrorCollectorTypePlayer;
+											err.place = @"AVPlayerItemFailedToPlayToEndTimeNotification";
+											err.underlyingError = (NSError *)obj;
+										}];
+									}
 									[wSelf reportPlayerErrorAndCLose];
 									DLog(@"AVPlayerItemFailedToPlayToEndTimeNotification: %@", note.userInfo);
 			                    }];

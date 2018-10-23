@@ -17,10 +17,13 @@
 
 #import "SKIAdInterstitialViewController.h"
 
+#import "SKIAdEventTracker.h"
+
 @interface SKIAdInterstitial () <SKIAdRequestDelegate, SKIAdInterstitialViewControllerDelegate, UIWebViewDelegate>
 
 @property (copy, nonatomic) SKIAdRequest *request;
 @property (strong, nonatomic) SKIAdRequestResponse *response;
+@property (strong, nonatomic) SKIErrorCollector *errorCollector;
 
 @end
 
@@ -115,6 +118,7 @@
 	}
 	
 	self.response = response;
+	self.errorCollector = request.errorCollector;
 	
 	_isLoading = NO;
 	_isReady = YES;
