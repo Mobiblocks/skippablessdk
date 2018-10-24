@@ -57,6 +57,12 @@ class SkiAdRequestResponse {
         return new SkiAdRequestResponse(SkiAdRequest.ERROR_RECEIVED_INVALID_RESPONSE, vastErrorCode);
     }
 
+    static SkiAdRequestResponse withVastError(@VastError.AdVastError int vastErrorCode, SkiVastCompressedInfo vast) {
+        SkiAdRequestResponse response = new SkiAdRequestResponse(SkiAdRequest.ERROR_RECEIVED_INVALID_RESPONSE, vastErrorCode);
+        response.setVastInfo(vast);
+        return response;
+    }
+
     private SkiAdRequestResponse() {
         this.errorCode = 0;
     }
@@ -113,8 +119,11 @@ class SkiAdRequestResponse {
         return adInfo;
     }
 
-    static SkiAdRequestResponse create(JSONObject object) {
+    static SkiAdRequestResponse create(SkiAdErrorCollector errorCollector, JSONObject object) {
         if (!object.isNull("data") || !object.isNull("Data")) {
+            
+            errorCollector.setSessionID(object.optString("SessionID"));
+            
             String data = object.optString("data", null);
             if (data == null) {
                 data = object.optString("Data", null);
@@ -125,6 +134,7 @@ class SkiAdRequestResponse {
                 }
 
                 SkiAdRequestResponse response = SkiAdRequestResponse.response();
+                response.adInfo.setSessionID(object.optString("SessionID"));
                 response.adInfo.setAdId(object.optString("AdId"));
                 response.setHtmlSnippet(data);
 
@@ -133,36 +143,87 @@ class SkiAdRequestResponse {
         }
 
         if (!object.isNull("content") || !object.isNull("Content")) {
+            errorCollector.setSessionID(object.optString("SessionID"));
+            
             String content = object.optString("content", null);
             if (content == null) {
                 content = object.optString("Content", null);
             }
+            
             if (content != null) {
                 if (content.isEmpty()) {
                     return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_NO_FILL);
                 }
 
+                SkiVastCompressedInfo compressedInfo = null;
                 try {
                     VAST vast = parseVast(content);
                     VAST.Ad ad = vast.getFirstAd();
                     if (ad == null) {
+                        if (vast.getError() != null) {
+                            Util.VastUrlMacros builder = Util.VastUrlMacros.builder()
+                                    .setErrorCode(VastError.VAST_WRAPPER_NO_VAST_ERROR_CODE);
+                            SkiEventTracker.getInstance()
+                                    .trackEventRequest(builder.build(vast.getError()));
+                        }
+                        errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                            @Override
+                            public void build(SkiAdErrorCollector.Builder err) {
+                                err.type = SkiAdErrorCollector.TYPE_VAST;
+                                err.place = "SkiAdRequestResponse.create";
+                                err.desc = "VAST does not contain ad.";
+                            }
+                        });
                         return SkiAdRequestResponse.withVastError(VastError.VAST_UNDEFINED_ERROR_CODE);
                     }
 
-                    SkiVastCompressedInfo compressedInfo = extractInfo(vast);
+                    compressedInfo = extractInfo(vast);
 
                     SkiAdRequestResponse response = new SkiAdRequestResponse();
                     response.setVastInfo(compressedInfo);
+                    response.adInfo.setSessionID(object.optString("SessionID"));
                     response.adInfo.setAdId(ad.getId());
 
                     return response;
-                } catch (VastException e) {
-                    return SkiAdRequestResponse.withVastError(e.getErrorCode());
-                } catch (ParserConfigurationException e) {
-                    return SkiAdRequestResponse.withVastError(VastError.VAST_XMLPARSE_ERROR_CODE);
-                } catch (SAXException e) {
-                    return SkiAdRequestResponse.withVastError(VastError.VAST_XMLPARSE_ERROR_CODE);
-                } catch (IOException e) {
+                } catch (final VastException e) {
+                    errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                        @Override
+                        public void build(SkiAdErrorCollector.Builder err) {
+                            err.type = SkiAdErrorCollector.TYPE_VAST;
+                            err.place = "SkiAdRequestResponse.create";
+                            err.underlyingException = e;
+                        }
+                    });
+                    return SkiAdRequestResponse.withVastError(e.getErrorCode(), compressedInfo);
+                } catch (final ParserConfigurationException e) {
+                    errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                        @Override
+                        public void build(SkiAdErrorCollector.Builder err) {
+                            err.type = SkiAdErrorCollector.TYPE_VAST;
+                            err.place = "SkiAdRequestResponse.create";
+                            err.underlyingException = e;
+                        }
+                    });
+                    return SkiAdRequestResponse.withVastError(VastError.VAST_XMLPARSE_ERROR_CODE, compressedInfo);
+                } catch (final SAXException e) {
+                    errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                        @Override
+                        public void build(SkiAdErrorCollector.Builder err) {
+                            err.type = SkiAdErrorCollector.TYPE_VAST;
+                            err.place = "SkiAdRequestResponse.create";
+                            err.underlyingException = e;
+                        }
+                    });
+                    return SkiAdRequestResponse.withVastError(VastError.VAST_XMLPARSE_ERROR_CODE, compressedInfo);
+                } catch (final IOException e) {
+                    errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                        @Override
+                        public void build(SkiAdErrorCollector.Builder err) {
+                            err.type = SkiAdErrorCollector.TYPE_OTHER;
+                            err.place = "SkiAdRequestResponse.create";
+                            err.underlyingException = e;
+                        }
+                    });
                     return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_INTERNAL_ERROR);
                 }
             }

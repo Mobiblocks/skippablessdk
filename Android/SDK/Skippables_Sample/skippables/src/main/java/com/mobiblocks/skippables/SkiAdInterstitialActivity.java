@@ -43,6 +43,8 @@ public class SkiAdInterstitialActivity extends Activity {
     private static final String EXTRA_UID = "EXTRA_UID";
     private static final String EXTRA_AD_INFO = "EXTRA_AD_INFO";
     private static final String EXTRA_VAST_INFO = "EXTRA_VAST_INFO";
+    
+    private SkiAdErrorCollector errorCollector = new SkiAdErrorCollector();
 
     private SkiVastCompressedInfo mVastInfo;
     private TextView mSkipView;
@@ -103,8 +105,21 @@ public class SkiAdInterstitialActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        final SkiAdInfo adInfo = getAdInfo(getIntent());
+        if (adInfo != null) {
+            errorCollector.setSessionID(adInfo.getSessionID());
+        }
+
         mVastInfo = getVastInfo(getIntent());
         if (mVastInfo == null) {
+            errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                @Override
+                public void build(SkiAdErrorCollector.Builder err) {
+                    err.type = SkiAdErrorCollector.TYPE_PLAYER;
+                    err.place = "SkiAdInterstitialActivity.onCreate";
+                    err.desc = "Activity created with invalid vast info.";
+                }
+            });
             finishInterstitial(false);
             return;
         }
@@ -188,9 +203,29 @@ public class SkiAdInterstitialActivity extends Activity {
                 sendCompleteEvents();
             }
         });
+        
+        final SkiVastCompressedInfo.MediaFile mediaFile = mVastInfo.findBestMediaFile(this);
         mVideoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
-            public boolean onError(MediaPlayer mp, int what, int extra) {
+            public boolean onError(MediaPlayer mp, final int what, final int extra) {
+                errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                    @Override
+                    public void build(SkiAdErrorCollector.Builder err) {
+                        err.type = SkiAdErrorCollector.TYPE_PLAYER;
+                        err.place = "mVideoView.setOnErrorListener";
+                        err.otherInfo = Util.<String, Object>hm(
+                                "what", what, 
+                                "extra", extra
+                        );
+                        
+                        if (mediaFile != null) {
+                            err.otherInfo.put("mediaUrl", mediaFile.getValue());
+                        }
+                        if (adInfo != null) {
+                            err.otherInfo.put("identifier", adInfo.getAdId());
+                        }
+                    }
+                });
                 sendErrorEvents();
                 finishInterstitial(false);
                 return true;
@@ -201,7 +236,6 @@ public class SkiAdInterstitialActivity extends Activity {
         if (local != null) {
             mVideoView.setVideoPath(local);
         } else {
-            SkiVastCompressedInfo.MediaFile mediaFile = mVastInfo.findBestMediaFile(this);
             if (mediaFile != null) {
                 mVideoView.setVideoURI(Uri.parse(mediaFile.getValue().toString()));
             }
@@ -335,8 +369,7 @@ public class SkiAdInterstitialActivity extends Activity {
 
             mRelativeLayout.addView(mMediaControl, mediaControlLayoutParams);
         }
-
-        final SkiAdInfo adInfo = getAdInfo(getIntent());
+        
         if (adInfo != null) {
             mReportView = new TextView(this);
             mReportView.setVisibility(View.GONE);

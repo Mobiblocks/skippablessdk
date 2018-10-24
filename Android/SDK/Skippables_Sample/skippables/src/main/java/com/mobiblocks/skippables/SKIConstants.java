@@ -1,5 +1,10 @@
 package com.mobiblocks.skippables;
 
+import android.net.Uri;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+
 /**
  * Created by daniel on 12/13/17.
  * <p>
@@ -16,6 +21,9 @@ final class SKIConstants {
     private static final String INSTALL_URL = BASE_URL + "/x/InstallServer/Track";
     private static final String INFRINGEMENT_REPORT_URL = BASE_URL + "/x/api/Feedback/InfringementReport";
 
+    private static final String ERROR_REPORT_URL = BASE_URL + "/x/error";
+    private static final String SDK_ERROR_REPORT_URL = BASE_URL + "/x/error/sdk";
+    
     static String GetAdApiUrl(@SkiAdRequest.AdType int adType) {
         switch (adType) {
             case SkiAdRequest.AD_TYPE_BANNER_IMAGE:
@@ -28,6 +36,28 @@ final class SKIConstants {
             default:
                 throw new Error("Not implemented");
         }
+    }
+    
+    static URL GetErrorReportURL(String sessionID) {
+        if (sessionID == null) {
+            try {
+                return new URL(ERROR_REPORT_URL);
+            } catch (MalformedURLException e) {
+                // impossible
+            }
+        }
+
+        try {
+            Uri uri = Uri.parse(SDK_ERROR_REPORT_URL);
+            Uri.Builder builder = uri.buildUpon();
+            builder.appendQueryParameter("sessionID", sessionID);
+            
+            return new URL(builder.toString());
+        } catch (MalformedURLException e) {
+            // impossible
+        }
+        
+        return null;
     }
 
     static String GetInstallUrl() {

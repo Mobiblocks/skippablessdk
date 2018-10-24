@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -17,7 +16,6 @@ import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.telephony.TelephonyManager;
-import android.util.DisplayMetrics;
 
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
@@ -110,6 +108,8 @@ public class SkiAdRequest {
     private boolean adSizeIsSet;
     private SkiAdSize adSize = SkiAdSize.BANNER;
     private String adUnitId;
+    
+    private SkiAdErrorCollector errorCollector = new SkiAdErrorCollector();
 
     SkiAdRequest(Builder builder) {
         test = builder.mTest;
@@ -132,7 +132,7 @@ public class SkiAdRequest {
     void load(@NonNull final Context context, @NonNull final SkiAdRequestListener listener) {
         this.listener = listener;
 
-        new SkiAdRequestTask(new SkiAdRequestTask.Listener() {
+        new SkiAdRequestTask(this.errorCollector, new SkiAdRequestTask.Listener() {
             @Override
             public JSONObject onGetRequestInfo(SkiAdRequest adRequest) {
                 SkiSize screenSize = Util.getScreenSize(context);

@@ -13,6 +13,7 @@ class SkiAdInfo implements Parcelable {
     private String adId;
     private String adUnitId;
     private String deviceInfoJsonString;
+    private String sessionID;
     
     SkiAdInfo() {
         
@@ -23,6 +24,7 @@ class SkiAdInfo implements Parcelable {
         adId = in.readString();
         adUnitId = in.readString();
         deviceInfoJsonString = in.readString();
+        sessionID = in.readString();
     }
 
     @Override
@@ -30,6 +32,7 @@ class SkiAdInfo implements Parcelable {
         dest.writeString(adId);
         dest.writeString(adUnitId);
         dest.writeString(deviceInfoJsonString);
+        dest.writeString(sessionID);
     }
 
     @Override
@@ -77,5 +80,13 @@ class SkiAdInfo implements Parcelable {
         this.deviceInfoJsonString = deviceInfoJsonString;
 
         return this;
+    }
+
+    public String getSessionID() {
+        return sessionID;
+    }
+
+    public void setSessionID(String sessionID) {
+        this.sessionID = sessionID;
     }
 }

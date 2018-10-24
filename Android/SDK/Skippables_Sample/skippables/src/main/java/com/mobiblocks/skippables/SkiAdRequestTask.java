@@ -4,6 +4,7 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
 import com.mobiblocks.skippables.vast.VastError;
+import com.mobiblocks.skippables.vast.VastException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,6 +25,8 @@ import java.util.UUID;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import static com.mobiblocks.skippables.vast.VastError.VAST_MEDIA_FILE_NOT_FOUND_ERROR_CODE;
+
 /**
  * Created by daniel on 12/13/17.
  * <p>
@@ -33,8 +36,10 @@ import javax.net.ssl.HttpsURLConnection;
 class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestResponse> {
 
     private final Listener listener;
+    private final SkiAdErrorCollector errorCollector;
 
-    SkiAdRequestTask(@NonNull Listener listener) {
+    SkiAdRequestTask(@NonNull SkiAdErrorCollector errorCollector, @NonNull Listener listener) {
+        this.errorCollector = errorCollector;
         this.listener = listener;
     }
 
@@ -44,10 +49,18 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
 
         JSONObject requestJson = listener.onGetRequestInfo(adRequest);
         if (requestJson == null) {
+            errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                @Override
+                public void build(SkiAdErrorCollector.Builder err) {
+                    err.type = SkiAdErrorCollector.TYPE_OTHER;
+                    err.place = "SkiAdRequestTask.doInBackground";
+                    err.desc = "Failed to serialise request json";
+                }
+            });
             return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_INTERNAL_ERROR);
         }
 
-        String urlString = SKIConstants.GetAdApiUrl(adRequest.getAdType());
+        final String urlString = SKIConstants.GetAdApiUrl(adRequest.getAdType());
         OutputStreamWriter out = null;
         HttpURLConnection urlConnection = null;
         try {
@@ -75,11 +88,12 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
             out = null;
 
             // Check the connection status.
-            int statusCode = urlConnection.getResponseCode();
+            final int statusCode = urlConnection.getResponseCode();
 
             // Connection success. Proceed to fetch the response.
             if (statusCode == 200) {
                 BufferedReader buff = null;
+                SkiVastCompressedInfo vastInfo = null;
                 try {
                     InputStream it = new BufferedInputStream(urlConnection.getInputStream());
                     InputStreamReader read = new InputStreamReader(it);
@@ -90,18 +104,32 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
                         dta.append(chunks);
                     }
 
-                    SkiAdRequestResponse response = processResponseJson(new JSONObject(dta.toString()));
-                    if (response.getVastInfo() != null) {
+                    final SkiAdRequestResponse response = processResponseJson(new JSONObject(dta.toString()));
+                    vastInfo = response.getVastInfo();
+                    if (vastInfo != null) {
                         SkiVastCompressedInfo.MediaFile mediaFile = listener.onGetBestMediaFile(response.getVastInfo());
                         if (mediaFile == null) {
-                            return SkiAdRequestResponse.withVastError(VastError.VAST_MEDIA_FILE_NOT_SUPPORTED_ERROR_CODE);
+                            errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                                @Override
+                                public void build(SkiAdErrorCollector.Builder err) {
+                                    err.type = SkiAdErrorCollector.TYPE_VAST;
+                                    err.place = "SkiAdRequestTask.doInBackground";
+                                    err.desc = "VAST does not contain playable media.";
+                                    err.otherInfo = Util.<String, Object>hm(
+                                            "identifier",
+                                            response.getAdInfo().getAdId()
+                                    );
+                                }
+                            });
+                            return SkiAdRequestResponse.withVastError(VastError.VAST_MEDIA_FILE_NOT_SUPPORTED_ERROR_CODE, vastInfo);
                         }
 
                         String tempDir = listener.onGetTempDirectory() + "/" + UUID.randomUUID().toString() + ".mp4";
                         response.getVastInfo().setLocalMediaFile(tempDir);
-                        downloadMediaFile(mediaFile.getValue(), tempDir);
+                        URL mediaUrl = mediaFile.getValue();
+                        downloadMediaFile(mediaUrl, tempDir);
                     }
-                    
+
                     response.getAdInfo().setAdUnitId(adRequest.getAdUnitId());
                     JSONObject deviceInfo = requestJson.optJSONObject("device");
                     if (deviceInfo != null) {
@@ -109,21 +137,78 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
                     }
 
                     return response;
+                } catch (VastException e) {
+                    return SkiAdRequestResponse.withVastError(e.getErrorCode(), vastInfo);
                 } finally {
                     if (buff != null) {
                         buff.close();
                     }
                 }
             } else {
+                errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                    @Override
+                    public void build(SkiAdErrorCollector.Builder err) {
+                        err.type = SkiAdErrorCollector.TYPE_HTTP;
+                        err.place = "SkiAdRequestTask.doInBackground";
+                        err.otherInfo = Util.<String, Object>hm(
+                                "url", urlString,
+                                "statusCode", "" + statusCode
+                        );
+                    }
+                });
                 return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_SERVER_ERROR);
             }
-        } catch (ProtocolException e) {
+        } catch (final ProtocolException e) {
+            errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                @Override
+                public void build(SkiAdErrorCollector.Builder err) {
+                    err.type = SkiAdErrorCollector.TYPE_HTTP;
+                    err.place = "SkiAdRequestTask.doInBackground";
+                    err.otherInfo = Util.<String, Object>hm(
+                            "url", urlString
+                    );
+                    err.underlyingException = e;
+                }
+            });
             return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_NETWORK_ERROR);
-        } catch (MalformedURLException e) {
+        } catch (final MalformedURLException e) {
+            errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                @Override
+                public void build(SkiAdErrorCollector.Builder err) {
+                    err.type = SkiAdErrorCollector.TYPE_HTTP;
+                    err.place = "SkiAdRequestTask.doInBackground";
+                    err.otherInfo = Util.<String, Object>hm(
+                            "url", urlString
+                    );
+                    err.underlyingException = e;
+                }
+            });
             return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_INTERNAL_ERROR);
-        } catch (IOException e) {
+        } catch (final IOException e) {
+            errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                @Override
+                public void build(SkiAdErrorCollector.Builder err) {
+                    err.type = SkiAdErrorCollector.TYPE_HTTP;
+                    err.place = "SkiAdRequestTask.doInBackground";
+                    err.otherInfo = Util.<String, Object>hm(
+                            "url", urlString
+                    );
+                    err.underlyingException = e;
+                }
+            });
             return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_NETWORK_ERROR);
-        } catch (JSONException e) {
+        } catch (final JSONException e) {
+            errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                @Override
+                public void build(SkiAdErrorCollector.Builder err) {
+                    err.type = SkiAdErrorCollector.TYPE_HTTP;
+                    err.place = "SkiAdRequestTask.doInBackground";
+                    err.otherInfo = Util.<String, Object>hm(
+                            "url", urlString
+                    );
+                    err.underlyingException = e;
+                }
+            });
             return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_RECEIVED_INVALID_RESPONSE);
         } finally {
             if (out != null) {
@@ -139,7 +224,7 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
         }
     }
 
-    private void downloadMediaFile(URL url, String dest) throws IOException {
+    private void downloadMediaFile(URL url, String dest) throws IOException, VastException {
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         urlConnection.setConnectTimeout(15 * 1000);
         urlConnection.setReadTimeout(15 * 1000);
@@ -166,11 +251,13 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
             }
 
             fileOutputStream.close();
+        } else {
+            throw new VastException(VAST_MEDIA_FILE_NOT_FOUND_ERROR_CODE);
         }
     }
 
     private SkiAdRequestResponse processResponseJson(JSONObject response) {
-        return SkiAdRequestResponse.create(response);
+        return SkiAdRequestResponse.create(errorCollector, response);
     }
 
     @Override

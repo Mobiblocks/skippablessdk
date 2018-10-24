@@ -32,6 +32,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -108,18 +109,17 @@ class Util {
             for (String qName :
                     queryParameterNames) {
                 List<String> qValues = uri.getQueryParameters(qName);
-                for (String val :
-                        qValues) {
+                for (String val : qValues) {
                     String macros = null;
                     if (val.length() > 2) {
                         if (val.startsWith("[") && val.endsWith("]")) {
                             macros = val.substring(1, val.length() - 1);
                         } else if (val.startsWith("{") && val.endsWith("}")) {
                             macros = val.substring(1, val.length() - 1);
-                        }
-                    } else if (val.length() > 4) {
-                        if (val.startsWith("%%") && val.endsWith("%%")) {
-                            macros = val.substring(2, val.length() - 3);
+                        } else if (val.length() > 4) {
+                            if (val.startsWith("%%") && val.endsWith("%%")) {
+                                macros = val.substring(2, val.length() - 3);
+                            }
                         }
                     }
 
@@ -127,7 +127,7 @@ class Util {
                         nvps.add(NVP.p(qName, val));
                     } else {
                         if (macros.equalsIgnoreCase("ERRORCODE")) {
-                            nvps.add(NVP.p(qName, errorCode == VAST_NO_ERROR_CODE ? String.valueOf(errorCode) : ""));
+                            nvps.add(NVP.p(qName, errorCode == VAST_NO_ERROR_CODE ? "" : String.valueOf(errorCode)));
                         } else if (macros.equalsIgnoreCase("CONTENTPLAYHEAD")) {
                             if (contentPlayAhead > -1) {
                                 int hours = contentPlayAhead / 3600;
@@ -158,8 +158,7 @@ class Util {
 
             Uri.Builder builder = uri.buildUpon();
             builder.clearQuery();
-            for (NVP nvp :
-                    nvps) {
+            for (NVP nvp : nvps) {
                 builder.appendQueryParameter(nvp.name, nvp.value);
             }
             try {
@@ -327,7 +326,6 @@ class Util {
     }
 
     private static SkiSize screenSize;
-
     public static SkiSize getScreenSize(Context context) {
         if (screenSize == null) {
             DisplayMetrics metrics = context.getResources().getDisplayMetrics();
@@ -341,5 +339,45 @@ class Util {
 
         }
         return screenSize;
+    }
+
+    static <K, V> HashMap<K, V> hm(K k, V v) {
+        HashMap<K, V> hm = new HashMap<>();
+        hm.put(k, v);
+        return hm;
+    }
+
+    static <K, V> HashMap<K, V> hm(K k1, V v1, K k2, V v2) {
+        HashMap<K, V> hm = new HashMap<>();
+        hm.put(k1, v1);
+        hm.put(k2, v2);
+        return hm;
+    }
+
+    static <K, V> HashMap<K, V> hm(K k1, V v1, K k2, V v2, K k3, V v3) {
+        HashMap<K, V> hm = new HashMap<>();
+        hm.put(k1, v1);
+        hm.put(k2, v2);
+        hm.put(k3, v3);
+        return hm;
+    }
+
+    static <K, V> HashMap<K, V> hm(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4) {
+        HashMap<K, V> hm = new HashMap<>();
+        hm.put(k1, v1);
+        hm.put(k2, v2);
+        hm.put(k3, v3);
+        hm.put(k4, v4);
+        return hm;
+    }
+
+    static <K, V> HashMap<K, V> hm(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5) {
+        HashMap<K, V> hm = new HashMap<>();
+        hm.put(k1, v1);
+        hm.put(k2, v2);
+        hm.put(k3, v3);
+        hm.put(k4, v4);
+        hm.put(k5, v5);
+        return hm;
     }
 }

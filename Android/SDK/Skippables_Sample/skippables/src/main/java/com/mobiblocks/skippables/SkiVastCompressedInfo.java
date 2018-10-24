@@ -219,7 +219,10 @@ class SkiVastCompressedInfo implements Parcelable {
 
     private ArrayList<MediaFile> usableMediaFilesSortedByResolution() {
         ArrayList<MediaFile> usable = new ArrayList<>();
-
+        if (mediaFiles == null) {
+            return usable;
+        }
+        
         for (MediaFile media :
                 mediaFiles) {
             if ("video/mp4".equalsIgnoreCase(media.type) || "video/3gpp".equalsIgnoreCase(media.type)) {
