@@ -30,7 +30,7 @@ typedef enum : NSInteger {
 @interface SKIErrorCollectorBuilder : NSObject
 
 @property (assign, nonatomic) SKIErrorCollectorType type;
-@property (copy, nonatomic) NSString *place;
+@property (copy, nonatomic, nonnull) NSString *place;
 @property (copy, nonatomic) NSString *desc;
 @property (strong, nonatomic) NSError *underlyingError;
 @property (strong, nonatomic) NSDictionary *otherInfo;
@@ -45,7 +45,6 @@ typedef enum : NSInteger {
 - (void)collect:(void (^)(SKIErrorCollectorBuilder *err))block;
 
 @property (copy, nonatomic) NSString *sessionID;
-@property (assign, nonatomic, readonly) NSSet *reportURLS;
 
 @end
 

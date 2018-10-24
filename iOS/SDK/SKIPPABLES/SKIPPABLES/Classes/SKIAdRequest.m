@@ -690,6 +690,9 @@ NSString *SKIGenderToString(SKIGender gender) {
 									  } else if (error.code == NSURLErrorCannotFindHost) {
 										  [self trackError:creative errorCode:SKIVASTMediaFileNotFoundErrorCode];
 									  }
+//									  else {
+//										  [self trackError:creative errorCode:SKIVASTMediaFileNotFoundErrorCode]
+//									  }
 								  }
 								  [self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
 									  err.type = SKIErrorCollectorTypeHTTP;
@@ -898,13 +901,11 @@ NSString *SKIGenderToString(SKIGender gender) {
 - (void)processVAST:(SKIVASTVAST *)vast callback:(void (^_Nonnull)(SKIVASTCompressedCreative *creative, SKIAdRequestError *error))callback {
 	SKIVASTAd *ad = vast.ads.firstObject;
 	if (!ad) {
+		[self trackErrorUrl:vast.error errorCode:SKIVASTWrapperNoVastErrorCode];
 		[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
 			err.type = SKIErrorCollectorTypeVAST;
 			err.place = @"processVAST";
 			err.desc = @"VAST does not contain ad.";
-			err.otherInfo = @{
-							  @"identifier": ad.identifier ?: @""
-							  };
 		}];
 		callback(nil, [SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{ NSLocalizedDescriptionKey : @"Response does not contain an ad." }]);
 		return;

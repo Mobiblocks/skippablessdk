@@ -342,7 +342,7 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 		
 		NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
 		if (httpResponse.statusCode != 200) {
-			DLog(@"Event: %@ failed with status code: %i", identifier, (int)httpResponse.statusCode);
+			DLog(@"Event: %@ failed with status code: %i, %@", identifier, (int)httpResponse.statusCode, httpResponse.URL.absoluteString);
 			if (httpResponse.statusCode != 404 ) {
 				if (callback != nil) {
 					callback(NO);
@@ -416,7 +416,7 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 	NSURL *url = nil;
 	if (self.sessionID) {
 		NSURLComponents *components = [NSURLComponents componentsWithString:SKIPPABLES_ERROR_REPORT_URL];
-		NSMutableArray<NSURLQueryItem *> *query = components.queryItems.mutableCopy;
+		NSMutableArray<NSURLQueryItem *> *query = components.queryItems.mutableCopy ?: [NSMutableArray array];
 		[query addObject:[NSURLQueryItem queryItemWithName:@"sessionID" value:self.sessionID]];
 		components.queryItems = query;
 		url = components.URL;
@@ -435,6 +435,41 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 @end
 
 @implementation SKIErrorCollectorBuilder
+
+NSDictionary *replaceNonJSONDictionary(NSDictionary *other) {
+	NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+	for (NSString *key in other) {
+		id value = other[key];
+		if ([value isKindOfClass:[NSString class]] ||
+			[value isKindOfClass:[NSNumber class]] ||
+			[value isKindOfClass:[NSNull class]]) {
+			dict[key] = value;
+		} else if ([value isKindOfClass:[NSDictionary class]]) {
+			dict[key] = replaceNonJSONDictionary(value);
+		} else if ([value isKindOfClass:[NSDictionary class]]) {
+			dict[key] = replaceNonJSONArray(value);
+		}
+	}
+	
+	return dict;
+}
+
+NSArray *replaceNonJSONArray(NSArray *other) {
+	NSMutableArray *arr = [NSMutableArray array];
+	for (id value in other) {
+		if ([value isKindOfClass:[NSString class]] ||
+			[value isKindOfClass:[NSNumber class]] ||
+			[value isKindOfClass:[NSNull class]]) {
+			[arr addObject:value];
+		} else if ([value isKindOfClass:[NSDictionary class]]) {
+			[arr addObject:replaceNonJSONDictionary(value)];
+		} else if ([value isKindOfClass:[NSDictionary class]]) {
+			[arr addObject:replaceNonJSONArray(value)];
+		}
+	}
+	
+	return arr;
+}
 
 - (NSString *)jsonStringValue {
 	NSData *data = self.jsonDataValue;
@@ -460,7 +495,7 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 									 @"domain": _underlyingError.domain,
 									 @"code": @(_underlyingError.code),
 									 @"description": _underlyingError.localizedDescription,
-									 @"userInfo": _underlyingError.userInfo
+									 @"userInfo": replaceNonJSONDictionary(_underlyingError.userInfo)
 									 };
 	}
 	if (_otherInfo.count > 0) {
