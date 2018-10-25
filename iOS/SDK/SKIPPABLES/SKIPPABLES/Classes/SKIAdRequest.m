@@ -22,6 +22,7 @@
 #import "SKIAdEventTracker.h"
 
 #import "SKIConstants.h"
+#import "SKINetworking.h"
 #import "SKIGeo.h"
 #import "SKIAsync.h"
 #import "SKIAdSize.h"
@@ -552,7 +553,7 @@ NSString *SKIGenderToString(SKIGender gender) {
 	request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
 	[request addValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
 	
-	NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+	[[[SKINetworking dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
 		DLog(@"resp: %@, err: %@", response, error);
 		DLog(@"data: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
 		
@@ -639,8 +640,7 @@ NSString *SKIGenderToString(SKIGender gender) {
 		}
 		
 		[self processResponseData:responseData deviceInfo:dictionary];
-	}];
-	[task resume];
+	}] retry:1] resume];
 }
 
 - (void)processResponseData:(NSDictionary *)responseData deviceInfo:(NSDictionary *)deviceInfo {
@@ -679,8 +679,8 @@ NSString *SKIGenderToString(SKIGender gender) {
 					          }];
 				},
 				^(SKIVASTCompressedCreative *_Nullable creative, SKIAsyncWaterfallCallback callback) {
-				    NSURL *mediaUrl = creative.mediaFile.value;
-				    NSURLSessionDownloadTask *task = [[NSURLSession sharedSession]
+					NSURL *mediaUrl = creative.mediaFile.value;
+				    [[[SKINetworking
 				        downloadTaskWithURL:mediaUrl
 				          completionHandler:^(NSURL *_Nullable location, NSURLResponse *_Nullable response, NSError *_Nullable error) {
 					          if (error) {
@@ -741,7 +741,7 @@ NSString *SKIGenderToString(SKIGender gender) {
 										  err.type = SKIErrorCollectorTypeOther;
 										  err.place = @"processResponseData";
 										  err.desc = @"Filemanager error";
-										  err.underlyingError = error;
+										  err.underlyingError = localError;
 									  }];
 							          callback([SKIAdRequestError errorInternalErrorWithUserInfo:@{NSUnderlyingErrorKey : localError}], creative);
 							          return;
@@ -753,7 +753,7 @@ NSString *SKIGenderToString(SKIGender gender) {
 									  err.type = SKIErrorCollectorTypeOther;
 									  err.place = @"processResponseData";
 									  err.desc = @"Filemanager error";
-									  err.underlyingError = error;
+									  err.underlyingError = localError;
 								  }];
 						          callback([SKIAdRequestError errorInternalErrorWithUserInfo:@{NSUnderlyingErrorKey : localError}], creative);
 						          return;
@@ -764,8 +764,7 @@ NSString *SKIGenderToString(SKIGender gender) {
 					          creative.localMediaUrl = localUrl;
 
 					          callback(nil, creative);
-					      }];
-				    [task resume];
+					      }] retry:1] resume];
 				}
 			] completion:^(NSError *_Nullable error, SKIVASTCompressedCreative *creative) {
 				  requestResponse.error = (SKIAdRequestError *)error;
@@ -834,7 +833,7 @@ NSString *SKIGenderToString(SKIGender gender) {
 	request.timeoutInterval = 15;
 	request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
 	
-	NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+	[[[SKINetworking dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
 		if (error) {
 			[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
 				err.type = SKIErrorCollectorTypeVAST;
@@ -894,8 +893,7 @@ NSString *SKIGenderToString(SKIGender gender) {
 		} else {
 			callback(vast, nil);
 		}
-	}];
-	[task resume];
+	}] retry:1] resume];
 }
 
 - (void)processVAST:(SKIVASTVAST *)vast callback:(void (^_Nonnull)(SKIVASTCompressedCreative *creative, SKIAdRequestError *error))callback {
@@ -921,17 +919,17 @@ NSString *SKIGenderToString(SKIGender gender) {
 	SKIVASTInline *inLine = ad.inLine;
 	if (!inLine) {
 		SKIVASTWrapper *wrapper = ad.wrapper;
-		if (wrapper.error) {
-			[errorTrackings addObject:wrapper.error];
-		}
-		
-		for (SKIVASTImpression *impression in wrapper.impressions) {
-			if (impression.value) {
-				[additionalImpressionUrls addObject:impression.value];
+		while (wrapper != nil) {
+			if (wrapper.error) {
+				[errorTrackings addObject:wrapper.error];
 			}
-		}
-		
-		for (NSInteger i = 0; i < 20; i++) {
+			
+			for (SKIVASTImpression *impression in wrapper.impressions) {
+				if (impression.value) {
+					[additionalImpressionUrls addObject:impression.value];
+				}
+			}
+			
 			SKIVASTAd *wrappedAd = [[[wrapper wrappedVast] ads] firstObject];
 			NSArray *trackings = wrapper.creatives.creatives.firstObject.linear.trackingEvents.trackings;
 			if (trackings.count > 0) {
