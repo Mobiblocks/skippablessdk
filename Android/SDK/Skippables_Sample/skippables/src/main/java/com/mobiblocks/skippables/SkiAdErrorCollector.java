@@ -18,10 +18,10 @@ import java.util.HashMap;
  * Copyright Mobiblocks 2018. All rights reserved.
  */
 class SkiAdErrorCollector {
-    public static final int TYPE_HTTP = 0;
-    public static final int TYPE_VAST = 1;
-    public static final int TYPE_PLAYER = 2;
-    public static final int TYPE_OTHER = 3;
+    static final int TYPE_HTTP = 0;
+    static final int TYPE_VAST = 1;
+    static final int TYPE_PLAYER = 2;
+    static final int TYPE_OTHER = 3;
     @SuppressWarnings("WeakerAccess")
     @IntDef({TYPE_HTTP,
             TYPE_VAST,
@@ -30,7 +30,7 @@ class SkiAdErrorCollector {
     @Retention(RetentionPolicy.SOURCE)
     public @interface ErrorType { }
     
-    class Builder {
+    static class Builder {
         @ErrorType int type;
         String place;
         String desc;
@@ -71,6 +71,13 @@ class SkiAdErrorCollector {
             
             return null;
         }
+        
+        static JSONObject buildJSONObject(ErrorCollector collector) {
+            Builder builder = new Builder();
+            collector.build(builder);
+            
+            return builder.toJSONObject();
+        }
     }
     
     interface ErrorCollector {
@@ -79,13 +86,14 @@ class SkiAdErrorCollector {
     
     private String mSessionID;
 
+    @SuppressWarnings("unused")
     String getSessionID() {
         return mSessionID;
     }
     
     private URL reportURL;
 
-    public SkiAdErrorCollector() {
+    SkiAdErrorCollector() {
         reportURL = SKIConstants.GetErrorReportURL(null);
     }
 
@@ -102,9 +110,16 @@ class SkiAdErrorCollector {
         Builder builder = new Builder();
         collector.build(builder);
 
-        JSONObject object = builder.toJSONObject();
+        final JSONObject object = builder.toJSONObject();
         if (object != null) {
-            SkiEventTracker.getInstance().trackEventRequest(reportURL, object);
+            SkiEventTracker.getInstance().trackEvent(new SkiEventTracker.EventBuilder() {
+                @Override
+                public void build(SkiEventTracker.Builder ev) {
+                    ev.url = reportURL;
+                    ev.data = object;
+                    ev.sessionID = mSessionID;
+                }
+            });
         }
     }
 }

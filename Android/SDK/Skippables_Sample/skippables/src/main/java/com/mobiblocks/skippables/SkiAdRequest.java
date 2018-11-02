@@ -198,7 +198,9 @@ public class SkiAdRequest {
                     appObject.put("bundle", context.getPackageName());
                     PackageInfo info = packageManager.getPackageInfo(context.getPackageName(), 0);
                     appObject.put("ver", info.versionName);
-
+                    
+                    appObject.put("requireSecure", false);
+                    
                     requestObject.put("app", appObject);
 
                     JSONObject deviceObject = new JSONObject();

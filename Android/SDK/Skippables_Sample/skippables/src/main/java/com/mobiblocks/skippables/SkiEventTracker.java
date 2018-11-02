@@ -16,10 +16,14 @@ import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
@@ -29,9 +33,12 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
+
+import static com.mobiblocks.skippables.SkiAdErrorCollector.TYPE_HTTP;
 
 /**
  * Created by daniel on 12/21/17.
@@ -42,6 +49,7 @@ import java.util.UUID;
 class SkiEventTracker {
     @SuppressWarnings("unused")
     private static final Date NO_EXPIRE = new Date(Long.MAX_VALUE);
+    private static final Date DEFAULT_EXPIRE = new Date(System.currentTimeMillis() + 86400 * 1000);
     private static SkiEventTracker instance = null;
     private final File eventFile;
     private final File installFile;
@@ -51,6 +59,18 @@ class SkiEventTracker {
 
     private URL installUrl;
     private URL infringementUrl;
+
+    class Builder {
+        @NonNull URL url;
+        boolean expires = true;
+        JSONObject data; // data
+        String sessionID; // sessionID
+        boolean logEvent = false; // logEvent
+    }
+
+    interface EventBuilder {
+        void build(Builder ev);
+    }
 
     private SkiEventTracker(final Context applicationContext) {
         try {
@@ -184,7 +204,7 @@ class SkiEventTracker {
             return;
         }
 
-        JSONObject data = new JSONObject();
+        final JSONObject data = new JSONObject();
         try {
             data.put("event_unix", (int)(System.currentTimeMillis() / 1000L));
             
@@ -245,7 +265,14 @@ class SkiEventTracker {
             //noinspection ResultOfMethodCallIgnored
             installFile.createNewFile();
 
-            trackEventRequest(installUrl, NO_EXPIRE, data);
+            trackEvent(new EventBuilder() {
+                @Override
+                public void build(Builder ev) {
+                    ev.url = installUrl;
+                    ev.expires = false;
+                    ev.data = data;
+                }
+            });
         } catch (JSONException | IOException ignored) {
         }
     }
@@ -265,23 +292,24 @@ class SkiEventTracker {
             makeRequestEvent(uuid);
         }
     }
+    
+    void trackEvent(EventBuilder builder) {
+        final Builder b = new Builder();
+        builder.build(b);
 
-    void trackEventRequest(URL url) {
-        trackEventRequest(url, new Date(System.currentTimeMillis() + 86400 * 1000), null);
-    }
+        //noinspection ConstantConditions
+        if (b.url == null) {
+            return;
+        }
 
-    @SuppressWarnings("WeakerAccess")
-    void trackEventRequest(final URL url, final JSONObject data) {
-        trackEventRequest(url, new Date(System.currentTimeMillis() + 86400 * 1000), data);
-    }
-
-    private void trackEventRequest(final URL url, final Date expires, final JSONObject data) {
         final UUID uuid = UUID.randomUUID();
-        Dl("trackEventRequest: " + url);
+        Dl("trackEventRequest: " + b.url);
+        
+        final Date expires = b.expires ? DEFAULT_EXPIRE : NO_EXPIRE;
         SerialTask.run(new Runnable() {
             @Override
             public void run() {
-                events.put(uuid, P.pair(url, expires, data));
+                events.put(uuid, P.pair(b.url, expires, b.data, b.sessionID, b.logEvent));
                 savedEvents();
             }
         }, new Runnable() {
@@ -292,16 +320,50 @@ class SkiEventTracker {
         });
     }
 
+//    void trackEventRequest(URL url) {
+//        trackEventRequest(url, DEFAULT_EXPIRE, null);
+//    }
+//
+//    @SuppressWarnings("WeakerAccess")
+//    void trackEventRequest(final URL url, final JSONObject data) {
+//        trackEventRequest(url, DEFAULT_EXPIRE, data);
+//    }
+//
+//    private void trackEventRequest(final URL url, final Date expires, final JSONObject data) {
+//        final UUID uuid = UUID.randomUUID();
+//        Dl("trackEventRequest: " + url);
+//        SerialTask.run(new Runnable() {
+//            @Override
+//            public void run() {
+//                events.put(uuid, P.pair(url, expires, data));
+//                savedEvents();
+//            }
+//        }, new Runnable() {
+//            @Override
+//            public void run() {
+//                makeRequestEvent(uuid);
+//            }
+//        });
+//    }
+
     void trackInfringementReport(InfringementReport report) {
         try {
-            trackEventRequest(infringementUrl, report.buildJSON());
+            final JSONObject data = report.buildJSON();
+            
+            trackEvent(new EventBuilder() {
+                @Override
+                public void build(Builder ev) {
+                    ev.url = infringementUrl;
+                    ev.data = data;
+                }
+            });
         } catch (JSONException e) {
             Dl("report: " + e);
         }
     }
 
     private void makeRequestEvent(final UUID uuid) {
-        P pair = events.get(uuid);
+        final P pair = events.get(uuid);
         if (pair == null) {
             return;
         }
@@ -333,8 +395,8 @@ class SkiEventTracker {
                 out = null;
             }
 
-            int statusCode = urlConnection.getResponseCode();
-            if (statusCode == 200 || statusCode == 404) {
+            final int statusCode = urlConnection.getResponseCode();
+//            if (statusCode == 200 || statusCode == 404) {
                 SerialTask.run(new Runnable() {
                     @Override
                     public void run() {
@@ -342,11 +404,84 @@ class SkiEventTracker {
                         savedEvents();
                     }
                 });
+//            }
+            
+            if (statusCode != 200 && pair.l) {
+                final Map<String,List<String>> headers = urlConnection.getHeaderFields();
+                String response = null;
+                try {
+                    InputStream it = new BufferedInputStream(urlConnection.getErrorStream());
+                    InputStreamReader read = new InputStreamReader(it);
+                    BufferedReader buff = new BufferedReader(read);
+                    StringBuilder dta = new StringBuilder();
+                    String chunks;
+                    while ((chunks = buff.readLine()) != null) {
+                        dta.append(chunks);
+                    }
+                    response = dta.toString();
+                } catch (Exception ignore) {
+                    Dl("makeRequestEvent: " + pair.u + ":" + ignore);
+                }
+                final String finalResponse = response;
+                final JSONObject errData = SkiAdErrorCollector.Builder.buildJSONObject(new SkiAdErrorCollector.ErrorCollector() {
+                    @Override
+                    public void build(SkiAdErrorCollector.Builder err) {
+                        HashMap<String, Object> data = new HashMap<>();
+                        data.put("url", pair.u);
+                        data.put("statusCode", statusCode);
+                        if (headers != null) {
+                            HashMap<String, List<String>> nmap = new HashMap<>();
+                            for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+                                if (entry.getKey() == null) {
+                                    continue;
+                                }
+                                nmap.put(entry.getKey(), entry.getValue());
+                            }
+                            
+                            data.put("headers", new JSONObject(nmap));
+                        }
+                        
+                        data.put("response", finalResponse);
+                        
+                        err.type = TYPE_HTTP;
+                        err.place = "makeRequestEvent";
+                        err.otherInfo = data;
+                    }
+                });
+                trackEvent(new EventBuilder() {
+                    @Override
+                    public void build(Builder ev) {
+                        ev.url = SKIConstants.GetErrorReportURL(pair.s);
+                        ev.sessionID = pair.s;
+                        ev.data = errData;
+                    }
+                });
             }
 
             Dl("makeRequestEvent: " + statusCode + ":" + pair.u);
-        } catch (IOException ignored) {
-            Dl("makeRequestEvent: " + pair.u + ":" + ignored);
+        } catch (final IOException ioe) {
+            Dl("makeRequestEvent: " + pair.u + ":" + ioe);
+
+            final JSONObject errData = SkiAdErrorCollector.Builder.buildJSONObject(new SkiAdErrorCollector.ErrorCollector() {
+                @Override
+                public void build(SkiAdErrorCollector.Builder err) {
+                    HashMap<String, Object> data = new HashMap<>();
+                    data.put("url", pair.u);
+
+                    err.type = TYPE_HTTP;
+                    err.place = "makeRequestEvent";
+                    err.underlyingException = ioe;
+                    err.otherInfo = data;
+                }
+            });
+            trackEvent(new EventBuilder() {
+                @Override
+                public void build(Builder ev) {
+                    ev.url = SKIConstants.GetErrorReportURL(pair.s);
+                    ev.sessionID = pair.s;
+                    ev.data = errData;
+                }
+            });
         } finally {
             if (out != null) {
                 try {

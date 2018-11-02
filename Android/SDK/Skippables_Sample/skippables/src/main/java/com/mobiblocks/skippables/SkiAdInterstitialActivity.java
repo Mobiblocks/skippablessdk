@@ -720,7 +720,7 @@ public class SkiAdInterstitialActivity extends Activity {
             for (URL url : impressions) {
                 removeImpression.add(url);
                 URL macrosed = builder.build(url);
-                SkiEventTracker.getInstance(this).trackEventRequest(macrosed);
+                trackEventRequest(macrosed, "impression");
             }
 
             mVastInfo.getImpressionUrls().removeAll(removeImpression);
@@ -736,7 +736,7 @@ public class SkiAdInterstitialActivity extends Activity {
                 String event = tracking.getEvent();
                 if ("start".equalsIgnoreCase(event)) {
                     URL macrosed = builder.build(tracking.getValue());
-                    SkiEventTracker.getInstance(this).trackEventRequest(macrosed);
+                    trackEventRequest(macrosed, event);
                 }
             }
 
@@ -765,7 +765,7 @@ public class SkiAdInterstitialActivity extends Activity {
                 int quartile = (int) (duration * .25);
                 if (currentPosition >= quartile) {
                     URL macrosed = builder.build(tracking.getValue());
-                    SkiEventTracker.getInstance(this).trackEventRequest(macrosed);
+                    trackEventRequest(macrosed, event);
 
                     remove.add(tracking);
                 }
@@ -773,7 +773,7 @@ public class SkiAdInterstitialActivity extends Activity {
                 int quartile = (int) (duration * .50);
                 if (currentPosition >= quartile) {
                     URL macrosed = builder.build(tracking.getValue());
-                    SkiEventTracker.getInstance(this).trackEventRequest(macrosed);
+                    trackEventRequest(macrosed, event);
 
                     remove.add(tracking);
                 }
@@ -781,7 +781,7 @@ public class SkiAdInterstitialActivity extends Activity {
                 int quartile = (int) (duration * .75);
                 if (currentPosition >= quartile) {
                     URL macrosed = builder.build(tracking.getValue());
-                    SkiEventTracker.getInstance(this).trackEventRequest(macrosed);
+                    trackEventRequest(macrosed, event);
 
                     remove.add(tracking);
                 }
@@ -792,7 +792,7 @@ public class SkiAdInterstitialActivity extends Activity {
                     int offset = tracking.offset.getOffset(duration);
                     if (currentPosition >= offset) {
                         URL macrosed = builder.build(tracking.getValue());
-                        SkiEventTracker.getInstance(this).trackEventRequest(macrosed);
+                        trackEventRequest(macrosed, event);
 
                         remove.add(tracking);
                     }
@@ -812,8 +812,7 @@ public class SkiAdInterstitialActivity extends Activity {
                 .setContentPlayAhead(currentPosition);
 
         ArrayList<SkiVastCompressedInfo.MediaFile.Tracking> remove = new ArrayList<>();
-        for (SkiVastCompressedInfo.MediaFile.Tracking tracking :
-                mVastInfo.getTrackings()) {
+        for (SkiVastCompressedInfo.MediaFile.Tracking tracking : mVastInfo.getTrackings()) {
             //noinspection ConstantConditions
             if (tracking.getValue() == null) {
                 continue;
@@ -821,7 +820,7 @@ public class SkiAdInterstitialActivity extends Activity {
             String event = tracking.getEvent();
             if ("complete".equalsIgnoreCase(event)) {
                 URL macrosed = builder.build(tracking.getValue());
-                SkiEventTracker.getInstance(this).trackEventRequest(macrosed);
+                trackEventRequest(macrosed, event);
 
                 remove.add(tracking);
             }
@@ -839,8 +838,7 @@ public class SkiAdInterstitialActivity extends Activity {
                 .setContentPlayAhead(currentPosition);
 
         ArrayList<SkiVastCompressedInfo.MediaFile.Tracking> remove = new ArrayList<>();
-        for (SkiVastCompressedInfo.MediaFile.Tracking tracking :
-                mVastInfo.getTrackings()) {
+        for (SkiVastCompressedInfo.MediaFile.Tracking tracking : mVastInfo.getTrackings()) {
             //noinspection ConstantConditions
             if (tracking.getValue() == null) {
                 continue;
@@ -848,7 +846,7 @@ public class SkiAdInterstitialActivity extends Activity {
             String event = tracking.getEvent();
             if ("skip".equalsIgnoreCase(event)) {
                 URL macrosed = builder.build(tracking.getValue());
-                SkiEventTracker.getInstance(this).trackEventRequest(macrosed);
+                trackEventRequest(macrosed, event);
 
                 remove.add(tracking);
             }
@@ -865,10 +863,9 @@ public class SkiAdInterstitialActivity extends Activity {
                 .setAssetUrl(assetURL)
                 .setContentPlayAhead(currentPosition);
 
-        for (URL url :
-                mVastInfo.getClickTrackings()) {
+        for (URL url : mVastInfo.getClickTrackings()) {
             URL macrosed = builder.build(url);
-            SkiEventTracker.getInstance(this).trackEventRequest(macrosed);
+            trackEventRequest(macrosed, "click");
         }
     }
 
@@ -881,10 +878,25 @@ public class SkiAdInterstitialActivity extends Activity {
                 .setContentPlayAhead(currentPosition)
                 .setErrorCode(VastError.VAST_MEDIA_FILE_NOT_SUPPORTED_ERROR_CODE);
         ArrayList<URL> errorTrackings = mVastInfo.getErrorTrackings();
-        for (URL url :
-                errorTrackings) {
-            SkiEventTracker.getInstance(this).trackEventRequest(builder.build(url));
+        for (URL url : errorTrackings) {
+            trackEventRequest(builder.build(url), "error");
         }
+    }
+    
+    @SuppressWarnings("unused")
+    private void trackEventRequest(final URL url, String name) {
+        if (url == null) {
+            return;
+        }
+        
+        SkiEventTracker.getInstance(this).trackEvent(new SkiEventTracker.EventBuilder() {
+            @Override
+            public void build(SkiEventTracker.Builder ev) {
+                ev.url = url;
+                ev.logEvent = true;
+                ev.sessionID = errorCollector.getSessionID();
+            }
+        });
     }
 
     @SuppressLint("ClickableViewAccessibility")

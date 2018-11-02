@@ -17,16 +17,20 @@ class P implements Serializable {
 
     final URL u;
     final Date e;
-    final String d;
+    final String d; // data
+    final String s; // sessionID
+    final boolean l; // logEvent
 
-    private P(URL u, Date e, JSONObject d) {
+    private P(URL u, Date e, JSONObject d, String s, boolean l) {
         this.e = e;
         this.u = u;
         this.d = d == null ? null : d.toString();
+        this.s = s;
+        this.l = l;
     }
 
-    static P pair(URL u, Date e, JSONObject d) {
-        return new P(u, e, d);
+    static P pair(URL u, Date e, JSONObject d, String s, boolean l) {
+        return new P(u, e, d, s, l);
     }
 
     JSONObject getD() {

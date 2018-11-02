@@ -90,9 +90,16 @@ public class SkiAdInterstitial {
                             Util.VastUrlMacros builder = Util.VastUrlMacros.builder()
                                     .setErrorCode(response.getVastErrorCode());
                             ArrayList<URL> errorTrackings = info.getErrorTrackings();
-                            for (URL url :
-                                    errorTrackings) {
-                                SkiEventTracker.getInstance(mContext).trackEventRequest(builder.build(url));
+                            for (URL url : errorTrackings) {
+                                final URL macrosed = builder.build(url);
+                                if (macrosed != null) {
+                                    SkiEventTracker.getInstance(mContext).trackEvent(new SkiEventTracker.EventBuilder() {
+                                        @Override
+                                        public void build(SkiEventTracker.Builder ev) {
+                                            ev.url = macrosed;
+                                        }
+                                    });
+                                }
                             }
                         }
                     }

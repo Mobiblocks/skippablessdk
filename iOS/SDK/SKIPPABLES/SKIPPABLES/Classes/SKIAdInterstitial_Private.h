@@ -14,6 +14,7 @@
 @interface SKIAdInterstitial (Private) <SKIAdInterstitialViewControllerDelegate>
 
 @property (strong, nonatomic) SKIAdRequestResponse *response;
+@property (assign, nonatomic) BOOL logEvents;
 @property (strong, nonatomic) SKIErrorCollector *errorCollector;
 
 @end

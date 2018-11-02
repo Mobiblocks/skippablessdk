@@ -39,6 +39,9 @@ class SkiVastCompressedInfo implements Parcelable {
     private VastTime skipoffset;
 
     @NonNull
+    private ArrayList<URL> adErrorTrackings = new ArrayList<>();
+
+    @NonNull
     private ArrayList<URL> errorTrackings = new ArrayList<>();
 
     @NonNull
@@ -62,6 +65,7 @@ class SkiVastCompressedInfo implements Parcelable {
         duration = in.readParcelable(VastTime.class.getClassLoader());
         skipoffset = in.readParcelable(VastTime.class.getClassLoader());
 
+        adErrorTrackings = toURLArray(in.createStringArrayList());
         errorTrackings = toURLArray(in.createStringArrayList());
         impressionUrls = toURLArray(in.createStringArrayList());
 
@@ -83,6 +87,7 @@ class SkiVastCompressedInfo implements Parcelable {
         dest.writeParcelable(duration, flags);
         dest.writeParcelable(skipoffset, flags);
 
+        dest.writeStringList(toStringArray(adErrorTrackings));
         dest.writeStringList(toStringArray(errorTrackings));
         dest.writeStringList(toStringArray(impressionUrls));
 
@@ -267,6 +272,11 @@ class SkiVastCompressedInfo implements Parcelable {
     @Nullable
     VastTime getSkipOffset() {
         return skipoffset;
+    }
+
+    @NonNull
+    ArrayList<URL> getAdErrorTrackings() {
+        return adErrorTrackings;
     }
 
     @NonNull

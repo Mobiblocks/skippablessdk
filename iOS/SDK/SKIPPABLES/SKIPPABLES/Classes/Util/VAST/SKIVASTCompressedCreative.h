@@ -9,6 +9,8 @@
 
 #import "SKIVAST.h"
 
+@class SKIErrorCollector;
+
 @interface SKIVASTCompressedCreative : NSObject
 
 + (instancetype)compressed;
@@ -29,7 +31,8 @@
 
 @property (strong, nonatomic) NSArray<NSURL *> *errorTrackings;
 
-@property (strong, nonatomic) NSArray<NSURL *> *skipTrackingUrls;
+@property (strong, nonatomic) NSArray<SKIVASTTracking *> *skipTrackingUrls;
+@property (strong, nonatomic) NSArray<SKIVASTTracking *> *completeTrackingUrls;
 
 @property (strong, nonatomic) NSArray<NSURL *> *impressionUrls;
 @property (strong, nonatomic) NSArray<NSURL *> *additionalImpressionUrls;

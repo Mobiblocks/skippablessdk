@@ -26,13 +26,19 @@ dispatch_queue_t get_event_dispatch_queue() {
 	return _queue;
 }
 
+NSArray *SKIUtilReplaceNonJSONArray(NSArray *other);
+NSDictionary *SKIUtilReplaceNonJSONDictionary(NSDictionary *other);
+
 @interface SKIAdEventData : NSObject <NSCoding>
 
-+ (instancetype)dataWithUrl:(NSURL *)url expiration:(NSDate *)expiration data:(NSData *)data;
++ (instancetype)build:(void (^)(SKIAdEventData *event))block;
 
 @property (strong, nonatomic) NSURL *url;
 @property (strong, nonatomic) NSDate *date;
 @property (strong, nonatomic) NSData *data;
+
+@property (copy, nonatomic) NSString *sessionID;
+@property (assign, nonatomic) BOOL logEvent;
 
 @end
 
@@ -43,6 +49,14 @@ dispatch_queue_t get_event_dispatch_queue() {
 @property (assign, nonatomic) BOOL isReachable;
 @property (strong, nonatomic) NSString *saveEventsPath;
 @property (strong, nonatomic) NSMutableDictionary<NSString *, SKIAdEventData *> *eventDictionary;
+
+@end
+
+@interface SKIErrorCollector ()
+
++ (NSURL *)urlWithSessionID:(NSString *)sessionID;
+
+@property (strong, atomic) NSMutableArray<SKIErrorCollectorBuilder *> *errorInfos;
 
 @end
 
@@ -177,8 +191,11 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 	NSString *installPath = [SKIDocumentsPath() stringByAppendingPathComponent:@"install"];
 	if (![[NSFileManager defaultManager] fileExistsAtPath:installPath]) {
 		if ([[NSFileManager defaultManager] createFileAtPath:installPath contents:nil attributes:nil]) {
-			NSData *data = [NSJSONSerialization dataWithJSONObject:[self installData] options:0 error:nil];
-			[self trackEventRequestWithUrl:[NSURL URLWithString:SKIPPABLES_INSTALL_URL] expirationDate:[NSDate distantFuture] data:data];
+			[self trackEvent:^(SKIAdEventTrackerBuilder * _Nonnull e) {
+				e.url = [NSURL URLWithString:SKIPPABLES_INSTALL_URL];
+				e.expires = NO;
+				e.info = [self installData];
+			}];
 		}
 	}
 }
@@ -252,32 +269,28 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 	}
 }
 
-- (void)trackEventRequestWithUrl:(NSURL *)url {
+- (void)trackEvent:(void (^)(SKIAdEventTrackerBuilder * _Nonnull))block {
+	SKIAdEventTrackerBuilder *build = [[SKIAdEventTrackerBuilder alloc] init];
+	block(build);
+	
+	SKIAdEventData *event = [SKIAdEventData build:^(SKIAdEventData *event) {
+		event.url = build.url;
+		event.sessionID = build.sessionID;
+		event.logEvent = build.logEvent;
+		event.date = build.expires ? [[NSDate date] dateByAddingTimeInterval:86400] : [NSDate distantFuture];
+		
+		if (build.info) {
+			NSDictionary *sani = SKIUtilReplaceNonJSONDictionary(build.info);
+			event.data = [NSJSONSerialization dataWithJSONObject:sani options:0 error:nil];
+		}
+	}];
+	
+	
 	NSString *identifier = SKIUUID();
-	[self.eventDictionary setObject:[SKIAdEventData dataWithUrl:url expiration:[[NSDate date] dateByAddingTimeInterval:86400] data:nil] forKey:identifier];
+	[self.eventDictionary setObject:event forKey:identifier];
 	[self saveEvents];
 	
 	[self requestEventWithIdentifier:identifier callback:nil];
-}
-
-- (void)trackEventRequestWithUrl:(NSURL *)url expirationDate:(NSDate *)date {
-	NSString *identifier = SKIUUID();
-	[self.eventDictionary setObject:[SKIAdEventData dataWithUrl:url expiration:date data:nil] forKey:identifier];
-	[self saveEvents];
-	
-	[self requestEventWithIdentifier:identifier callback:nil];
-}
-
-- (void)trackEventRequestWithUrl:(NSURL *)url expirationDate:(NSDate *)date data:(NSData *)data {
-	NSString *identifier = SKIUUID();
-	[self.eventDictionary setObject:[SKIAdEventData dataWithUrl:url expiration:date data:data] forKey:identifier];
-	[self saveEvents];
-	
-	[self requestEventWithIdentifier:identifier callback:nil];
-}
-
-- (void)trackErrorRequestWithUrl:(NSURL *)url {
-	[self trackEventRequestWithUrl:url];
 }
 
 - (void)sendReportWithDeviceData:(NSDictionary *)deviceInfo adId:(NSString *)adId adUnitId:(NSString *)adUnitId email:(NSString *)email message:(NSString *)message {
@@ -300,7 +313,10 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 		}
 	}
 	
-	[self trackEventRequestWithUrl:[NSURL URLWithString:SKIPPABLES_REPORT_URL] expirationDate:[[NSDate date] dateByAddingTimeInterval:86400] data:[NSJSONSerialization dataWithJSONObject:data options:0 error:nil]];
+	[self trackEvent:^(SKIAdEventTrackerBuilder * _Nonnull e) {
+		e.url = [NSURL URLWithString:SKIPPABLES_REPORT_URL];
+		e.info = data;
+	}];
 }
 
 - (void)requestEventWithIdentifier:(NSString *)identifier callback:(void (^_Nullable)(BOOL success))callback {
@@ -329,9 +345,25 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 	NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
 		if (error) {
 			DLog(@"Event: %@ failed with error: %@", identifier, error);
-			if ([error.domain isEqualToString:NSURLErrorDomain] && error.code == NSURLErrorAppTransportSecurityRequiresSecureConnection) {
+			if ([error.domain isEqualToString:NSURLErrorDomain] &&
+				(error.code == NSURLErrorAppTransportSecurityRequiresSecureConnection || error.code == NSURLErrorCannotFindHost)) {
 				[self.eventDictionary removeObjectForKey:identifier];
 				[self saveEvents];
+			}
+			
+			if (info.logEvent) {
+				[self trackEvent:^(SKIAdEventTrackerBuilder * _Nonnull e) {
+					e.url = [SKIErrorCollector urlWithSessionID:info.sessionID];// TODO: temp [NSURL URLWithString:SKIPPABLES_SDK_EVENT_REPORT_URL];
+					e.sessionID = info.sessionID;
+					e.info = [[SKIErrorCollectorBuilder build:^(SKIErrorCollectorBuilder * _Nonnull e) {
+						e.type = SKIErrorCollectorTypeHTTP;
+						e.place = @"requestEventWithIdentifier";
+						e.underlyingError = error;
+						e.otherInfo = @{
+										@"url": info.url ?: [NSNull null]
+										};
+					}] dictionaryValue];
+				}];
 			}
 			
 			if (callback != nil) {
@@ -341,14 +373,36 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 		}
 		
 		NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+		
+		if (httpResponse.statusCode != 200 && info.logEvent) { // TODO: temp non 200 only
+			NSString *res = @"";
+			if (data.length > 0) {
+				res = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+			}
+			[self trackEvent:^(SKIAdEventTrackerBuilder * _Nonnull e) {
+				e.url = [SKIErrorCollector urlWithSessionID:info.sessionID];// TODO: temp[NSURL URLWithString:SKIPPABLES_SDK_EVENT_REPORT_URL];
+				e.sessionID = info.sessionID;
+				e.info = [[SKIErrorCollectorBuilder build:^(SKIErrorCollectorBuilder * _Nonnull e) {
+					e.type = SKIErrorCollectorTypeHTTP;
+					e.place = @"requestEventWithIdentifier";
+					e.otherInfo = @{
+									@"url": info.url ?: [NSNull null],
+									@"statusCode": @(httpResponse.statusCode),
+									@"headers": SKIUtilReplaceNonJSONDictionary(httpResponse.allHeaderFields ?: @{}),
+									@"response": res ?: [NSNull null]
+									};
+				}] dictionaryValue];
+			}];
+		}
+		
 		if (httpResponse.statusCode != 200) {
 			DLog(@"Event: %@ failed with status code: %i, %@", identifier, (int)httpResponse.statusCode, httpResponse.URL.absoluteString);
-			if (httpResponse.statusCode != 404 ) {
-				if (callback != nil) {
-					callback(NO);
-				}
-				return;
-			}
+//			if (httpResponse.statusCode != 404) {
+//				if (callback != nil) {
+//					callback(NO);
+//				}
+//				return;
+//			}
 		}
 		
 		[self.eventDictionary removeObjectForKey:identifier];
@@ -365,12 +419,9 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 
 @implementation SKIAdEventData
 
-+ (instancetype)dataWithUrl:(NSURL *)url expiration:(NSDate *)expiration data:(NSData *)data {
++ (instancetype)build:(void (^)(SKIAdEventData *))block {
 	SKIAdEventData *event = [[SKIAdEventData alloc] init];
-	event.url = url;
-	event.date = expiration;
-	event.data = data;
-	
+	block(event);
 	return event;
 }
 
@@ -380,6 +431,8 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 		_url = [aDecoder decodeObjectForKey:@"url"];
 		_date = [aDecoder decodeObjectForKey:@"date"];
 		_data = [aDecoder decodeObjectForKey:@"data"];
+		_sessionID = [aDecoder decodeObjectForKey:@"sessionID"];
+		_logEvent = [aDecoder decodeBoolForKey:@"logEvent"];
 	}
 	return self;
 }
@@ -388,13 +441,9 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 	[aCoder encodeObject:_url forKey:@"url"];
 	[aCoder encodeObject:_date forKey:@"date"];
 	[aCoder encodeObject:_data forKey:@"data"];
+	[aCoder encodeObject:_sessionID forKey:@"sessionID"];
+	[aCoder encodeBool:_logEvent forKey:@"logEvent"];
 }
-
-@end
-
-@interface SKIErrorCollector ()
-
-@property (strong, atomic) NSMutableArray<SKIErrorCollectorBuilder *> *errorInfos;
 
 @end
 
@@ -409,34 +458,38 @@ static void SKIAdEventTrackerReachabilityCallback(SCNetworkReachabilityRef targe
 	return self;
 }
 
-- (void)collect:(void (^)(SKIErrorCollectorBuilder *))block {
-	SKIErrorCollectorBuilder *build = [[SKIErrorCollectorBuilder alloc] init];
-	block(build);
-	
++ (NSURL *)urlWithSessionID:(NSString *)sessionID {
 	NSURL *url = nil;
-	if (self.sessionID) {
-		NSURLComponents *components = [NSURLComponents componentsWithString:SKIPPABLES_ERROR_REPORT_URL];
+	if (sessionID) {
+		NSURLComponents *components = [NSURLComponents componentsWithString:SKIPPABLES_SDK_ERROR_REPORT_URL];
 		NSMutableArray<NSURLQueryItem *> *query = components.queryItems.mutableCopy ?: [NSMutableArray array];
-		[query addObject:[NSURLQueryItem queryItemWithName:@"sessionID" value:self.sessionID]];
+		[query addObject:[NSURLQueryItem queryItemWithName:@"sessionID" value:sessionID]];
 		components.queryItems = query;
 		url = components.URL;
 	}
 	
-	url = url ?: [NSURL URLWithString:SKIPPABLES_ERROR_REPORT_URL];
+	return url ?: [NSURL URLWithString:SKIPPABLES_ERROR_REPORT_URL];
+}
+
+- (void)collect:(void (^)(SKIErrorCollectorBuilder *))block {
+	SKIErrorCollectorBuilder *build = [[SKIErrorCollectorBuilder alloc] init];
+	block(build);
+	
+	NSURL *url = [SKIErrorCollector urlWithSessionID:self.sessionID];
 	
 	NSData *data = build.jsonDataValue;
 	if (data) {
-		[[SKIAdEventTracker defaultTracker] trackEventRequestWithUrl:url expirationDate:[[NSDate date] dateByAddingTimeInterval:86400] data:data];
+		[[SKIAdEventTracker defaultTracker] trackEvent:^(SKIAdEventTrackerBuilder * _Nonnull e) {
+			e.url = url;
+			e.info = build.dictionaryValue;
+			e.sessionID = self.sessionID;
+		}];
 	}
-	
-//	[_errorInfos addObject:build];
 }
 
 @end
 
-@implementation SKIErrorCollectorBuilder
-
-NSDictionary *replaceNonJSONDictionary(NSDictionary *other) {
+NSDictionary *SKIUtilReplaceNonJSONDictionary(NSDictionary *other) {
 	NSMutableDictionary *dict = [NSMutableDictionary dictionary];
 	for (NSString *key in other) {
 		id value = other[key];
@@ -444,44 +497,46 @@ NSDictionary *replaceNonJSONDictionary(NSDictionary *other) {
 			[value isKindOfClass:[NSNumber class]] ||
 			[value isKindOfClass:[NSNull class]]) {
 			dict[key] = value;
+		} else if ([value isKindOfClass:[NSURL class]]) {
+			dict[key] = [(NSURL *)value absoluteString];
 		} else if ([value isKindOfClass:[NSDictionary class]]) {
-			dict[key] = replaceNonJSONDictionary(value);
-		} else if ([value isKindOfClass:[NSDictionary class]]) {
-			dict[key] = replaceNonJSONArray(value);
+			dict[key] = SKIUtilReplaceNonJSONDictionary(value);
+		} else if ([value isKindOfClass:[NSArray class]]) {
+			dict[key] = SKIUtilReplaceNonJSONArray(value);
 		}
 	}
 	
 	return dict;
 }
 
-NSArray *replaceNonJSONArray(NSArray *other) {
+NSArray *SKIUtilReplaceNonJSONArray(NSArray *other) {
 	NSMutableArray *arr = [NSMutableArray array];
 	for (id value in other) {
 		if ([value isKindOfClass:[NSString class]] ||
 			[value isKindOfClass:[NSNumber class]] ||
 			[value isKindOfClass:[NSNull class]]) {
 			[arr addObject:value];
+		} else if ([value isKindOfClass:[NSURL class]]) {
+			[arr addObject:[(NSURL *)value absoluteString]];
 		} else if ([value isKindOfClass:[NSDictionary class]]) {
-			[arr addObject:replaceNonJSONDictionary(value)];
-		} else if ([value isKindOfClass:[NSDictionary class]]) {
-			[arr addObject:replaceNonJSONArray(value)];
+			[arr addObject:SKIUtilReplaceNonJSONDictionary(value)];
+		} else if ([value isKindOfClass:[NSArray class]]) {
+			[arr addObject:SKIUtilReplaceNonJSONArray(value)];
 		}
 	}
 	
 	return arr;
 }
 
-- (NSString *)jsonStringValue {
-	NSData *data = self.jsonDataValue;
-	if (data) {
-		NSString *stringValue = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-		return  stringValue;
-	}
-	
-	return nil;
+@implementation SKIErrorCollectorBuilder
+
++ (instancetype)build:(void (^)(SKIErrorCollectorBuilder * _Nonnull))block {
+	SKIErrorCollectorBuilder *build = [[SKIErrorCollectorBuilder alloc] init];
+	block(build);
+	return build;
 }
 
-- (NSData *)jsonDataValue {
+- (NSDictionary *)dictionaryValue {
 	NSMutableDictionary *dict = [NSMutableDictionary dictionary];
 	dict[@"type"] = @(self.type);
 	if (_place.length > 0) {
@@ -495,14 +550,41 @@ NSArray *replaceNonJSONArray(NSArray *other) {
 									 @"domain": _underlyingError.domain,
 									 @"code": @(_underlyingError.code),
 									 @"description": _underlyingError.localizedDescription,
-									 @"userInfo": replaceNonJSONDictionary(_underlyingError.userInfo)
+									 @"userInfo": SKIUtilReplaceNonJSONDictionary(_underlyingError.userInfo)
 									 };
 	}
 	if (_otherInfo.count > 0) {
 		dict[@"info"] = _otherInfo;
 	}
 	
-	return [NSJSONSerialization dataWithJSONObject:dict options:0 error:nil];
+	return dict;
+}
+
+- (NSString *)jsonStringValue {
+	NSData *data = self.jsonDataValue;
+	if (data) {
+		NSString *stringValue = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+		return  stringValue;
+	}
+	
+	return nil;
+}
+
+- (NSData *)jsonDataValue {
+	return [NSJSONSerialization dataWithJSONObject:self.dictionaryValue options:0 error:nil];
+}
+
+@end
+
+@implementation SKIAdEventTrackerBuilder
+
+- (instancetype)init
+{
+	self = [super init];
+	if (self) {
+		self.expires = YES;
+	}
+	return self;
 }
 
 @end

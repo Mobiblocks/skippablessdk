@@ -24,6 +24,7 @@
 @property (copy, nonatomic) SKIAdRequest *request;
 @property (strong, nonatomic) SKIAdRequestResponse *response;
 @property (strong, nonatomic) SKIErrorCollector *errorCollector;
+@property (assign, nonatomic) BOOL logEvents;
 
 @end
 
@@ -119,7 +120,7 @@
 	
 	self.response = response;
 	self.errorCollector = request.errorCollector;
-	
+	self.logEvents = request.logEvents;
 	_isLoading = NO;
 	_isReady = YES;
 	if ([self.delegate respondsToSelector:@selector(skiInterstitialDidReceiveAd:)]) {

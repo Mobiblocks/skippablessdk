@@ -82,11 +82,11 @@ class SkiAdInfo implements Parcelable {
         return this;
     }
 
-    public String getSessionID() {
+    String getSessionID() {
         return sessionID;
     }
 
-    public void setSessionID(String sessionID) {
+    void setSessionID(String sessionID) {
         this.sessionID = sessionID;
     }
 }

@@ -18,14 +18,14 @@ NSString *valueForMacros(NSString *macro, SKIVASTUrlMacroValues *values) {
 		NSString *value = values.errorCode == SKIVASTNoErrorCode ? @"" : [NSString stringWithFormat:@"%i", (int)values.errorCode];
 		return value;
 	} else if ([macro isEqualToString:@"CONTENTPLAYHEAD"]) {
-		NSString *value = values.contentPlayhead > -1 ? @"" : SKIFormattedStringFromInterval(values.contentPlayhead);
+		NSString *value = values.contentPlayhead > -1 ? SKIFormattedStringFromInterval(values.contentPlayhead) : @"";
 		return value;
 	} else if ([macro isEqualToString:@"CACHEBUSTING"] || [macro isEqualToString:@"RANDOM"]) {
 		uint32_t rand = arc4random_uniform(89999999) + 10000000;
 		NSString *value = [NSString stringWithFormat:@"%u", rand];
 		return value;
 	} else if ([macro isEqualToString:@"ASSETURI"]) {
-		NSString *value = values.assetUrl ? @"" : values.assetUrl.absoluteString;
+		NSString *value = values.assetUrl.absoluteString ?: @"";
 		return value;
 	} else if ([macro isEqualToString:@"TIMESTAMP"]) {
 		NSString *value = SKIFormattedTimestampString();
@@ -52,7 +52,7 @@ NSString *macrosFrom(NSString *value) {
 		}
 	}
 	
-	return macro;
+	return macro.uppercaseString;
 }
 
 + (NSURL *)urlFromUrlAfterReplacingMacros:(NSURL *)url builder:(void (^)(SKIVASTUrlMacroValues *))builder {
@@ -104,44 +104,20 @@ NSString *macrosFrom(NSString *value) {
 	NSMutableArray<NSURLQueryItem *> *queryItems = [NSMutableArray arrayWithCapacity:urlComponents.queryItems.count];
 	for (NSURLQueryItem *queryItem in urlComponents.queryItems) {
 		NSString *value = queryItem.value;
-		NSString *macro = nil;
-		if (value.length > 2) {
-			if ([value hasPrefix:@"["] && [value hasSuffix:@"]"]) {
-				macro = [value substringWithRange:(NSRange){1, value.length - 2}];
-			} else if ([value hasPrefix:@"{"] && [value hasSuffix:@"}"]) {
-				macro = [value substringWithRange:(NSRange){1, value.length - 2}];
-			} else if (value.length > 4) {
-				if ([value hasPrefix:@"%%"] && [value hasSuffix:@"%%"]) {
-					macro = [value substringWithRange:(NSRange){2, value.length - 4}];
-				}
-			}
-		}
-		
-		macro = macro.uppercaseString;
-		
-		if ([macro isEqualToString:@"ERRORCODE"]) {
-			NSString *value = values.errorCode == SKIVASTNoErrorCode ? @"" : [NSString stringWithFormat:@"%i", (int)values.errorCode];
-			NSURLQueryItem *item = [NSURLQueryItem queryItemWithName:queryItem.name value:value];
-			[queryItems addObject:item];
-		} else if ([macro isEqualToString:@"CONTENTPLAYHEAD"]) {
-			NSString *value = values.contentPlayhead > -1 ? @"" : SKIFormattedStringFromInterval(values.contentPlayhead);
-			NSURLQueryItem *item = [NSURLQueryItem queryItemWithName:queryItem.name value:value];
-			[queryItems addObject:item];
-		} else if ([macro isEqualToString:@"CACHEBUSTING"] || [macro isEqualToString:@"RANDOM"]) {
-			uint32_t rand = arc4random_uniform(89999999) + 10000000;
-			NSString *value = [NSString stringWithFormat:@"%u", rand];
-			NSURLQueryItem *item = [NSURLQueryItem queryItemWithName:queryItem.name value:value];
-			[queryItems addObject:item];
-		} else if ([macro isEqualToString:@"ASSETURI"]) {
-			NSURLQueryItem *item = [NSURLQueryItem queryItemWithName:queryItem.name value:values.assetUrl ? @"" : values.assetUrl.absoluteString];
-			[queryItems addObject:item];
-		} else if ([macro isEqualToString:@"TIMESTAMP"]) {
-			NSString *value = SKIFormattedTimestampString();
-			NSURLQueryItem *item = [NSURLQueryItem queryItemWithName:queryItem.name value:value];
-			[queryItems addObject:item];
-		} else {
+		NSString *macro = macrosFrom(value);
+		if (macro == nil) {
 			[queryItems addObject:queryItem];
+			continue;
 		}
+		
+		NSString *macroValue = valueForMacros(macro, values);
+		if (macroValue == nil) {
+			[queryItems addObject:queryItem];
+			continue;
+		}
+		
+		NSURLQueryItem *item = [NSURLQueryItem queryItemWithName:queryItem.name value:macroValue];
+		[queryItems addObject:item];
 	}
 	
 	urlComponents.queryItems = queryItems;

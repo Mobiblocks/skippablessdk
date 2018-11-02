@@ -9,12 +9,22 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@interface SKIAdEventTrackerBuilder : NSObject
+
+@property (strong, nonatomic) NSURL *url;
+@property (assign, nonatomic) BOOL expires; // default: YES
+
+@property (copy, nonatomic) NSString *sessionID; // default: nil
+@property (assign, nonatomic) BOOL logEvent; // default: NO
+@property (strong, nonatomic) NSDictionary *info; // default: nil
+
+@end
+
 @interface SKIAdEventTracker : NSObject
 
 + (instancetype)defaultTracker;
 
-- (void)trackEventRequestWithUrl:(NSURL *)url;
-- (void)trackErrorRequestWithUrl:(NSURL *)url;
+- (void)trackEvent:(void (^)(SKIAdEventTrackerBuilder *e))block;
 
 - (void)sendReportWithDeviceData:(NSDictionary *)deviceInfo adId:(NSString *)adId adUnitId:(NSString *)adUnitId email:(NSString *)email message:(NSString *)message;
 
@@ -35,8 +45,11 @@ typedef enum : NSInteger {
 @property (strong, nonatomic) NSError *underlyingError;
 @property (strong, nonatomic) NSDictionary *otherInfo;
 
-@property (copy, nonatomic, readonly) NSData *jsonDataValue;
-@property (copy, nonatomic, readonly) NSString *jsonStringValue;
+@property (copy, nonatomic, readonly) NSDictionary *dictionaryValue;
+@property (copy, nonatomic, readonly, nullable) NSData *jsonDataValue;
+@property (copy, nonatomic, readonly, nullable) NSString *jsonStringValue;
+
++ (instancetype)build:(void (^)(SKIErrorCollectorBuilder *e))block;
 
 @end
 

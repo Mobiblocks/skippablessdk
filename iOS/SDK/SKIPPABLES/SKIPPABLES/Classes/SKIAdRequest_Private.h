@@ -42,6 +42,7 @@ extern SKIAdSize const kSKIAdSizeFullscreen;
 
 @property (copy, nonatomic) NSString *adUnitID;
 @property (strong, nonatomic) SKIErrorCollector *errorCollector;
+@property (assign, nonatomic) BOOL logEvents;
 
 @end
 

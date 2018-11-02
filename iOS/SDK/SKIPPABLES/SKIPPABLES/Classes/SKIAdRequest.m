@@ -78,6 +78,7 @@ NSString *SKIGenderToString(SKIGender gender) {
 
 @property (weak, nonatomic) id<SKIAdRequestDelegate> delegate;
 @property (strong, nonatomic) SKIErrorCollector *errorCollector;
+@property (assign, nonatomic) BOOL logEvents;
 
 @end
 
@@ -94,6 +95,8 @@ NSString *SKIGenderToString(SKIGender gender) {
 		self.geoProvidedLocation = SKIAdGeoLocationZero;
 		self.geoProvidedByDescriptionLocation = SKIAdGeoLocationZero;
 		self.errorCollector = [[SKIErrorCollector alloc] init];
+		
+		self.logEvents = YES;
 	}
 	return self;
 }
@@ -465,8 +468,8 @@ NSString *SKIGenderToString(SKIGender gender) {
 		
 		requestData[@"geo"] = geo;
 		
+		NSMutableDictionary *app = [requestData[@"app"] mutableCopy] ?: [NSMutableDictionary dictionary];
 		if (lookupResult != [NSNull null] && [lookupResult isKindOfClass:[NSDictionary class]]) {
-			NSMutableDictionary *app = [requestData[@"app"] mutableCopy] ?: [NSMutableDictionary dictionary];
 			
 			NSDictionary *appInfo = (NSDictionary *)lookupResult;
 			NSString *storeUrlString = appInfo[@"trackViewUrl"];
@@ -508,11 +511,25 @@ NSString *SKIGenderToString(SKIGender gender) {
 			if (publisher.count > 0) {
 				app[@"publisher"] = publisher;
 			}
-			
-			if (app.count > 0) {
-				requestData[@"app"] = app;
+		}
+		
+		if (app.count > 0) {
+			requestData[@"app"] = app;
+		}
+		
+		BOOL atsEnabled = YES;
+		
+		NSDictionary *bundleInfo = [[NSBundle mainBundle] infoDictionary];
+		NSDictionary *atsDict = bundleInfo[@"NSAppTransportSecurity"];
+		if ([atsDict isKindOfClass:[NSDictionary class]]) {
+			NSNumber *allows = atsDict[@"NSAllowsArbitraryLoads"];
+			if ([allows respondsToSelector:@selector(boolValue)]) {
+				BOOL atsDisabled = allows.boolValue;
+				atsEnabled = atsDisabled != YES;
 			}
 		}
+		
+		app[@"requireSecure"] = @(atsEnabled);
 		
 		DLog(@"%@", requestData);
 		
@@ -558,11 +575,17 @@ NSString *SKIGenderToString(SKIGender gender) {
 		DLog(@"data: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
 		
 		if (error) {
-			[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
-				err.type = SKIErrorCollectorTypeHTTP;
-				err.place = @"loadRequestWithData";
-				err.underlyingError = error;
-			}];
+			BOOL isInternetConnectionError = [error.domain isEqualToString:NSURLErrorDomain] &&  error.code == NSURLErrorNotConnectedToInternet;
+			if (isInternetConnectionError == NO) {
+				[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+					err.type = SKIErrorCollectorTypeHTTP;
+					err.place = @"loadRequestWithData";
+					err.underlyingError = error;
+					err.otherInfo = @{
+									  @"adUnitId": self.adUnitID ?: @""
+									  };
+				}];
+			}
 			
 			SKIAdRequestResponse *requestResponse = [SKIAdRequestResponse response];
 			requestResponse.error = [SKIAdRequestError errorWithCode:kSKIErrorNetworkError
@@ -652,6 +675,10 @@ NSString *SKIGenderToString(SKIGender gender) {
 	
 	if (self.adType == kSKIAdTypeInterstitialVideo) {
 		NSString *videoVast = responseData[@"content"] ?: responseData[@"Content"];
+//		NSURL *lurlw = [[NSBundle mainBundle] URLForResource:@"vaster2" withExtension:@"xml"];
+//		if (lurlw) {
+//			videoVast = [NSString stringWithContentsOfURL:lurlw encoding:NSUTF8StringEncoding error:nil];
+//		}
 		if ([[NSNull null] isEqual:videoVast] || videoVast.length == 0) {
 			requestResponse.error = [SKIAdRequestError errorWithCode:kSKIErrorNoFill userInfo:nil];
 
@@ -680,6 +707,7 @@ NSString *SKIGenderToString(SKIGender gender) {
 				},
 				^(SKIVASTCompressedCreative *_Nullable creative, SKIAsyncWaterfallCallback callback) {
 					NSURL *mediaUrl = creative.mediaFile.value;
+//					NSURL *mediaUrl = [NSURL URLWithString:@"https://uganada.wakanda.com/aska.mp4"];
 				    [[[SKINetworking
 				        downloadTaskWithURL:mediaUrl
 				          completionHandler:^(NSURL *_Nullable location, NSURLResponse *_Nullable response, NSError *_Nullable error) {
@@ -716,7 +744,7 @@ NSString *SKIGenderToString(SKIGender gender) {
 									  err.place = @"processResponseData";
 									  err.desc = @"Failed to download media file";
 									  err.otherInfo = @{
-														@"url": mediaUrl.absoluteString,
+														@"url": mediaUrl,
 														@"statusCode": @(httpReponse.statusCode)
 														};
 								  }];
@@ -911,10 +939,15 @@ NSString *SKIGenderToString(SKIGender gender) {
 	
 	DLog(@"%@", ad.debugDescription);
 	
+	NSMutableArray *adErrorTrackings = [NSMutableArray array];
 	NSMutableArray *errorTrackings = [NSMutableArray array];
 	NSMutableArray *additionalTrackings = [NSMutableArray array];
 	NSMutableArray *impressionUrls = [NSMutableArray array];
 	NSMutableArray *additionalImpressionUrls = [NSMutableArray array];
+	
+	if (vast.error) {
+		[adErrorTrackings addObject:vast.error];
+	}
 	
 	SKIVASTInline *inLine = ad.inLine;
 	if (!inLine) {
@@ -930,7 +963,12 @@ NSString *SKIGenderToString(SKIGender gender) {
 				}
 			}
 			
-			SKIVASTAd *wrappedAd = [[[wrapper wrappedVast] ads] firstObject];
+			SKIVASTVAST *wrappedVast = [wrapper wrappedVast];
+			if (wrappedVast.error) {
+				[adErrorTrackings addObject:vast.error];
+			}
+			
+			SKIVASTAd *wrappedAd = [[wrappedVast ads] firstObject];
 			NSArray *trackings = wrapper.creatives.creatives.firstObject.linear.trackingEvents.trackings;
 			if (trackings.count > 0) {
 				[additionalTrackings addObjectsFromArray:trackings];
@@ -946,7 +984,7 @@ NSString *SKIGenderToString(SKIGender gender) {
 	}
 	
 	if (!inLine) {
-		[self trackErrorUrls:errorTrackings errorCode:SKIVASTWrapperNoVastErrorCode];
+		[self trackErrorUrls:adErrorTrackings errorCode:SKIVASTWrapperNoVastErrorCode];
 		[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
 			err.type = SKIErrorCollectorTypeVAST;
 			err.place = @"processVAST";
@@ -1237,7 +1275,20 @@ NSString *SKIGenderToString(SKIGender gender) {
 																 macroValues.errorCode = errorCode;
 															 }];
 		if (macrosed) {
-			[[SKIAdEventTracker defaultTracker] trackErrorRequestWithUrl:macrosed];
+			[[SKIAdEventTracker defaultTracker] trackEvent:^(SKIAdEventTrackerBuilder * _Nonnull e) {
+				e.url = macrosed;
+				e.logEvent = self.logEvents;
+				e.sessionID = self.errorCollector.sessionID;
+			}];
+		} else {
+			[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+				err.type = SKIErrorCollectorTypeOther;
+				err.place = @"trackError.macros";
+				err.desc = @"Failed to apply macros";
+				err.otherInfo = @{
+								  @"url": url ?: [NSNull null]
+								  };
+			}];
 		}
 	}
 }
@@ -1252,7 +1303,21 @@ NSString *SKIGenderToString(SKIGender gender) {
 															 macroValues.errorCode = errorCode;
 														 }];
 	if (macrosed) {
-		[[SKIAdEventTracker defaultTracker] trackErrorRequestWithUrl:macrosed];
+		[[SKIAdEventTracker defaultTracker] trackEvent:^(SKIAdEventTrackerBuilder * _Nonnull e) {
+			e.url = macrosed;
+			e.logEvent = self.logEvents;
+			e.sessionID = self.errorCollector.sessionID;
+		}];
+	} else {
+		[self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+			err.type = SKIErrorCollectorTypeOther;
+			err.place = @"trackError.macros";
+			err.desc = @"Failed to apply macros";
+			err.otherInfo = @{
+							  @"url": url ?: [NSNull null],
+							  @"errorCode": @(errorCode)
+							  };
+		}];
 	}
 }
 

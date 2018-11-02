@@ -38,6 +38,7 @@ class SkiAdRequestResponse {
     private int errorCode = SkiAdRequest.ERROR_NO_ERROR;
     @VastError.AdVastError
     private int vastErrorCode = VastError.VAST_NO_ERROR_CODE;
+    private boolean logEvents = true;
 
     private String htmlSnippet;
     private SkiVastCompressedInfo vast;
@@ -99,6 +100,10 @@ class SkiAdRequestResponse {
         return vastErrorCode;
     }
 
+    boolean isLogEvents() {
+        return logEvents;
+    }
+
     String getHtmlSnippet() {
         return htmlSnippet;
     }
@@ -154,7 +159,7 @@ class SkiAdRequestResponse {
                 if (content.isEmpty()) {
                     return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_NO_FILL);
                 }
-
+//content = "<VAST version=\"4.0\" xmlns=\"http://www.iab.com/VAST\">    <Ad id=\"20011\" sequence=\"1\" conditionalAd=\"false\">        <Wrapper followAdditionalWrappers=\"0\" allowMultipleAds=\"1\" fallbackOnNoAd=\"0\">            <AdSystem version=\"4.0\">iabtechlab</AdSystem>            <Error>http://example.com/error</Error>            <Impression id=\"Impression-ID\">http://example.com/track/impression</Impression>            <Creatives>                <Creative id=\"5480\" sequence=\"1\" adId=\"2447226\">                  <CompanionAds>                      <Companion id=\"1232\" width=\"100\" height=\"150\" assetWidth=\"250\" assetHeight=\"200\" expandedWidth=\"350\" expandedHeight=\"250\"  \t\t\t\t\tapiFramework=\"VPAID\" adSlotID=\"3214\" pxratio=\"1400\" >                              <StaticResource creativeType=\"image/png\">                                  <![CDATA[https://www.iab.com/wp-content/uploads/2014/09/iab-tech-lab-6-644x290.png]]>                              </StaticResource>                              <CompanionClickThrough>                                  <![CDATA[https://iabtechlab.com]]>                              </CompanionClickThrough>                      </Companion>                  </CompanionAds>                </Creative>            </Creatives>            <VASTAdTagURI><![CDATA[http://10.0.0.6:8085/wrapper2.xml]]></VASTAdTagURI>        </Wrapper>    </Ad></VAST>";
                 SkiVastCompressedInfo compressedInfo = null;
                 try {
                     VAST vast = parseVast(content);
@@ -163,8 +168,13 @@ class SkiAdRequestResponse {
                         if (vast.getError() != null) {
                             Util.VastUrlMacros builder = Util.VastUrlMacros.builder()
                                     .setErrorCode(VastError.VAST_WRAPPER_NO_VAST_ERROR_CODE);
-                            SkiEventTracker.getInstance()
-                                    .trackEventRequest(builder.build(vast.getError()));
+                            final URL url = builder.build(vast.getError());
+                            SkiEventTracker.getInstance().trackEvent(new SkiEventTracker.EventBuilder() {
+                                @Override
+                                public void build(SkiEventTracker.Builder ev) {
+                                    ev.url = url;
+                                }
+                            });
                         }
                         errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
                             @Override
@@ -174,7 +184,7 @@ class SkiAdRequestResponse {
                                 err.desc = "VAST does not contain ad.";
                             }
                         });
-                        return SkiAdRequestResponse.withVastError(VastError.VAST_UNDEFINED_ERROR_CODE);
+                        return SkiAdRequestResponse.withVastError(VastError.VAST_WRAPPER_NO_VAST_ERROR_CODE);
                     }
 
                     compressedInfo = extractInfo(vast);
@@ -278,6 +288,10 @@ class SkiAdRequestResponse {
     }
 
     private static void extractInfo(VAST vast, SkiVastCompressedInfo compressedInfo) throws VastException {
+        if (vast.getError() != null) {
+            compressedInfo.getAdErrorTrackings().add(vast.getError());
+        }
+        
         VAST.Ad ad = vast.getFirstAd();
         if (ad == null) {
             return;

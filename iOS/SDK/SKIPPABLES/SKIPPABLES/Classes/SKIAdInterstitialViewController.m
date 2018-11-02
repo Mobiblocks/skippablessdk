@@ -74,8 +74,12 @@ static BOOL muted = NO;
 @property (strong, nonatomic) NSPointerArray *avPlayerTimeTokens;
 @property (strong, nonatomic) NSMutableArray<id<NSObject>> *avPlayerNotificationTokens;
 
+@property (strong, nonatomic) NSMutableArray<NSURL *> *impressionTrackings;
+@property (strong, nonatomic) NSMutableArray<SKIVASTTracking *> *playerTrackings;
+
 @property (assign, nonatomic) BOOL viewShownOnce;
 @property (assign, nonatomic) BOOL isPlaying;
+@property (assign, nonatomic) CMTime didDisappearOnTime;
 
 @end
 
@@ -91,6 +95,9 @@ static BOOL muted = NO;
 	if (self) {
 		self.avPlayerTimeTokens = [NSPointerArray pointerArrayWithOptions:NSPointerFunctionsOpaqueMemory | NSPointerFunctionsStrongMemory];
 		self.avPlayerNotificationTokens = [NSMutableArray array];
+		self.impressionTrackings = [NSMutableArray array];
+		self.playerTrackings = [NSMutableArray array];
+		self.didDisappearOnTime = kCMTimeZero;
 	}
 
 	return self;
@@ -247,111 +254,44 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	NSTimeInterval skipoffset = SKITrackingEventWithOffsetInterval(compressedCreative.skipoffset, duration);
 	if (skipoffset > durationInterval || compareNearlyEqual(skipoffset, durationInterval)) {
 		skipoffset = -1;
-	}
-	if (skipoffset >= 0.) {
-		if (skipoffset > 0.) {
-			id token = [self.avPlayer addBoundaryTimeObserverForTimes:@[ [NSValue valueWithCMTime:CMTimeMakeWithSeconds(skipoffset, 1000)] ]
-																queue:nil
-														   usingBlock:^{
-															   DLog(@"Event: %@, %f : %@", @"SKIP", skipoffset, [NSDate date]);
-															   [wSelf.avPlayerControllerLayer showSkip];
-														   }];
-			
-			[self.avPlayerTimeTokens addPointer:(__bridge void *)token];
-		} else {
-			[self.avPlayerControllerLayer showSkip];
-		}
+		[self.avPlayerControllerLayer showSkip];
 	}
 
-	NSMutableArray<NSURL *> *skipTrackingUrls = [NSMutableArray array];
-	NSArray<SKIVASTTracking *> *trackings = [compressedCreative.trackings ?: @[] arrayByAddingObjectsFromArray:compressedCreative.additionalTrackings ?: @[]];
-	for (SKIVASTTracking *tracking in trackings) {
+	NSMutableArray<SKIVASTTracking *> *skipTrackingUrls = [NSMutableArray array];
+	NSMutableArray<SKIVASTTracking *> *completeTrackingUrls = [NSMutableArray array];
+	for (SKIVASTTracking *tracking in self.playerTrackings) {
 		NSString *eventName = tracking.event;
-		NSURL *trackUrl = tracking.value;
-		NSTimeInterval eventInterval = 0.;
-		if ([eventName isEqualToString:@"start"]) {
-			eventInterval = SKITrackingEventWithOffsetInterval(tracking.offset, duration);
-#if DEBUG
-			if (eventInterval < 0) {
-				eventInterval = 0.001;
-			}
 
-			if (eventInterval >= 0.) {
-				[self addPlayerBoundaryObserver:eventInterval usingBlock:^{
-					[wSelf trackUrl:trackUrl playhead:eventInterval];
-
-					DLog(@"Event: %@, %f : %@, %@", eventName, eventInterval, [NSDate date], trackUrl.absoluteString);
-				}];
-			}
-#endif
-		} else if ([eventName isEqualToString:@"firstQuartile"]) {
-			eventInterval = SKITrackingEventFirstQuartileInterval(duration);
-
-			if (eventInterval >= 0.) {
-				[self addPlayerBoundaryObserver:eventInterval usingBlock:^{
-					[wSelf trackUrl:trackUrl playhead:eventInterval];
-
-					DLog(@"Event: %@, %f : %@, %@", eventName, eventInterval, [NSDate date], trackUrl.absoluteString);
-				}];
-			}
-		} else if ([eventName isEqualToString:@"midpoint"]) {
-			eventInterval = SKITrackingEventMidpointInterval(duration);
-
-			if (eventInterval >= 0.) {
-				[self addPlayerBoundaryObserver:eventInterval usingBlock:^{
-					[wSelf trackUrl:trackUrl playhead:eventInterval];
-
-					DLog(@"Event: %@, %f : %@, %@", eventName, eventInterval, [NSDate date], trackUrl.absoluteString);
-				}];
-			}
-		} else if ([eventName isEqualToString:@"thirdQuartile"]) {
-			eventInterval = SKITrackingEventThirdQuartileInterval(duration);
-
-			if (eventInterval >= 0.) {
-				[self addPlayerBoundaryObserver:eventInterval usingBlock:^{
-					[wSelf trackUrl:trackUrl playhead:eventInterval];
-
-					DLog(@"Event: %@, %f : %@, %@", eventName, eventInterval, [NSDate date], trackUrl.absoluteString);
-				}];
-			}
-		} else if ([eventName isEqualToString:@"complete"]) {
-			eventInterval = SKITrackingEventWithOffsetInterval(@"100%", duration) - 0.9;
-
-			if (eventInterval >= 0.) {
-				[self addPlayerBoundaryObserver:eventInterval usingBlock:^{
-					[wSelf trackUrl:trackUrl playhead:eventInterval];
-
-					DLog(@"Event: %@, %f : %@, %@", eventName, eventInterval, [NSDate date], trackUrl.absoluteString);
-				}];
-			}
-		} else if ([eventName isEqualToString:@"progress"]) {
-			eventInterval = SKITrackingEventWithOffsetInterval(@"100%", duration) - 0.9;
-			
-			if (eventInterval >= 0.) {
-				[self addPlayerBoundaryObserver:eventInterval usingBlock:^{
-					[wSelf trackUrl:trackUrl playhead:eventInterval];
-
-					DLog(@"Event: %@, %f : %@, %@", eventName, eventInterval, [NSDate date], trackUrl.absoluteString);
-				}];
-			}
+		if ([eventName isEqualToString:@"complete"]) {
+			[completeTrackingUrls addObject:tracking];
 		} else if ([eventName isEqualToString:@"skip"]) {
-			[skipTrackingUrls addObject:trackUrl];
+			[skipTrackingUrls addObject:tracking];
 		}
 	}
 	
 	compressedCreative.skipTrackingUrls = skipTrackingUrls;
+	compressedCreative.completeTrackingUrls = completeTrackingUrls;
+	[self.playerTrackings removeObjectsInArray:skipTrackingUrls];
+	[self.playerTrackings removeObjectsInArray:completeTrackingUrls];
 	{
 		AVPlayerItem *playerItem = self.avPlayer.currentItem;
-		[self addPlayerPeriodicObserver:1. usingBlock:^(CMTime time) {
+		[self addPlayerPeriodicObserver:0.5 usingBlock:^(CMTime time) {
 			NSTimeInterval duration = CMTimeGetSeconds(playerItem.duration);
 			NSTimeInterval currentTime = CMTimeGetSeconds(playerItem.currentTime);
 			if (isnan(duration) || isnan(currentTime)) {
 				return;
 			}
+			
+			wSelf.didDisappearOnTime = time;
+			
+			[wSelf handlePlayerEventTick:playerItem];
+			
 			[wSelf.avPlayerControllerLayer updateDurationTimeLabelWithDuration:duration currentTime:currentTime];
 			
 			if (skipoffset > 0. && skipoffset - currentTime >= 0.) {
 				[wSelf.avPlayerControllerLayer updateSkipTimeLabelWithOffset:skipoffset currentTime:currentTime];
+			} else {
+				[wSelf.avPlayerControllerLayer showSkip];
 			}
 		}];
 	}
@@ -367,16 +307,103 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	[self.ad interstitialViewControllerDidFinishLoading:self];
 }
 
-- (void)addPlayerPeriodicObserver:(NSTimeInterval)seconds usingBlock:(void (^)(CMTime time))block {
-	id token = [self.avPlayer addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(seconds, 1) queue:nil usingBlock:block];
-
-	[self.avPlayerTimeTokens addPointer:(__bridge void *)token];
+- (void)sendInitialEvents {
+	for (NSURL *url in self.impressionTrackings) {
+		[self trackUrl:url playhead:0.0];
+	}
+	[self.impressionTrackings removeAllObjects];
 }
 
-- (void)addPlayerBoundaryObserver:(NSTimeInterval)seconds usingBlock:(void (^)(void))block {
-	id token = [self.avPlayer addBoundaryTimeObserverForTimes:@[ [NSValue valueWithCMTime:CMTimeMakeWithSeconds(seconds, 1000)] ]
-	                                                    queue:nil
-	                                               usingBlock:block];
+- (void)handlePlayerEventTick:(AVPlayerItem *)playerItem {
+	NSTimeInterval duration = CMTimeGetSeconds(playerItem.duration);
+	NSTimeInterval currentTime = CMTimeGetSeconds(playerItem.currentTime);
+	if (isnan(duration) || isnan(currentTime)) {
+		return;
+	}
+	
+	NSMutableArray<SKIVASTTracking *> *removeTrackings = [NSMutableArray array];
+	for (SKIVASTTracking *tracking in self.playerTrackings) {
+		NSURL *eventUrl = tracking.value;
+		if (eventUrl == nil) {
+			[removeTrackings addObject:tracking];
+			continue;
+			
+		}
+		NSString *eventName = tracking.event;
+		NSString *eventOffset = tracking.offset;
+		NSDate *durationDate = [NSDate dateWithTimeIntervalSinceReferenceDate:duration];
+		
+		NSTimeInterval eventInterval = 0.;
+		if ([eventName isEqualToString:@"start"]) {
+			eventInterval = SKITrackingEventWithOffsetInterval(eventOffset, durationDate);
+			if (eventInterval < 0.0) {
+				eventInterval = 0.0;
+			}
+		} else if ([eventName isEqualToString:@"firstQuartile"]) {
+			eventInterval = SKITrackingEventFirstQuartileInterval(durationDate);
+		} else if ([eventName isEqualToString:@"midpoint"]) {
+			eventInterval = SKITrackingEventMidpointInterval(durationDate);
+		} else if ([eventName isEqualToString:@"thirdQuartile"]) {
+			eventInterval = SKITrackingEventThirdQuartileInterval(durationDate);
+		} else if ([eventName isEqualToString:@"progress"]) {
+			eventInterval = SKITrackingEventWithOffsetInterval(eventOffset, durationDate);
+			if (eventInterval < 0.0) {
+				[removeTrackings addObject:tracking];
+				continue;
+			}
+		} else {
+			continue;
+		}
+		
+		if (currentTime >= eventInterval) {
+			
+			DLog(@"%@\t%.02f : %.02f : %.02f\t%@", eventName, (float)duration, (float)currentTime, (float)eventInterval, eventOffset);
+			
+			[removeTrackings addObject:tracking];
+			
+			[self trackUrl:eventUrl playhead:eventInterval];
+		}
+	}
+	
+	[self.playerTrackings removeObjectsInArray:removeTrackings];
+}
+
+- (void)sendSkipEvents {
+	if (self.compressedCreative.skipTrackingUrls.count > 0) {
+		NSTimeInterval contentPlayhead = CMTimeGetSeconds(self.avPlayer.currentItem.currentTime);
+		for (SKIVASTTracking *tracking in self.compressedCreative.skipTrackingUrls) {
+			NSURL *eventUrl = tracking.value;
+			if (eventUrl == nil) {
+				continue;
+				
+			}
+			
+			[self trackUrl:eventUrl playhead:contentPlayhead];
+		}
+		
+		self.compressedCreative.skipTrackingUrls = @[];
+	}
+}
+
+- (void)sendCompletedEvents {
+	if (self.compressedCreative.completeTrackingUrls.count > 0) {
+		NSTimeInterval contentPlayhead = CMTimeGetSeconds(self.avPlayer.currentItem.currentTime);
+		for (SKIVASTTracking *tracking in self.compressedCreative.completeTrackingUrls) {
+			NSURL *eventUrl = tracking.value;
+			if (eventUrl == nil) {
+				continue;
+				
+			}
+			
+			[self trackUrl:eventUrl playhead:contentPlayhead];
+		}
+		
+		self.compressedCreative.completeTrackingUrls = @[];
+	}
+}
+
+- (void)addPlayerPeriodicObserver:(NSTimeInterval)seconds usingBlock:(void (^)(CMTime time))block {
+	id token = [self.avPlayer addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(seconds, 1000) queue:nil usingBlock:block];
 
 	[self.avPlayerTimeTokens addPointer:(__bridge void *)token];
 }
@@ -397,12 +424,7 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 			}
 		}];
 		[self.avPlayerControllerLayer setSkipCallback:^{
-			if (wSelf.compressedCreative.skipTrackingUrls.count > 0) {
-				NSTimeInterval contentPlayhead = CMTimeGetSeconds(wSelf.avPlayer.currentItem.currentTime);
-				for (NSURL *url in wSelf.compressedCreative.skipTrackingUrls) {
-					[wSelf trackUrl:url playhead:contentPlayhead];
-				}
-			}
+			[wSelf sendSkipEvents];
 			[wSelf closeInterstitial];
 		}];
 		[self.avPlayerControllerLayer setCloseCallback:^{
@@ -504,8 +526,9 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 			                        if (note.object != playerItem) {
 				                        return;
 			                        }
+									wSelf.didDisappearOnTime = kCMTimeZero;
 									DLog(@"AVPlayerItemDidPlayToEndTimeNotification: %@", note.userInfo);
-
+									[wSelf sendCompletedEvents];
 			                        [wSelf.avPlayerControllerLayer showClose];
 			                    }];
 		[self.avPlayerNotificationTokens addObject:token];
@@ -658,7 +681,21 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 															 macroValues.assetUrl = assetUrl;
 														 }];
 	if (macrosed) {
-		[[SKIAdEventTracker defaultTracker] trackEventRequestWithUrl:macrosed];
+		[[SKIAdEventTracker defaultTracker] trackEvent:^(SKIAdEventTrackerBuilder * _Nonnull e) {
+			e.url = macrosed;
+			e.logEvent = self.ad.logEvents;
+			e.sessionID = self.ad.errorCollector.sessionID;
+		}];
+	} else {
+		[self.ad.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+			err.type = SKIErrorCollectorTypeOther;
+			err.place = @"trackUrl.macros";
+			err.desc = @"Failed to apply macros";
+			err.otherInfo = @{
+							  @"url": url ?: [NSNull null],
+							  @"assetUrl": assetUrl ?: [NSNull null]
+							  };
+		}];
 	}
 }
 
@@ -672,7 +709,21 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 															 macroValues.errorCode = errorCode;
 														 }];
 	if (macrosed) {
-		[[SKIAdEventTracker defaultTracker] trackErrorRequestWithUrl:macrosed];
+		[[SKIAdEventTracker defaultTracker] trackEvent:^(SKIAdEventTrackerBuilder * _Nonnull e) {
+			e.url = macrosed;
+			e.logEvent = self.ad.logEvents;
+			e.sessionID = self.ad.errorCollector.sessionID;
+		}];
+	} else {
+		[self.ad.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+			err.type = SKIErrorCollectorTypeOther;
+			err.place = @"trackErrorUrl.macros";
+			err.desc = @"Failed to apply macros";
+			err.otherInfo = @{
+							  @"url": url ?: [NSNull null],
+							  @"errorCode": @(errorCode)
+							  };
+		}];
 	}
 }
 
@@ -694,7 +745,20 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 
 - (void)viewDidLoad {
 	[super viewDidLoad];
-	// Do any additional setup after loading the view.
+
+	if (self.compressedCreative.impressionUrls) {
+		[self.impressionTrackings addObjectsFromArray:self.compressedCreative.impressionUrls];
+	}
+	if (self.compressedCreative.additionalImpressionUrls) {
+		[self.impressionTrackings addObjectsFromArray:self.compressedCreative.additionalImpressionUrls];
+	}
+	
+	if (self.compressedCreative.trackings) {
+		[self.playerTrackings addObjectsFromArray:self.compressedCreative.trackings];
+	}
+	if (self.compressedCreative.additionalTrackings) {
+		[self.playerTrackings addObjectsFromArray:self.compressedCreative.additionalTrackings];
+	}
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -713,12 +777,12 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 		self.isPlaying = YES;
 		
 		_viewShownOnce = YES;
-		for (NSURL *url in self.compressedCreative.impressionUrls) {
-			[self trackUrl:url playhead:0.0f];
-		}
-		
-		for (NSURL *url in self.compressedCreative.additionalImpressionUrls) {
-			[self trackUrl:url playhead:0.0f];
+		[self sendInitialEvents];
+	} else {
+		//		wSelf.didDisappearOnTime = kCMTimeZero;
+		if (CMTimeCompare(self.didDisappearOnTime, kCMTimeZero) != NO) {
+			[self.avPlayer seekToTime:self.didDisappearOnTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
+			self.didDisappearOnTime = kCMTimeZero;
 		}
 	}
 	
@@ -727,6 +791,19 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 
 - (void)applicationDidBecomeActive:(BOOL)previouslyVisible {
 	[super applicationDidBecomeActive:previouslyVisible];
+	
+	if (_viewShownOnce) {
+		if (CMTimeCompare(self.didDisappearOnTime, kCMTimeZero) != NO) {
+			CMTime newTime = CMTimeSubtract(self.didDisappearOnTime, CMTimeMakeWithSeconds(0.5, 1000));
+			if (CMTIME_IS_VALID(newTime)) {
+				[self.avPlayer seekToTime:newTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
+			} else {
+				[self.avPlayer seekToTime:self.didDisappearOnTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
+			}
+			
+			self.didDisappearOnTime = kCMTimeZero;
+		}
+	}
 	
 //	if (previouslyVisible) {
 //		[self.avPlayer play];
