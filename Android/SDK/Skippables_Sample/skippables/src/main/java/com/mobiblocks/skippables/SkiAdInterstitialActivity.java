@@ -726,17 +726,18 @@ public class SkiAdInterstitialActivity extends Activity {
             mVastInfo.getImpressionUrls().removeAll(removeImpression);
 
             ArrayList<SkiVastCompressedInfo.MediaFile.Tracking> removeTracking = new ArrayList<>();
-            for (SkiVastCompressedInfo.MediaFile.Tracking tracking :
-                    mVastInfo.getTrackings()) {
-                removeTracking.add(tracking);
+            for (SkiVastCompressedInfo.MediaFile.Tracking tracking : mVastInfo.getTrackings()) {
                 //noinspection ConstantConditions
                 if (tracking.getValue() == null) {
+                    removeTracking.add(tracking);
                     continue;
                 }
+                
                 String event = tracking.getEvent();
                 if ("start".equalsIgnoreCase(event)) {
                     URL macrosed = builder.build(tracking.getValue());
                     trackEventRequest(macrosed, event);
+                    removeTracking.add(tracking);
                 }
             }
 

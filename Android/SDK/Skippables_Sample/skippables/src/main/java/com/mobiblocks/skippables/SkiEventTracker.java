@@ -378,10 +378,10 @@ class SkiEventTracker {
             urlConnection.setConnectTimeout(15 * 1000);
             urlConnection.setReadTimeout(15 * 1000);
             urlConnection.setRequestProperty("Connection", "close");
-            urlConnection.setDoOutput(true);
             if (data == null) {
                 urlConnection.setRequestMethod("GET");
             } else {
+                urlConnection.setDoOutput(true);
                 urlConnection.setRequestMethod("POST");
                 urlConnection.setRequestProperty("Content-Type", "application/json");
             }
