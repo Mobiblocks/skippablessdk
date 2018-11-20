@@ -10,12 +10,14 @@
 
 @class SKIAdRequestResponse;
 @class SKIErrorCollector;
+@class SKISDKSessionLogger;
 
 @interface SKIAdInterstitial (Private) <SKIAdInterstitialViewControllerDelegate>
 
 @property (strong, nonatomic) SKIAdRequestResponse *response;
-@property (assign, nonatomic) BOOL logEvents;
+@property (assign, nonatomic) BOOL logErrors;
 @property (strong, nonatomic) SKIErrorCollector *errorCollector;
+@property (strong, nonatomic, readonly) SKISDKSessionLogger *sessionLogger;
 
 @end
 

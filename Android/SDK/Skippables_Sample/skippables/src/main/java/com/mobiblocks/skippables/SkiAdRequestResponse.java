@@ -1,5 +1,8 @@
 package com.mobiblocks.skippables;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import com.mobiblocks.skippables.vast.ImpressionType;
 import com.mobiblocks.skippables.vast.InlineType;
 import com.mobiblocks.skippables.vast.LinearInlineChildType;
@@ -8,13 +11,12 @@ import com.mobiblocks.skippables.vast.SaxParser;
 import com.mobiblocks.skippables.vast.TrackingEventsType;
 import com.mobiblocks.skippables.vast.VAST;
 import com.mobiblocks.skippables.vast.VastError;
-import com.mobiblocks.skippables.vast.VastException;
+import com.mobiblocks.skippables.vast.VastTime;
 import com.mobiblocks.skippables.vast.VideoClicksBaseType;
 import com.mobiblocks.skippables.vast.VideoClicksInlineChildType;
 import com.mobiblocks.skippables.vast.WrapperType;
 
 import org.json.JSONObject;
-import org.xml.sax.SAXException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -23,9 +25,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * Created by daniel on 12/13/17.
@@ -34,16 +35,17 @@ import javax.xml.parsers.ParserConfigurationException;
  */
 
 class SkiAdRequestResponse {
+    @SuppressWarnings("UnusedAssignment")
     @SkiAdRequest.AdError
     private int errorCode = SkiAdRequest.ERROR_NO_ERROR;
     @VastError.AdVastError
     private int vastErrorCode = VastError.VAST_NO_ERROR_CODE;
-    private boolean logEvents = true;
+    private boolean logErrors = true;
 
     private String htmlSnippet;
-    private SkiVastCompressedInfo vast;
+    private SkiCompactVast vast;
 
-    private final SkiAdInfo adInfo = new SkiAdInfo();
+    @NonNull private final SkiAdInfo adInfo = new SkiAdInfo();
 
     @SuppressWarnings("WeakerAccess")
     static SkiAdRequestResponse response() {
@@ -54,15 +56,16 @@ class SkiAdRequestResponse {
         return new SkiAdRequestResponse(errorCode);
     }
 
-    static SkiAdRequestResponse withVastError(@VastError.AdVastError int vastErrorCode) {
-        return new SkiAdRequestResponse(SkiAdRequest.ERROR_RECEIVED_INVALID_RESPONSE, vastErrorCode);
-    }
-
-    static SkiAdRequestResponse withVastError(@VastError.AdVastError int vastErrorCode, SkiVastCompressedInfo vast) {
-        SkiAdRequestResponse response = new SkiAdRequestResponse(SkiAdRequest.ERROR_RECEIVED_INVALID_RESPONSE, vastErrorCode);
-        response.setVastInfo(vast);
-        return response;
-    }
+//    @SuppressWarnings({"SameParameterValue", "WeakerAccess"})
+//    static SkiAdRequestResponse withVastError(@VastError.AdVastError int vastErrorCode) {
+//        return new SkiAdRequestResponse(SkiAdRequest.ERROR_RECEIVED_INVALID_RESPONSE, vastErrorCode);
+//    }
+//
+//    static SkiAdRequestResponse withVastError(@VastError.AdVastError int vastErrorCode, SkiCompactVast vast) {
+//        SkiAdRequestResponse response = new SkiAdRequestResponse(SkiAdRequest.ERROR_RECEIVED_INVALID_RESPONSE, vastErrorCode);
+//        response.setVastInfo(vast);
+//        return response;
+//    }
 
     private SkiAdRequestResponse() {
         this.errorCode = 0;
@@ -95,13 +98,29 @@ class SkiAdRequestResponse {
         return errorCode;
     }
 
+    public void setErrorCode(@SkiAdRequest.AdError int errorCode) {
+        this.errorCode = errorCode;
+    }
+
     @VastError.AdVastError
     int getVastErrorCode() {
         return vastErrorCode;
     }
 
-    boolean isLogEvents() {
-        return logEvents;
+    public void setVastErrorCode(@VastError.AdVastError int vastErrorCode) {
+        this.vastErrorCode = vastErrorCode;
+        if (!hasError()) {
+            if (vastErrorCode == VastError.VAST_NO_ERROR_CODE) {
+                this.errorCode = SkiAdRequest.ERROR_NO_FILL;
+            } else {
+                this.errorCode = SkiAdRequest.ERROR_RECEIVED_INVALID_RESPONSE;
+            }
+        }
+    }
+
+    @SuppressWarnings("unused")
+    boolean isLogErrors() {
+        return logErrors;
     }
 
     String getHtmlSnippet() {
@@ -112,22 +131,34 @@ class SkiAdRequestResponse {
         this.htmlSnippet = htmlSnippet;
     }
 
-    SkiVastCompressedInfo getVastInfo() {
+    SkiCompactVast getVastInfo() {
         return vast;
     }
 
-    private void setVastInfo(SkiVastCompressedInfo vast) {
+    private void setVastInfo(SkiCompactVast vast) {
         this.vast = vast;
     }
 
-    SkiAdInfo getAdInfo() {
+    @NonNull SkiAdInfo getAdInfo() {
         return adInfo;
     }
 
-    static SkiAdRequestResponse create(SkiAdErrorCollector errorCollector, JSONObject object) {
+    static SkiAdRequestResponse create(ISkiSessionLogger sessionLogger, SkiAdErrorCollector errorCollector, JSONObject object) {
+        String sessionID = object.optString("SessionID");
+        errorCollector.setSessionID(sessionID);
+
+        SkiAdRequestResponse response = SkiAdRequestResponse.response();
+        response.adInfo.setSessionID(sessionID);
+        
+        boolean sessionLog = object.optBoolean("SessionLog", false);
+        if (!sessionLog) {
+            sessionLogger = SkiSessionLogger.createNop(sessionID);
+        } else {
+            sessionLogger.setSessionID(sessionID);
+        }
+        
         if (!object.isNull("data") || !object.isNull("Data")) {
-            
-            errorCollector.setSessionID(object.optString("SessionID"));
+            response.adInfo.setAdId(object.optString("AdId"));
             
             String data = object.optString("data", null);
             if (data == null) {
@@ -135,12 +166,9 @@ class SkiAdRequestResponse {
             }
             if (data != null) {
                 if (data.isEmpty()) {
-                    return new SkiAdRequestResponse(SkiAdRequest.ERROR_NO_FILL);
+                    response.setErrorCode(SkiAdRequest.ERROR_NO_FILL);
                 }
-
-                SkiAdRequestResponse response = SkiAdRequestResponse.response();
-                response.adInfo.setSessionID(object.optString("SessionID"));
-                response.adInfo.setAdId(object.optString("AdId"));
+                
                 response.setHtmlSnippet(data);
 
                 return response;
@@ -148,102 +176,132 @@ class SkiAdRequestResponse {
         }
 
         if (!object.isNull("content") || !object.isNull("Content")) {
-            errorCollector.setSessionID(object.optString("SessionID"));
-            
             String content = object.optString("content", null);
             if (content == null) {
                 content = object.optString("Content", null);
             }
             
-            if (content != null) {
-                if (content.isEmpty()) {
-                    return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_NO_FILL);
+            if (content == null || content.isEmpty()) {
+                response.setErrorCode(SkiAdRequest.ERROR_NO_FILL);
+                return response;
+            }
+
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adRequest.parseVast";
                 }
-//content = "<VAST version=\"4.0\" xmlns=\"http://www.iab.com/VAST\">    <Ad id=\"20011\" sequence=\"1\" conditionalAd=\"false\">        <Wrapper followAdditionalWrappers=\"0\" allowMultipleAds=\"1\" fallbackOnNoAd=\"0\">            <AdSystem version=\"4.0\">iabtechlab</AdSystem>            <Error>http://example.com/error</Error>            <Impression id=\"Impression-ID\">http://example.com/track/impression</Impression>            <Creatives>                <Creative id=\"5480\" sequence=\"1\" adId=\"2447226\">                  <CompanionAds>                      <Companion id=\"1232\" width=\"100\" height=\"150\" assetWidth=\"250\" assetHeight=\"200\" expandedWidth=\"350\" expandedHeight=\"250\"  \t\t\t\t\tapiFramework=\"VPAID\" adSlotID=\"3214\" pxratio=\"1400\" >                              <StaticResource creativeType=\"image/png\">                                  <![CDATA[https://www.iab.com/wp-content/uploads/2014/09/iab-tech-lab-6-644x290.png]]>                              </StaticResource>                              <CompanionClickThrough>                                  <![CDATA[https://iabtechlab.com]]>                              </CompanionClickThrough>                      </Companion>                  </CompanionAds>                </Creative>            </Creatives>            <VASTAdTagURI><![CDATA[http://10.0.0.6:8085/wrapper2.xml]]></VASTAdTagURI>        </Wrapper>    </Ad></VAST>";
-                SkiVastCompressedInfo compressedInfo = null;
-                try {
-                    VAST vast = parseVast(content);
-                    VAST.Ad ad = vast.getFirstAd();
-                    if (ad == null) {
-                        if (vast.getError() != null) {
-                            Util.VastUrlMacros builder = Util.VastUrlMacros.builder()
-                                    .setErrorCode(VastError.VAST_WRAPPER_NO_VAST_ERROR_CODE);
-                            final URL url = builder.build(vast.getError());
-                            SkiEventTracker.getInstance().trackEvent(new SkiEventTracker.EventBuilder() {
-                                @Override
-                                public void build(SkiEventTracker.Builder ev) {
-                                    ev.url = url;
-                                }
-                            });
-                        }
-                        errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
-                            @Override
-                            public void build(SkiAdErrorCollector.Builder err) {
-                                err.type = SkiAdErrorCollector.TYPE_VAST;
-                                err.place = "SkiAdRequestResponse.create";
-                                err.desc = "VAST does not contain ad.";
-                            }
-                        });
-                        return SkiAdRequestResponse.withVastError(VastError.VAST_WRAPPER_NO_VAST_ERROR_CODE);
+            });
+
+            //content = "<VAST version=\"4.0\" xmlns=\"http://www.iab.com/VAST\">    <Ad id=\"20011\" sequence=\"1\" conditionalAd=\"false\">        <Wrapper followAdditionalWrappers=\"0\" allowMultipleAds=\"1\" fallbackOnNoAd=\"0\">            <AdSystem version=\"4.0\">iabtechlab</AdSystem>            <Error>http://example.com/error</Error>            <Impression id=\"Impression-ID\">http://example.com/track/impression</Impression>            <Creatives>                <Creative id=\"5480\" sequence=\"1\" adId=\"2447226\">                  <CompanionAds>                      <Companion id=\"1232\" width=\"100\" height=\"150\" assetWidth=\"250\" assetHeight=\"200\" expandedWidth=\"350\" expandedHeight=\"250\"  \t\t\t\t\tapiFramework=\"VPAID\" adSlotID=\"3214\" pxratio=\"1400\" >                              <StaticResource creativeType=\"image/png\">                                  <![CDATA[https://www.iab.com/wp-content/uploads/2014/09/iab-tech-lab-6-644x290.png]]>                              </StaticResource>                              <CompanionClickThrough>                                  <![CDATA[https://iabtechlab.com]]>                              </CompanionClickThrough>                      </Companion>                  </CompanionAds>                </Creative>            </Creatives>            <VASTAdTagURI><![CDATA[http://10.0.0.6:8085/wrapper2.xml]]></VASTAdTagURI>        </Wrapper>    </Ad></VAST>";
+            VAST vast = parseVast(errorCollector, sessionLogger, content);
+            if (vast == null) {
+                response.setErrorCode(SkiAdRequest.ERROR_RECEIVED_INVALID_RESPONSE);
+                return response;
+            }
+
+            VAST.Ad ad = vast.getFirstAd();
+            if (ad == null) {
+                errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                    @Override
+                    public void build(SkiAdErrorCollector.Builder err) {
+                        err.type = SkiAdErrorCollector.TYPE_VAST;
+                        err.place = "SkiAdRequestResponse.create";
+                        err.desc = "VAST does not contain ad.";
                     }
+                });
+                
+                response.setVastErrorCode(VastError.VAST_NO_ERROR_CODE);
+                return response;
+            }
 
-                    compressedInfo = extractInfo(vast);
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adRequest.compactVast";
+                }
+            });
 
-                    SkiAdRequestResponse response = new SkiAdRequestResponse();
-                    response.setVastInfo(compressedInfo);
-                    response.adInfo.setSessionID(object.optString("SessionID"));
-                    response.adInfo.setAdId(ad.getId());
+            Result<SkiCompactVast> compactVastResult = extractInfo(vast);
+            response.setVastInfo(compactVastResult.getResult());
+            
+            if (compactVastResult.getError() != null) {
+                final Error error = compactVastResult.getError();
 
+                final SkiCompactVast compactVast = compactVastResult.getResult();
+                sessionLogger.build(new SkiSessionLogger.Builder() {
+                    @Override
+                    public void build(@NonNull SkiSessionLogger.Log log) {
+                        log.identifier = "adRequest.compactVast.error";
+                        if (compactVast != null) {
+                            log.info = SkiSessionLogger.Log.info()
+                                    .put("error", SkiSessionLogger.Log.info()
+                                            .put("domain", error.domain)
+                                            .put("code", error.code)
+                                            .get())
+                                    .get();
+                        }
+                    }
+                });
+                
+                if (error.domain == 2) {
+                    response.setVastErrorCode(error.code);
                     return response;
-                } catch (final VastException e) {
-                    errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
-                        @Override
-                        public void build(SkiAdErrorCollector.Builder err) {
-                            err.type = SkiAdErrorCollector.TYPE_VAST;
-                            err.place = "SkiAdRequestResponse.create";
-                            err.underlyingException = e;
-                        }
-                    });
-                    return SkiAdRequestResponse.withVastError(e.getErrorCode(), compressedInfo);
-                } catch (final ParserConfigurationException e) {
-                    errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
-                        @Override
-                        public void build(SkiAdErrorCollector.Builder err) {
-                            err.type = SkiAdErrorCollector.TYPE_VAST;
-                            err.place = "SkiAdRequestResponse.create";
-                            err.underlyingException = e;
-                        }
-                    });
-                    return SkiAdRequestResponse.withVastError(VastError.VAST_XMLPARSE_ERROR_CODE, compressedInfo);
-                } catch (final SAXException e) {
-                    errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
-                        @Override
-                        public void build(SkiAdErrorCollector.Builder err) {
-                            err.type = SkiAdErrorCollector.TYPE_VAST;
-                            err.place = "SkiAdRequestResponse.create";
-                            err.underlyingException = e;
-                        }
-                    });
-                    return SkiAdRequestResponse.withVastError(VastError.VAST_XMLPARSE_ERROR_CODE, compressedInfo);
-                } catch (final IOException e) {
-                    errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
-                        @Override
-                        public void build(SkiAdErrorCollector.Builder err) {
-                            err.type = SkiAdErrorCollector.TYPE_OTHER;
-                            err.place = "SkiAdRequestResponse.create";
-                            err.underlyingException = e;
-                        }
-                    });
-                    return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_INTERNAL_ERROR);
+                } else {
+
+                    response.setVastErrorCode(VastError.VAST_UNDEFINED_ERROR_CODE);
+                    return response;
                 }
             }
+            
+            final SkiCompactVast compactVast = compactVastResult.getResult();
+
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adRequest.compactVast.value";
+                    if (compactVast != null) {
+                        log.info = compactVast.toJSONObject();
+                    }
+                }
+            });
+
+            response.adInfo.setSessionID(object.optString("SessionID"));
+            response.adInfo.setAdId(ad.getId());
+
+            return response;
         }
 
-        return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_NO_FILL);
+        response.setErrorCode(SkiAdRequest.ERROR_NO_FILL);
+
+        return response;
     }
 
-    private static VAST parseVast(String vastXml) throws ParserConfigurationException, SAXException, VastException, IOException {
-        VAST vast = SaxParser.getInstance().parseFromString(vastXml);
+    @Nullable
+    private static VAST parseVast(SkiAdErrorCollector errorCollector, ISkiSessionLogger sessionLogger, String vastXml) {
+        VAST vast;
+        try {
+            vast = SaxParser.getInstance().parseFromString(vastXml);
+        } catch (final Exception e) {
+            errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                @Override
+                public void build(SkiAdErrorCollector.Builder err) {
+                    err.type = SkiAdErrorCollector.TYPE_VAST;
+                    err.place = "SkiAdRequestResponse.create";
+                    err.underlyingException = e;
+                }
+            });
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adRequest.parseVast.error";
+                    log.exception = e;
+                }
+            });
+            
+            return null;
+        }
+
         VAST.Ad ad = vast.getFirstAd();
         if (ad == null) {
             return vast;
@@ -252,73 +310,180 @@ class SkiAdRequestResponse {
         if (ad.getWrapper() != null) {
             URL wrapperUrl = ad.getWrapper().getVASTAdTagURI();
             if (wrapperUrl == null) {
-                throw new VastException(VastError.VAST_GENERAL_WRAPPER_ERROR_CODE);
+                return vast;
             }
+            
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adRequest.loadWrapper";
+                }
+            });
 
-            String wrapperXml = getUrlContent(wrapperUrl);
+            String wrapperXml = null;
+            try {
+                wrapperXml = getUrlContent(sessionLogger, wrapperUrl);
+            } catch (final IOException e) {
+                errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                    @Override
+                    public void build(SkiAdErrorCollector.Builder err) {
+                        err.type = SkiAdErrorCollector.TYPE_OTHER;
+                        err.place = "SkiAdRequestResponse.parseVast";
+                        err.underlyingException = e;
+                    }
+                });
+                sessionLogger.build(new SkiSessionLogger.Builder() {
+                    @Override
+                    public void build(@NonNull SkiSessionLogger.Log log) {
+                        log.identifier = "adRequest.loadWrapper.error";
+                        log.exception = e;
+                    }
+                });
+            }
             if (wrapperXml == null || wrapperXml.isEmpty()) {
-                throw new VastException(VastError.VAST_WRAPPER_NO_VAST_ERROR_CODE);
+                return vast;
             }
 
-            ad.getWrapper().setWrappedVast(parseVast(wrapperXml));
+            try {
+                sessionLogger.build(new SkiSessionLogger.Builder() {
+                    @Override
+                    public void build(@NonNull SkiSessionLogger.Log log) {
+                        log.identifier = "adRequest.parseWrapper";
+                    }
+                });
+                VAST wrapperVast = parseVast(errorCollector, sessionLogger, wrapperXml);
+                ad.getWrapper().setWrappedVast(wrapperVast); 
+            } catch (final Exception e) {
+                errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                    @Override
+                    public void build(SkiAdErrorCollector.Builder err) {
+                        err.type = SkiAdErrorCollector.TYPE_VAST;
+                        err.place = "SkiAdRequestResponse.parseVast";
+                        err.underlyingException = e;
+                    }
+                });
+                sessionLogger.build(new SkiSessionLogger.Builder() {
+                    @Override
+                    public void build(@NonNull SkiSessionLogger.Log log) {
+                        log.identifier = "adRequest.parseWrapper.error";
+                        log.exception = e;
+                    }
+                });
+                
+                return vast;
+            }
         }
 
         return vast;
     }
+    
+    static class Result<T> {
+        private final T result;
+        private final Error error;
+        private final boolean failed;
 
-    private static SkiVastCompressedInfo extractInfo(VAST vast) throws VastException {
-        VAST.Ad ad = vast.getFirstAd();
-        if (ad == null) {
-            return null;
+        private Result(T result, Error error, boolean failed) {
+            this.result = result;
+            this.error = error;
+            this.failed = failed;
+        }
+        
+        boolean isFailed() {
+            return failed;
         }
 
-        SkiVastCompressedInfo compressedInfo = new SkiVastCompressedInfo();
-
-        WrapperType wrapper = ad.getWrapper();
-        if (wrapper != null) {
-            extractInfoWrapper(wrapper, compressedInfo);
+        public T getResult() {
+            return result;
         }
 
-        InlineType inline = ad.getInLine();
-        if (inline != null) {
-            extractInfoInline(inline, compressedInfo);
+        public Error getError() {
+            return error;
         }
 
-        return compressedInfo;
+        static <T> Result<T> ok(T result) {
+            return new Result<>(result, null, false);
+        }
+
+        static <T> Result<T> fail() {
+            return new Result<>(null, null, true);
+        }
+
+        static <T> Result<T> fail(@NonNull Error error) {
+            return new Result<>(null, error, true);
+        }
+
+        static <T> Result<T> fail(T result, @NonNull Error error) {
+            return new Result<>(result, error, true);
+        }
+    }
+    
+    static class Error {
+        private final int domain;
+        private final int code;
+
+        Error(int domain, int code) {
+            this.domain = domain;
+            this.code = code;
+        }
     }
 
-    private static void extractInfo(VAST vast, SkiVastCompressedInfo compressedInfo) throws VastException {
+    private static Result<SkiCompactVast> extractInfo(VAST vast) {
+        SkiCompactVast compactVast = new SkiCompactVast();
+        if (vast == null) {
+            return Result.fail(compactVast, new Error(1, -1000));
+        }
+
         if (vast.getError() != null) {
-            compressedInfo.getAdErrorTrackings().add(vast.getError());
+            compactVast.getErrors().add(vast.getError());
+        }
+
+        VAST.Ad ad = vast.getFirstAd();
+        if (ad == null) {
+            return Result.fail(new Error(2, VastError.VAST_NO_ERROR_CODE));
+        }
+        
+        return extractInfo(vast, compactVast);
+    }
+
+    private static Result<SkiCompactVast> extractInfo(VAST vast, SkiCompactVast compactVast) {
+        if (vast == null) {
+            return Result.fail(new Error(2, VastError.VAST_GENERAL_WRAPPER_ERROR_CODE));
+        }
+        
+        if (vast.getError() != null) {
+            compactVast.getErrors().add(vast.getError());
         }
         
         VAST.Ad ad = vast.getFirstAd();
         if (ad == null) {
-            return;
+            return Result.fail(new Error(2, VastError.VAST_GENERAL_WRAPPER_ERROR_CODE));
         }
 
         WrapperType wrapper = ad.getWrapper();
         if (wrapper != null) {
-            extractInfoWrapper(wrapper, compressedInfo);
+            return extractInfoWrapper(wrapper, compactVast);
         }
 
         InlineType inline = ad.getInLine();
         if (inline != null) {
-            extractInfoInline(inline, compressedInfo);
+            return extractInfoInline(inline, compactVast);
         }
+        
+        return Result.fail(compactVast, new Error(2, VastError.VAST_GENERAL_WRAPPER_ERROR_CODE));
     }
 
-    private static void extractInfoWrapper(WrapperType wrapper, SkiVastCompressedInfo compressedInfo) throws VastException {
+    private static Result<SkiCompactVast> extractInfoWrapper(WrapperType wrapper, SkiCompactVast compactVast) {
+        compactVast.setWrapper(true);
         URL error = wrapper.getError();
         if (error != null) {
-            compressedInfo.getErrorTrackings().add(error);
+            compactVast.getInlineErrors().add(error);
         }
 
         List<ImpressionType> impressions = wrapper.getImpression();
         for (ImpressionType impression : impressions) {
             URL url = impression.getValue();
             if (url != null) {
-                compressedInfo.getImpressionUrls().add(url);
+                compactVast.getImpressions().add(url);
             }
         }
 
@@ -328,7 +493,8 @@ class SkiAdRequestResponse {
             if (trackingEvents != null) {
                 List<TrackingEventsType.Tracking> trackingList = trackingEvents.getTracking();
                 if (trackingList != null) {
-                    compressedInfo.addTrackings(trackingList);
+                    List<SkiCompactVast.TrackingEvent> events = toTrackingEvents(trackingList);
+                    compactVast.getAd().getTrackingEvents().addAll(events);
                 }
             }
 
@@ -339,7 +505,7 @@ class SkiAdRequestResponse {
                     for (VideoClicksBaseType.ClickTracking track : clickTrackings) {
                         URL url = track.getValue();
                         if (url != null) {
-                            compressedInfo.getClickTrackings().add(url);
+                            compactVast.getAd().getVideoClicks().add(url);
                         }
                     }
                 }
@@ -348,21 +514,23 @@ class SkiAdRequestResponse {
 
         VAST wrappedVast = wrapper.getWrappedVast();
         if (wrappedVast != null) {
-            extractInfo(wrappedVast, compressedInfo);
+            return extractInfo(wrappedVast, compactVast);
         }
+        
+        return Result.ok(compactVast);
     }
 
-    private static void extractInfoInline(InlineType inline, SkiVastCompressedInfo compressedInfo) throws VastException {
+    private static Result<SkiCompactVast> extractInfoInline(InlineType inline, SkiCompactVast compactVast) {
         URL error = inline.getError();
         if (error != null) {
-            compressedInfo.getErrorTrackings().add(error);
+            compactVast.getInlineErrors().add(error);
         }
 
         List<ImpressionType> impressions = inline.getImpression();
         for (ImpressionType impression : impressions) {
             URL url = impression.getValue();
             if (url != null) {
-                compressedInfo.getImpressionUrls().add(url);
+                compactVast.getImpressions().add(url);
             }
         }
 
@@ -372,7 +540,8 @@ class SkiAdRequestResponse {
             if (trackingEvents != null) {
                 List<TrackingEventsType.Tracking> trackingList = trackingEvents.getTracking();
                 if (trackingList != null) {
-                    compressedInfo.addTrackings(trackingList);
+                    List<SkiCompactVast.TrackingEvent> events = toTrackingEvents(trackingList);
+                    compactVast.getAd().getTrackingEvents().addAll(events);
                 }
             }
 
@@ -383,22 +552,97 @@ class SkiAdRequestResponse {
                     for (VideoClicksBaseType.ClickTracking track : clickTrackings) {
                         URL url = track.getValue();
                         if (url != null) {
-                            compressedInfo.getClickTrackings().add(url);
+                            compactVast.getAd().getVideoClicks().add(url);
                         }
                     }
                 }
 
                 VideoClicksInlineChildType.ClickThrough clickThrough = videoClicks.getClickThrough();
                 if (clickThrough != null) {
-                    compressedInfo.setClickThrough(clickThrough.getValue());
+                    compactVast.getAd().setClickThrough(clickThrough.getValue());
                 }
             }
+            
+            compactVast.getAd().setDuration(VastTime.parse(linear.getDuration()));
+            compactVast.getAd().setSkipoffset(VastTime.parse(linear.getSkipoffset()));
+            for (LinearInlineChildType.MediaFiles.MediaFile media : linear.getMediaFiles().getMediaFile()) {
+                SkiCompactVast.MediaFile compactFile = toMediaFile(media);
+                if (compactFile == null) {
+                    continue;
+                }
+                compactVast.getAd().getMediaFiles().add(compactFile);
+            }
+        }
+        
+        return Result.ok(compactVast);
+    }
+    
+    private static SkiCompactVast.MediaFile toMediaFile(LinearInlineChildType.MediaFiles.MediaFile media) {
+        URL url = media.getValue();
+        if (url == null) {
+            return null;
+        }
+        String type = media.getType();
+        if (type == null || type.length() == 0) {
+            return null;
+        }
+        
+        SkiCompactVast.MediaFile mediaFile = new SkiCompactVast.MediaFile();
+        mediaFile.setUrl(url);
+        mediaFile.setIdentifier(media.getId());
+        mediaFile.setDelivery(media.getDelivery());
+        mediaFile.setType(media.getType());
+        mediaFile.setWidth(media.getWidth());
+        mediaFile.setHeight(media.getHeight());
 
-            compressedInfo.setCreative(linear);
+        return mediaFile;
+    }
+
+    private static SkiCompactVast.TrackingEvent toTrackingEvent(TrackingEventsType.Tracking tracking) {
+        URL url = tracking.getValue();
+        if (url == null) {
+            return null;
+        }
+        VastTime offset = VastTime.parse(tracking.getOffset());
+
+        return new SkiCompactVast.TrackingEvent(tracking.getEvent(), offset, url);
+    }
+
+    private static List<SkiCompactVast.TrackingEvent> toTrackingEvents(List<TrackingEventsType.Tracking> trackings) {
+        ArrayList<SkiCompactVast.TrackingEvent> events = new ArrayList<>();
+        for (TrackingEventsType.Tracking tracking: trackings) {
+            SkiCompactVast.TrackingEvent event = toTrackingEvent(tracking);
+            if (event == null) {
+                continue;
+            }
+            
+            events.add(event);
+        }
+        
+        return events;
+    }
+    
+    private static String tryGetUrlContent(ISkiSessionLogger sessionLogger, final URL url) {
+        try {
+            return getUrlContent(sessionLogger, url);
+        } catch (IOException e) {
+            return null;
         }
     }
 
-    private static String getUrlContent(URL url) throws IOException {
+    private static String getUrlContent(ISkiSessionLogger sessionLogger, final URL url) throws IOException {
+
+        sessionLogger.build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adRequest.loadWrapper";
+                log.info = SkiSessionLogger.Log.info()
+                        .put("url", url.toString())
+                        .put("method", "GET")
+                        .get();
+            }
+        });
+        
         HttpURLConnection urlConnection = null;
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
@@ -411,7 +655,7 @@ class SkiAdRequestResponse {
             urlConnection.connect();
 
             // Check the connection status.
-            int statusCode = urlConnection.getResponseCode();
+            final int statusCode = urlConnection.getResponseCode();
 
             // Connection success. Proceed to fetch the response.
             if (statusCode == 200) {
@@ -420,11 +664,25 @@ class SkiAdRequestResponse {
                     InputStream it = new BufferedInputStream(urlConnection.getInputStream());
                     InputStreamReader read = new InputStreamReader(it);
                     buff = new BufferedReader(read);
-                    StringBuilder dta = new StringBuilder();
+                    final StringBuilder dta = new StringBuilder();
                     String chunks;
                     while ((chunks = buff.readLine()) != null) {
                         dta.append(chunks);
                     }
+
+                    final HttpURLConnection finalUrlConnection = urlConnection;
+                    sessionLogger.build(new SkiSessionLogger.Builder() {
+                        @Override
+                        public void build(@NonNull SkiSessionLogger.Log log) {
+                            log.identifier = "adRequest.loadWrapper.response";
+                            log.info = SkiSessionLogger.Log.info()
+                                    .put("url", url.toString())
+                                    .put("statusCode", statusCode)
+                                    .put("data", dta.toString())
+                                    .put("headers", finalUrlConnection.getHeaderFields())
+                                    .get();
+                        }
+                    });
 
                     return dta.toString();
                 } finally {
@@ -433,6 +691,37 @@ class SkiAdRequestResponse {
                     }
                 }
             } else {
+                BufferedReader buff = null;
+                try {
+                    final StringBuilder dta = new StringBuilder();
+                    InputStream it = new BufferedInputStream(urlConnection.getErrorStream());
+                    InputStreamReader read = new InputStreamReader(it);
+                    buff = new BufferedReader(read);
+                    String chunks;
+                    while ((chunks = buff.readLine()) != null) {
+                        dta.append(chunks);
+                    }
+
+                    final HttpURLConnection finalUrlConnection = urlConnection;
+                    sessionLogger.build(new SkiSessionLogger.Builder() {
+                        @Override
+                        public void build(@NonNull SkiSessionLogger.Log log) {
+                            log.identifier = "adRequest.loadWrapper.response";
+                            log.info = SkiSessionLogger.Log.info()
+                                    .put("url", url.toString())
+                                    .put("statusCode", statusCode)
+                                    .put("data", dta.toString())
+                                    .put("headers", finalUrlConnection.getHeaderFields())
+                                    .get();
+                        }
+                    });
+                } catch (Exception ignore) {
+                } finally {
+                    if (buff != null) {
+                        buff.close();
+                    }
+                }
+                
                 return null;
             }
         } finally {

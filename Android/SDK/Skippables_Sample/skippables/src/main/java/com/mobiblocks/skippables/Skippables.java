@@ -10,6 +10,8 @@ import android.content.Context;
 
 @SuppressWarnings("unused")
 public class Skippables {
+    public static final String version = "1.0.7";
+    
     public static void initialize(Context applicationContext) {
         SkiEventTracker.initialize(applicationContext);
     }

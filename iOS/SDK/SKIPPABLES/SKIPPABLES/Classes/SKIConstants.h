@@ -73,7 +73,7 @@
 #define SKIPPABLES_REPORT_URL @"https://www.skippables.com/x/api/Feedback/InfringementReport"
 #define SKIPPABLES_ERROR_REPORT_URL @"https://www.skippables.com/x/error"
 #define SKIPPABLES_SDK_ERROR_REPORT_URL @"https://www.skippables.com/x/error/sdk"
-#define SKIPPABLES_SDK_EVENT_REPORT_URL @"https://www.skippables.com/x/error/sdk"
+#define SKIPPABLES_SDK_EVENT_REPORT_URL @"https://www.skippables.com/x/log/sdk/event"
 
 
 //#define SKIPPABLES_API_BANNER_URL @"http://test.skippables.com/x/srv/GetImage"

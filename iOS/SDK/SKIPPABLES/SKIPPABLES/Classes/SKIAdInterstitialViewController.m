@@ -11,6 +11,8 @@
 
 #import <AVKit/AVKit.h>
 
+#import "NSArray+Util.h"
+
 #import "SKIVAST.h"
 
 #import "SKIVASTUrl.h"
@@ -69,13 +71,15 @@ static BOOL muted = NO;
 @property (strong, nonatomic) AVPlayerViewController *avPlayerController;
 @property (strong, nonatomic) SKIAdInterstitialViewLayer *avPlayerControllerLayer;
 
-@property (assign, nonatomic, readonly) SKIVASTCompressedCreative *compressedCreative;
+@property (assign, nonatomic, readonly) SKICompactVast *compactVast;
 
 @property (strong, nonatomic) NSPointerArray *avPlayerTimeTokens;
 @property (strong, nonatomic) NSMutableArray<id<NSObject>> *avPlayerNotificationTokens;
 
 @property (strong, nonatomic) NSMutableArray<NSURL *> *impressionTrackings;
-@property (strong, nonatomic) NSMutableArray<SKIVASTTracking *> *playerTrackings;
+@property (strong, nonatomic) NSMutableArray<SKICompactTrackingEvent *> *skipTrackingUrls;
+@property (strong, nonatomic) NSMutableArray<SKICompactTrackingEvent *> *completeTrackingUrls;
+@property (strong, nonatomic) NSMutableArray<SKICompactTrackingEvent *> *playerTrackings;
 
 @property (assign, nonatomic) BOOL viewShownOnce;
 @property (assign, nonatomic) BOOL isPlaying;
@@ -96,6 +100,8 @@ static BOOL muted = NO;
 		self.avPlayerTimeTokens = [NSPointerArray pointerArrayWithOptions:NSPointerFunctionsOpaqueMemory | NSPointerFunctionsStrongMemory];
 		self.avPlayerNotificationTokens = [NSMutableArray array];
 		self.impressionTrackings = [NSMutableArray array];
+		self.skipTrackingUrls = [NSMutableArray array];
+		self.completeTrackingUrls = [NSMutableArray array];
 		self.playerTrackings = [NSMutableArray array];
 		self.didDisappearOnTime = kCMTimeZero;
 	}
@@ -122,8 +128,8 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	_ad = ad;
 }
 
-- (SKIVASTCompressedCreative *)compressedCreative {
-	return self.ad.response.compressedCreative;
+- (SKICompactVast *)compactVast {
+	return self.ad.response.compactVast;
 }
 
 - (void)prepareAdPlayer {
@@ -134,11 +140,16 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 }
 
 - (void)prepareAdPlayerWithFail:(BOOL)fail {
-	__weak typeof(self) wSelf = self;
-	SKIVASTCompressedCreative *compressedCreative = self.compressedCreative;
-	NSArray *errorTrackings = compressedCreative.errorTrackings;
+	[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+		log.idenitifier = @"adInterstitialView.preparePlayer";
+	}];
 	
-	NSURL *mediaUrl = self.compressedCreative.localMediaUrl ?: compressedCreative.mediaFile.value;
+	__weak typeof(self) wSelf = self;
+	SKICompactVast *compact = self.compactVast;
+	SKICompactMediaFile *media = compact.ad.bestMediaFile;
+	NSArray *errorTrackings = compact.inlineErrors;
+	
+	NSURL *mediaUrl = media.localMediaUrl ?: media.url;
 	self.avPlayer = [AVPlayer playerWithURL:mediaUrl];
 	self.avPlayer.allowsExternalPlayback = NO;
 	self.avPlayer.muted = muted;
@@ -208,11 +219,17 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 						   ]
 			 completion:^(NSError *_Nullable error, id _Nullable result) {
 				 if (error) {
-					 //posibile race condition in observers
-					 //do another check))
+					 //posibile race condition in observers, do another check))
 					 if (wSelf.avPlayer.status != AVPlayerStatusReadyToPlay || wSelf.avPlayer.currentItem.status != AVPlayerStatusReadyToPlay) {
 						 DLog(@"sec check");
 						 if (fail) {
+							 
+							 [wSelf.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+								 log.idenitifier = @"adInterstitialView.preparePlayer.error";
+								 log.desc = @"Player failed to be ready in 5 seconds.";
+								 log.error = error;
+							 }];
+							 
 							 DLog(@"self.avPlayer error");
 							 [wSelf trackErrorUrls:errorTrackings errorCode:SKIVASTMediaFileDisplayErrorCode];
 							 [wSelf.ad.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
@@ -225,6 +242,13 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 							 });
 						 } else {
 							 DLog(@"self.avPlayer error retry on main");
+							 
+							 [wSelf.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+								 log.idenitifier = @"adInterstitialView.preparePlayer.error";
+								 log.desc = @"Player failed to be ready in 5 seconds. Retry!!!";
+								 log.error = error;
+							 }];
+							 
 							 SKIAsyncOnMain(^{
 								 [wSelf prepareAdPlayerWithFail:YES];
 							 });
@@ -232,6 +256,10 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 						 return;
 					 }
 				 }
+				 
+				 [wSelf.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+					 log.idenitifier = @"adInterstitialView.preparePlayer.success";
+				 }];
 				 
 				 SKIAsyncOnMain(^{
 					 [wSelf prepareAdView];
@@ -245,34 +273,34 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	} else {
 		[self view];
 	}
+	
+	[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+		log.idenitifier = @"adInterstitialView.preparePlayerView";
+	}];
 
 	__weak typeof(self) wSelf = self;
-	SKIVASTCompressedCreative *compressedCreative = self.compressedCreative;
+	SKICompactVast *compact = self.compactVast;
 
-	NSDate *duration = compressedCreative.duration ?: [NSDate dateWithTimeIntervalSinceReferenceDate:0];
-	NSTimeInterval durationInterval = SKIIntervalFromDurationDate(duration);
-	NSTimeInterval skipoffset = SKITrackingEventWithOffsetInterval(compressedCreative.skipoffset, duration);
+	NSTimeInterval durationInterval = compact.ad.duration.timeInterval;
+	NSTimeInterval skipoffset = [compact.ad.skipoffset intervalOffsetFromInterval:durationInterval];
 	if (skipoffset > durationInterval || compareNearlyEqual(skipoffset, durationInterval)) {
 		skipoffset = -1;
 		[self.avPlayerControllerLayer showSkip];
 	}
-
-	NSMutableArray<SKIVASTTracking *> *skipTrackingUrls = [NSMutableArray array];
-	NSMutableArray<SKIVASTTracking *> *completeTrackingUrls = [NSMutableArray array];
-	for (SKIVASTTracking *tracking in self.playerTrackings) {
+	
+	for (SKICompactTrackingEvent *tracking in self.playerTrackings) {
 		NSString *eventName = tracking.event;
 
 		if ([eventName isEqualToString:@"complete"]) {
-			[completeTrackingUrls addObject:tracking];
+			[self.completeTrackingUrls addObject:tracking];
 		} else if ([eventName isEqualToString:@"skip"]) {
-			[skipTrackingUrls addObject:tracking];
+			[self.skipTrackingUrls addObject:tracking];
 		}
 	}
 	
-	compressedCreative.skipTrackingUrls = skipTrackingUrls;
-	compressedCreative.completeTrackingUrls = completeTrackingUrls;
-	[self.playerTrackings removeObjectsInArray:skipTrackingUrls];
-	[self.playerTrackings removeObjectsInArray:completeTrackingUrls];
+	[self.playerTrackings removeObjectsInArray:self.skipTrackingUrls];
+	[self.playerTrackings removeObjectsInArray:self.completeTrackingUrls];
+	
 	{
 		AVPlayerItem *playerItem = self.avPlayer.currentItem;
 		[self addPlayerPeriodicObserver:0.5 usingBlock:^(CMTime time) {
@@ -305,12 +333,29 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	[self.avPlayerControllerLayer updateSkipTimeLabelWithOffset:skipoffset currentTime:0.];
 	
 	[self.ad interstitialViewControllerDidFinishLoading:self];
+	
+	[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+		log.idenitifier = @"adInterstitialView.preparePlayerView.success";
+	}];
 }
 
 - (void)sendInitialEvents {
+	NSMutableArray *ident = [NSMutableArray array];
 	for (NSURL *url in self.impressionTrackings) {
-		[self trackUrl:url playhead:0.0];
+		NSString *identifier = SKIUUID();
+		[ident addObject:@{
+						   @"identifier": identifier,
+						   @"url": url.absoluteString ?: [NSNull null]
+						   }];
+		[self trackUrl:url playhead:0.0 identifier:identifier];
 	}
+	
+	[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+		log.idenitifier = @"adInterstitialView.sendImpressions";
+		log.info = @{
+					 @"impressions": ident ?: [NSNull null]
+					 };
+	}];
 	[self.impressionTrackings removeAllObjects];
 }
 
@@ -321,9 +366,9 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 		return;
 	}
 	
-	NSMutableArray<SKIVASTTracking *> *removeTrackings = [NSMutableArray array];
-	for (SKIVASTTracking *tracking in self.playerTrackings) {
-		NSURL *eventUrl = tracking.value;
+	NSMutableArray<SKICompactTrackingEvent *> *removeTrackings = [NSMutableArray array];
+	for (SKICompactTrackingEvent *tracking in self.playerTrackings) {
+		NSURL *eventUrl = tracking.url;
 		if (eventUrl == nil) {
 			[removeTrackings addObject:tracking];
 			continue;
@@ -358,10 +403,22 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 		if (currentTime >= eventInterval) {
 			
 			DLog(@"%@\t%.02f : %.02f : %.02f\t%@", eventName, (float)duration, (float)currentTime, (float)eventInterval, eventOffset);
+			NSString *identifier = SKIUUID();
+			[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+				log.idenitifier = @"adInterstitialView.sendEvent";
+				log.info = @{
+							 @"events": @[@{
+										 @"identifier": identifier,
+										 @"event": eventName ?: [NSNull null],
+										 @"url": eventUrl.absoluteString ?: [NSNull null]
+										 }],
+							 @"contentPlayhead": @(eventInterval)
+							 };
+			}];
 			
 			[removeTrackings addObject:tracking];
 			
-			[self trackUrl:eventUrl playhead:eventInterval];
+			[self trackUrl:eventUrl playhead:eventInterval identifier:identifier];
 		}
 	}
 	
@@ -369,37 +426,65 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 }
 
 - (void)sendSkipEvents {
-	if (self.compressedCreative.skipTrackingUrls.count > 0) {
-		NSTimeInterval contentPlayhead = CMTimeGetSeconds(self.avPlayer.currentItem.currentTime);
-		for (SKIVASTTracking *tracking in self.compressedCreative.skipTrackingUrls) {
-			NSURL *eventUrl = tracking.value;
+	NSTimeInterval contentPlayhead = CMTimeGetSeconds(self.avPlayer.currentItem.currentTime);
+	NSMutableArray *ident = [NSMutableArray array];
+	
+	if (self.skipTrackingUrls.count > 0) {
+		for (SKICompactTrackingEvent *tracking in self.skipTrackingUrls) {
+			NSURL *eventUrl = tracking.url;
 			if (eventUrl == nil) {
 				continue;
 				
 			}
-			
-			[self trackUrl:eventUrl playhead:contentPlayhead];
+			NSString *identifier = SKIUUID();
+			[ident addObject:@{
+							   @"identifier": identifier,
+							   @"url": eventUrl.absoluteString ?: [NSNull null]
+							   }];
+			[self trackUrl:eventUrl playhead:contentPlayhead identifier:identifier];
 		}
 		
-		self.compressedCreative.skipTrackingUrls = @[];
+		[self.skipTrackingUrls removeAllObjects];
 	}
+	
+	[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+		log.idenitifier = @"adInterstitialView.sendSkips";
+		log.info = @{
+					 @"skips": ident ?: [NSNull null],
+					 @"contentPlayhead": @(contentPlayhead)
+					 };
+	}];
 }
 
 - (void)sendCompletedEvents {
-	if (self.compressedCreative.completeTrackingUrls.count > 0) {
-		NSTimeInterval contentPlayhead = CMTimeGetSeconds(self.avPlayer.currentItem.currentTime);
-		for (SKIVASTTracking *tracking in self.compressedCreative.completeTrackingUrls) {
-			NSURL *eventUrl = tracking.value;
+	NSMutableArray *ident = [NSMutableArray array];
+	NSTimeInterval contentPlayhead = CMTimeGetSeconds(self.avPlayer.currentItem.currentTime);
+	
+	if (self.completeTrackingUrls.count > 0) {
+		for (SKICompactTrackingEvent *tracking in self.completeTrackingUrls) {
+			NSURL *eventUrl = tracking.url;
 			if (eventUrl == nil) {
 				continue;
 				
 			}
-			
-			[self trackUrl:eventUrl playhead:contentPlayhead];
+			NSString *identifier = SKIUUID();
+			[ident addObject:@{
+							   @"identifier": identifier,
+							   @"url": eventUrl.absoluteString ?: [NSNull null]
+							   }];
+			[self trackUrl:eventUrl playhead:contentPlayhead identifier:identifier];
 		}
 		
-		self.compressedCreative.completeTrackingUrls = @[];
+		[self.completeTrackingUrls removeAllObjects];
 	}
+	
+	[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+		log.idenitifier = @"adInterstitialView.sendCompleted";
+		log.info = @{
+					 @"completed": ident ?: [NSNull null],
+					 @"contentPlayhead": @(contentPlayhead)
+					 };
+	}];
 }
 
 - (void)addPlayerPeriodicObserver:(NSTimeInterval)seconds usingBlock:(void (^)(CMTime time))block {
@@ -418,26 +503,42 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 		__weak typeof(self) wSelf = self;
 		self.avPlayerControllerLayer = [SKIAdInterstitialViewLayer layer];
 		[self.avPlayerControllerLayer setTapCallback:^{
+			[wSelf.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+				log.idenitifier = @"adInterstitialView.userClick";
+			}];
 			if ([wSelf handleClickThrough]) {
 				wSelf.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
 				[wSelf closeInterstitial];
 			}
 		}];
 		[self.avPlayerControllerLayer setSkipCallback:^{
+			[wSelf.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+				log.idenitifier = @"adInterstitialView.userSkip";
+			}];
 			[wSelf sendSkipEvents];
 			[wSelf closeInterstitial];
 		}];
 		[self.avPlayerControllerLayer setCloseCallback:^{
+			[wSelf.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+				log.idenitifier = @"adInterstitialView.userClose";
+			}];
 			[wSelf closeInterstitial];
 		}];
 		[self.avPlayerControllerLayer setReportCallback:^{
+			[wSelf.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+				log.idenitifier = @"adInterstitialView.userReport";
+			}];
 			if (wSelf) {
 				[SKIAdReportViewController showFromViewController:wSelf callback:^(BOOL canceled, NSString * _Nullable email, NSString * _Nullable message) {
 					if (canceled) {
 						return;
 					}
 					
-					[[SKIAdEventTracker defaultTracker] sendReportWithDeviceData:wSelf.ad.response.deviceInfo adId:wSelf.compressedCreative.adId adUnitId:wSelf.ad.adUnitID email:email message:message];
+					[[SKIAdEventTracker defaultTracker] sendReportWithDeviceData:wSelf.ad.response.deviceInfo
+																			adId:wSelf.compactVast.ad.identifier
+																		adUnitId:wSelf.ad.adUnitID
+																		   email:email
+																		 message:message];
 					
 					SKIAsyncOnMain(^{
 						[wSelf closeInterstitial];
@@ -453,6 +554,10 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 			muted = !muted;
 			wSelf.avPlayer.muted = muted;
 			
+			[wSelf.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+				log.idenitifier = [NSString stringWithFormat:@"adInterstitialView.player.user%@", muted ? @"Mute" : @"Unmute"];
+			}];
+			
 			return true;
 		}];
 		[self.avPlayerControllerLayer setPlayToggleCallback:^bool{
@@ -462,11 +567,17 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 			
 			if (wSelf.isPlaying) {
 				wSelf.isPlaying = NO;
+				[wSelf.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+					log.idenitifier = @"adInterstitialView.player.userPause";
+				}];
 				[wSelf.avPlayer pause];
 				return true;
 			}
 			
 			wSelf.isPlaying = YES;
+			[wSelf.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+				log.idenitifier = @"adInterstitialView.player.userPlay";
+			}];
 			[wSelf.avPlayer play];
 			return false;
 		}];
@@ -526,6 +637,9 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 			                        if (note.object != playerItem) {
 				                        return;
 			                        }
+									[wSelf.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+										log.idenitifier = @"adInterstitialView.player.completed";
+									}];
 									wSelf.didDisappearOnTime = kCMTimeZero;
 									DLog(@"AVPlayerItemDidPlayToEndTimeNotification: %@", note.userInfo);
 									[wSelf sendCompletedEvents];
@@ -612,20 +726,30 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 }
 
 - (BOOL)handleClickThrough {
-	SKIVASTCompressedCreative *creative = self.compressedCreative;
-	if (creative.clickTrackings.count > 0) {
-		NSTimeInterval contentPlayhead = CMTimeGetSeconds(self.avPlayer.currentItem.currentTime);
-		for (SKIVASTClickTracking *clickTracking in creative.clickTrackings) {
-			NSURL *url = clickTracking.value;
-			if (!url) {
-				continue;
-			}
-			
-			[self trackUrl:url playhead:contentPlayhead];
+	SKICompactVast *compact = self.compactVast;
+	NSTimeInterval contentPlayhead = CMTimeGetSeconds(self.avPlayer.currentItem.currentTime);
+	
+	NSMutableArray *ident = [NSMutableArray array];
+	if (compact.ad.videoClicks.count > 0) {
+		for (NSURL *url in compact.ad.videoClicks) {
+			NSString *identifier = SKIUUID();
+			[ident addObject:@{
+							   @"identifier": identifier,
+							   @"url": url.absoluteString ?: [NSNull null]
+							   }];
+			[self trackUrl:url playhead:contentPlayhead identifier:identifier];
 		}
 	}
 	
-	NSURL *url = creative.clickThrough.value;
+	[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+		log.idenitifier = @"adInterstitialView.sendClicks";
+		log.info = @{
+					 @"clicks": ident ?: [NSNull null],
+					 @"contentPlayhead": @(contentPlayhead)
+					 };
+	}];
+	
+	NSURL *url = compact.ad.clickThrough;
 	if (!url) {
 		return NO;
 	}
@@ -634,6 +758,15 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 		if ([self.ad.delegate respondsToSelector:@selector(skiInterstitialWillLeaveApplication:)]) {
 			[self.ad.delegate skiInterstitialWillLeaveApplication:self.ad];
 		}
+		[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+			log.idenitifier = @"adInterstitialView.openClickThrough";
+			log.desc = @"Report to user.";
+			log.info = @{
+						 @"url": url.absoluteString ?: [NSNull null],
+						 @"method": @"skiInterstitialWillLeaveApplication:",
+						 @"delegateIsSet": @(self.ad.delegate != nil)
+						 };
+		}];
 		
 		return YES;
 	}
@@ -649,8 +782,16 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	if ([self.ad.delegate respondsToSelector:@selector(skiInterstitialWillDismiss:)]) {
 		[self.ad.delegate skiInterstitialWillDismiss:self.ad];
 	}
+	[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+		log.idenitifier = @"adInterstitialView.close";
+		log.desc = @"Report to user.";
+		log.info = @{
+					 @"method": @"skiInterstitialWillDismiss:",
+					 @"delegateIsSet": @(self.ad.delegate != nil)
+					 };
+	}];
 	
-	NSURL *localUrl = self.compressedCreative.localMediaUrl;
+	NSURL *localUrl = self.compactVast.ad.bestMediaFile.localMediaUrl;
 	
 	__weak typeof(self) wSelf = self;
 	[self dismissViewControllerAnimated:YES
@@ -673,8 +814,8 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 							 }];
 }
 
-- (void)trackUrl:(NSURL *)url playhead:(NSTimeInterval)playhead {
-	NSURL *assetUrl = self.compressedCreative.mediaFile.value;
+- (void)trackUrl:(NSURL *)url playhead:(NSTimeInterval)playhead identifier:(NSString *)str {
+	NSURL *assetUrl = self.compactVast.ad.bestMediaFile.url;
 	NSURL *macrosed = [SKIVASTUrl urlFromUrlAfterReplacingMacros:url
 														 builder:^(SKIVASTUrlMacroValues *_Nonnull macroValues) {
 															 macroValues.contentPlayhead = playhead;
@@ -683,7 +824,9 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	if (macrosed) {
 		[[SKIAdEventTracker defaultTracker] trackEvent:^(SKIAdEventTrackerBuilder * _Nonnull e) {
 			e.url = macrosed;
-			e.logEvent = self.ad.logEvents;
+			e.logError = self.ad.logErrors;
+			e.logSession = self.ad.sessionLogger.canLog;
+			e.identifier = str;
 			e.sessionID = self.ad.errorCollector.sessionID;
 		}];
 	} else {
@@ -711,7 +854,8 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 	if (macrosed) {
 		[[SKIAdEventTracker defaultTracker] trackEvent:^(SKIAdEventTrackerBuilder * _Nonnull e) {
 			e.url = macrosed;
-			e.logEvent = self.ad.logEvents;
+			e.logError = self.ad.logErrors;
+			e.logSession = self.ad.sessionLogger.canLog;
 			e.sessionID = self.ad.errorCollector.sessionID;
 		}];
 	} else {
@@ -746,18 +890,12 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 - (void)viewDidLoad {
 	[super viewDidLoad];
 
-	if (self.compressedCreative.impressionUrls) {
-		[self.impressionTrackings addObjectsFromArray:self.compressedCreative.impressionUrls];
-	}
-	if (self.compressedCreative.additionalImpressionUrls) {
-		[self.impressionTrackings addObjectsFromArray:self.compressedCreative.additionalImpressionUrls];
+	if (self.compactVast.impressions) {
+		[self.impressionTrackings addObjectsFromArray:self.compactVast.impressions];
 	}
 	
-	if (self.compressedCreative.trackings) {
-		[self.playerTrackings addObjectsFromArray:self.compressedCreative.trackings];
-	}
-	if (self.compressedCreative.additionalTrackings) {
-		[self.playerTrackings addObjectsFromArray:self.compressedCreative.additionalTrackings];
+	if (self.compactVast.ad.trackingEvents) {
+		[self.playerTrackings addObjectsFromArray:self.compactVast.ad.trackingEvents];
 	}
 }
 
@@ -772,7 +910,14 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 - (void)viewDidAppear:(BOOL)animated {
 	[super viewDidAppear:animated];
 	
+	[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+		log.idenitifier = @"adInterstitialView.didAppear";
+	}];
+	
 	if (!_viewShownOnce) {
+		[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+			log.idenitifier = @"adInterstitialView.player.play";
+		}];
 		[self.avPlayer play];
 		self.isPlaying = YES;
 		
@@ -791,6 +936,10 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 
 - (void)applicationDidBecomeActive:(BOOL)previouslyVisible {
 	[super applicationDidBecomeActive:previouslyVisible];
+	
+	[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+		log.idenitifier = @"adInterstitialView.applicationDidBecomeActive";
+	}];
 	
 	if (_viewShownOnce) {
 		if (CMTimeCompare(self.didDisappearOnTime, kCMTimeZero) != NO) {
@@ -825,6 +974,16 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 
 - (void)viewWillDisappear:(BOOL)animated {
 	[super viewWillDisappear:animated];
+	
+	[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+		log.idenitifier = @"adInterstitialView.willDisappear";
+	}];
+	
+	if (self.isPlaying) {
+		[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+			log.idenitifier = @"adInterstitialView.player.pause";
+		}];
+	}
 
 	[self.avPlayer pause];
 	self.isPlaying = NO;
@@ -833,7 +992,14 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 - (void)applicationWillResignActive:(BOOL)previouslyVisible {
 	[super applicationWillResignActive:previouslyVisible];
 	
-	
+	[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+		log.idenitifier = @"adInterstitialView.applicationWillResignActive";
+	}];
+	if (self.isPlaying) {
+		[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+			log.idenitifier = @"adInterstitialView.player.pause";
+		}];
+	}
 	[self.avPlayer pause];
 	self.isPlaying = NO;
 //	if (previouslyVisible) {
@@ -856,7 +1022,7 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 
 - (BOOL)shouldAutorotate {
 //	if (SKIiSiPhone()) {
-		if (self.compressedCreative.maybeShownInLandscape) {
+		if (self.compactVast.ad.maybeShownInLandscape) {
 			return SKIiSPortrait();
 		}
 	
@@ -868,7 +1034,7 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
 //	if (SKIiSiPhone()) {
-		if (self.compressedCreative.maybeShownInLandscape) {
+		if (self.compactVast.ad.maybeShownInLandscape) {
 			return UIInterfaceOrientationMaskAllButUpsideDown;
 		}
 		
@@ -880,7 +1046,7 @@ bool compareNearlyEqual(CGFloat a, CGFloat b) {
 
 - (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation {
 //	if (SKIiSiPhone()) {
-		if (!self.compressedCreative.maybeShownInLandscape) {
+		if (!self.compactVast.ad.maybeShownInLandscape) {
 			return UIInterfaceOrientationPortrait;
 		}
 //	}

@@ -189,7 +189,9 @@
 				webView.hidden = YES;
 				reportLabelView.hidden = YES;
 				if ([wSelf.delegate respondsToSelector:@selector(skiAdView:didFailToReceiveAdWithError:)]) {
-					SKIAdRequestError *requestError = [SKIAdRequestError errorNoFillWithUserInfo:nil];
+					SKIAdRequestError *requestError = [SKIAdRequestError errorNoFillWithUserInfo:@{
+																								   NSLocalizedDescriptionKey : @"No ad available a this time."
+																								   }];
 					[wSelf.delegate skiAdView:wSelf didFailToReceiveAdWithError:requestError];
 				}
 			});

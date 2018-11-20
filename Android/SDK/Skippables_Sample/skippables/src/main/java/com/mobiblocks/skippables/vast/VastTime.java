@@ -7,6 +7,11 @@ import android.support.annotation.Nullable;
 
 import com.mobiblocks.skippables.BuildConfig;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Locale;
+
 /**
  * Created by daniel on 12/18/17.
  * <p>
@@ -104,8 +109,23 @@ public class VastTime implements Parcelable {
         return -1;
     }
 
+    public String toJSONValue() {
+        if (percents != null) {
+            return String.format(Locale.US, "%.02f", percents);
+        } else if (time != null) {
+            int millis = (int) (time % 1000);
+            int seconds = (int) (time / 1000) % 60 ;
+            int minutes = (int) ((time / (1000 * 60)) % 60);
+            int hours   = (int) (time / (1000 * 60 * 60));
+            
+            return String.format(Locale.US, "%02d:%02d:%02d.%03d", hours, minutes, seconds, millis);
+        }
+        
+        return null;
+    }
+
     @SuppressWarnings("ConstantConditions")
-    public static VastTime parse(@NonNull String string) throws VastException {
+    public static VastTime parse(@NonNull String string) {
         if (string == null || string.isEmpty()) {
             return null;
         }
@@ -121,13 +141,13 @@ public class VastTime implements Parcelable {
             try {
                 return new VastTime(Float.valueOf(string));
             } catch (NumberFormatException e) {
-                throw new VastException(VastError.VAST_UNDEFINED_ERROR_CODE);
+                return null;
             }
         }
 
         String[] components = string.split(":");
         if (components.length != 3 && components.length != 4) {
-            throw new VastException(VastError.VAST_UNDEFINED_ERROR_CODE);
+            return null;
         }
 
         try {
@@ -147,13 +167,13 @@ public class VastTime implements Parcelable {
 
             if (BuildConfig.DEBUG) {
                 if (minutes > 59) {
-                    throw new VastException(VastError.VAST_UNDEFINED_ERROR_CODE);
+                    return null;
                 }
                 if (seconds > 59) {
-                    throw new VastException(VastError.VAST_UNDEFINED_ERROR_CODE);
+                    return null;
                 }
                 if (milliseconds > 999) {
-                    throw new VastException(VastError.VAST_UNDEFINED_ERROR_CODE);
+                    return null;
                 }
             }
 
@@ -161,7 +181,7 @@ public class VastTime implements Parcelable {
             return new VastTime(time);
 
         } catch (NumberFormatException em) {
-            throw new VastException(VastError.VAST_UNDEFINED_ERROR_CODE, em);
+            return null;
         }
     }
 }

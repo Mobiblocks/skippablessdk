@@ -108,8 +108,9 @@ public class SkiAdRequest {
     private boolean adSizeIsSet;
     private SkiAdSize adSize = SkiAdSize.BANNER;
     private String adUnitId;
-    
+
     private SkiAdErrorCollector errorCollector = new SkiAdErrorCollector();
+    @NonNull private final ISkiSessionLogger sessionLogger;
 
     SkiAdRequest(Builder builder) {
         test = builder.mTest;
@@ -118,6 +119,12 @@ public class SkiAdRequest {
         childDirectedTreatment = builder.mChildDirectedTreatment;
         location = builder.mLocation;
         keywordList = builder.mKeywordList;
+        sessionLogger = SkiSessionLogger.create().build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "session.start";
+            }
+        });
     }
 
     SkiAdRequest(SkiAdRequest request) {
@@ -127,12 +134,23 @@ public class SkiAdRequest {
         childDirectedTreatment = request.childDirectedTreatment;
         location = request.location;
         keywordList = request.keywordList;
+        sessionLogger = SkiSessionLogger.create().build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "session.start";    
+            }
+        });
     }
 
     void load(@NonNull final Context context, @NonNull final SkiAdRequestListener listener) {
         this.listener = listener;
-
-        new SkiAdRequestTask(this.errorCollector, new SkiAdRequestTask.Listener() {
+        sessionLogger.collectInfo(context).build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adRequest.load";
+            }
+        });
+        new SkiAdRequestTask(this.sessionLogger, this.errorCollector, new SkiAdRequestTask.Listener() {
             @Override
             public JSONObject onGetRequestInfo(SkiAdRequest adRequest) {
                 SkiSize screenSize = Util.getScreenSize(context);
@@ -255,7 +273,7 @@ public class SkiAdRequest {
                         deviceObject.put("connectiontype", networkType);
                     }
 
-                    deviceObject.put("session", getCurrentSession());
+                    deviceObject.put("session", Util.getCurrentSession());
                     deviceObject.put("ifa", Util.getAAID(context));
 
                     @SuppressLint("HardwareIds") String androidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
@@ -335,8 +353,8 @@ public class SkiAdRequest {
             }
 
             @Override
-            public SkiVastCompressedInfo.MediaFile onGetBestMediaFile(SkiVastCompressedInfo vastInfo) {
-                return vastInfo.findBestMediaFile(context);
+            public SkiCompactVast.MediaFile onGetBestMediaFile(SkiCompactVast compactVast) {
+                return compactVast.getAd().findBestMediaFile(context);
             }
 
             @Override
@@ -355,11 +373,6 @@ public class SkiAdRequest {
                 SkiAdRequest.this.listener.onResponse(response);
             }
         }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, this);
-    }
-
-    private String getCurrentSession() {
-        String uuid = UUID.randomUUID().toString();
-        return MAYBE_MD5(uuid);
     }
 
     private static int getNetworkType(Context context) {
@@ -382,23 +395,6 @@ public class SkiAdRequest {
         }
 
         return 0;
-    }
-
-
-    private static String MAYBE_MD5(String md5) {
-        try {
-            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
-            byte[] array = md.digest(md5.getBytes("UTF-8"));
-            StringBuilder sb = new StringBuilder();
-            for (byte anArray : array) {
-                sb.append(Integer.toHexString((anArray & 0xFF) | 0x100).substring(1, 3));
-            }
-            return sb.toString();
-        } catch (java.security.NoSuchAlgorithmException ignored) {
-        } catch (java.io.UnsupportedEncodingException ignored) {
-
-        }
-        return md5;
     }
 
 

@@ -17,7 +17,7 @@
 
 @property (assign, atomic) BOOL observing;
 
-@property (weak, nonatomic) NSObject *object;
+@property (strong, nonatomic) NSObject *object;
 @property (copy, nonatomic) NSString *keyPath;
 @property (copy, nonatomic) SKIObserverCallback callback;
 @property (copy, nonatomic) SKIObserverTimeoutCallback timeout;
@@ -28,7 +28,10 @@
 
 @implementation SKIObserver
 
-+ (instancetype)observeObject:(NSObject *)object forKeyPath:(NSString *)keyPath callback:(SKIObserverCallback)callback timeout:(SKIObserverTimeoutCallback)timeout {
++ (instancetype)observeObject:(NSObject *)object
+				   forKeyPath:(NSString *)keyPath
+					 callback:(SKIObserverCallback)callback
+					  timeout:(SKIObserverTimeoutCallback)timeout {
 	return [self observeObject:object forKeyPath:keyPath timeout:5 callback:callback timeout:timeout];
 }
 
@@ -63,8 +66,8 @@
 	if (self.observing) {
 		return;
 	}
-	self.observing = YES;
 	
+	self.observing = YES;
 	[self.object addObserver:self
 				  forKeyPath:self.keyPath
 					 options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld | NSKeyValueObservingOptionInitial)
@@ -72,9 +75,10 @@
 }
 
 - (void)removeObserver {
-	if (!self.observing) {
+	if (self.observing == NO) {
 		return;
 	}
+	
 	self.observing = NO;
 	[self.object removeObserver:self forKeyPath:self.keyPath];
 }
@@ -126,13 +130,17 @@
 - (void)handleTimeout {
 	DLog(@"handleTimeout");
 	[self invalidateTimer];
-	[self removeObserver];
 	if (self.timeout) {
 		self.timeout(self);
 	}
+	[self startTimer];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
+	if (self.observing == NO) {
+		return;
+	}
+	
 	if (self.object == object && [self.keyPath isEqualToString:keyPath]) {
 		[self invalidateTimer];
 		self.callback(self, change);

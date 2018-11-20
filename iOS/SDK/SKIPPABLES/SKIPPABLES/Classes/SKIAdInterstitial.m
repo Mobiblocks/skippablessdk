@@ -24,7 +24,8 @@
 @property (copy, nonatomic) SKIAdRequest *request;
 @property (strong, nonatomic) SKIAdRequestResponse *response;
 @property (strong, nonatomic) SKIErrorCollector *errorCollector;
-@property (assign, nonatomic) BOOL logEvents;
+@property (strong, nonatomic) SKISDKSessionLogger *sessionLogger;
+@property (assign, nonatomic) BOOL logErrors;
 
 @end
 
@@ -69,6 +70,11 @@
 		[_request cancel];
 	}
 	
+	if (_sessionLogger) {
+		[_sessionLogger report];
+		_sessionLogger = nil;
+	}
+	
 	self.request = request;
 	self.request.adUnitID = self.adUnitID;
 	self.request.adType = kSKIAdTypeInterstitialVideo;
@@ -81,7 +87,23 @@
 }
 
 - (void)presentFromRootViewController:(UIViewController *)rootViewController {
+	[_sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+		log.idenitifier = @"adInterstitial.present";
+	}];
 	if (!_isReady || !rootViewController || _hasBeenUsed) {
+		BOOL isReady = _isReady;
+		BOOL hasBeenUsed = _hasBeenUsed;
+		BOOL rootViewControllerIsSet = rootViewController != nil;
+		BOOL isLoading = _isLoading;
+		[_sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+			log.idenitifier = @"adInterstitial.present.error";
+			log.info = @{
+						 @"isReady": @(isReady),
+						 @"hasBeenUsed": @(hasBeenUsed),
+						 @"rootViewControllerIsSet": @(rootViewControllerIsSet),
+						 @"isLoading": @(isLoading)
+						 };
+		}];
 		return;
 	}
 	
@@ -90,6 +112,15 @@
 		[self.delegate skiInterstitialWillPresent:self];
 	}
 	
+	[_sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+		log.idenitifier = @"adInterstitial.present.success";
+		log.desc = @"Report to user.";
+		log.info = @{
+					 @"method": @"skiInterstitialWillPresent:",
+					 @"delegateIsSet": @(self.delegate != nil)
+					 };
+	}];
+	
 	SKIAdInterstitialViewController *viewController = [SKIAdInterstitialViewController viewController];
 	viewController.delegate = self;
 	viewController.ad = self;
@@ -97,12 +128,26 @@
 }
 
 - (void)skiAdRequest:(SKIAdRequest *)request didReceiveResponse:(SKIAdRequestResponse *)response {
+	self.sessionLogger = request.sessionLogger;
+	
+	[_sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+		log.idenitifier = @"adInterstitial.response";
+	}];
 	if (response.error) {
 		_isLoading = NO;
 		
 		if ([self.delegate respondsToSelector:@selector(skiInterstitial:didFailToReceiveAdWithError:)]) {
 			[self.delegate skiInterstitial:self didFailToReceiveAdWithError:response.error];
 		}
+		
+		[_sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+			log.idenitifier = @"adInterstitial.response.error";
+			log.desc = @"Report to user.";
+			log.info = @{
+						 @"method": @"skiInterstitial:didFailToReceiveAdWithError:",
+						 @"delegateIsSet": @(self.delegate != nil)
+						 };
+		}];
 		
 		return;
 	}
@@ -111,21 +156,41 @@
 		// at this point on of htmlSnippet or videoVast should not be empty
 		// adding this error just in case
 		_isLoading = NO;
-		SKIAdRequestError *error = [SKIAdRequestError errorNoFillWithUserInfo:nil];
+		SKIAdRequestError *error = [SKIAdRequestError errorNoFillWithUserInfo:@{
+																				NSLocalizedDescriptionKey : @"No ad available a this time."
+																				}];
 		if ([self.delegate respondsToSelector:@selector(skiInterstitial:didFailToReceiveAdWithError:)]) {
 			[self.delegate skiInterstitial:self didFailToReceiveAdWithError:error];
 		}
+		
+		[_sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+			log.idenitifier = @"adInterstitial.response.error";
+			log.desc = @"Report to user. Empty ad data after processing!!!";
+			log.info = @{
+						 @"method": @"skiInterstitial:didFailToReceiveAdWithError:",
+						 @"delegateIsSet": @(self.delegate != nil)
+						 };
+		}];
 		return;
 	}
 	
 	self.response = response;
 	self.errorCollector = request.errorCollector;
-	self.logEvents = request.logEvents;
+	self.logErrors = request.logErrors;
 	_isLoading = NO;
 	_isReady = YES;
 	if ([self.delegate respondsToSelector:@selector(skiInterstitialDidReceiveAd:)]) {
 		[self.delegate skiInterstitialDidReceiveAd:self];
 	}
+	
+	[_sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+		log.idenitifier = @"adInterstitial.response.success";
+		log.desc = @"Report to user.";
+		log.info = @{
+					 @"method": @"skiInterstitialDidReceiveAd:",
+					 @"delegateIsSet": @(self.delegate != nil)
+					 };
+	}];
 }
 
 - (void)interstitialViewControllerDidFinishLoading:(SKIAdInterstitialViewController *)controller {
@@ -144,9 +209,21 @@
 }
 
 - (void)dealloc {
-	if (!_hasBeenUsed && _response.compressedCreative.localMediaUrl) {
+	if (_sessionLogger) {
+		__block SKISDKSessionLogger *logger = _sessionLogger;
+		dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+			[logger build:^(SKISDKSessionLog * _Nonnull log) {
+				log.idenitifier = @"adInterstitial.dealloc";
+			}];
+			[logger report];
+			logger = nil;
+		});
+		_sessionLogger = nil;
+	}
+	
+	if (!_hasBeenUsed && _response.compactVast.ad.bestMediaFile.localMediaUrl) {
 		NSError *error = nil;
-		if (![[NSFileManager defaultManager] removeItemAtURL:_response.compressedCreative.localMediaUrl error:&error]) {
+		if (![[NSFileManager defaultManager] removeItemAtURL:_response.compactVast.ad.bestMediaFile.localMediaUrl error:&error]) {
 			DLog(@"Failed to delete local media url: %@", error);
 		}
 	}

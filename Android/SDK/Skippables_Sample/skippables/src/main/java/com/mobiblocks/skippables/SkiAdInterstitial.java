@@ -3,6 +3,7 @@ package com.mobiblocks.skippables;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.lang.ref.WeakReference;
@@ -31,8 +32,9 @@ public class SkiAdInterstitial {
     private boolean mLoaded;
     private boolean mHasBeenUsed;
     private SkiAdInfo mAdInfo;
-    private SkiVastCompressedInfo mVastInfo;
+    private SkiCompactVast mVastInfo;
     private SkiAdRequest mRequest;
+    private ISkiSessionLogger sessionLogger;
 
     private static final HashMap<String, WeakReference<SkiAdListener>> sListeners = new HashMap<>();
 
@@ -60,6 +62,11 @@ public class SkiAdInterstitial {
 
             return;
         }
+        
+        if (sessionLogger != null) {
+            sessionLogger.report();
+            sessionLogger = null;
+        }
 
         mLoading = true;
         mLoaded = false;
@@ -71,8 +78,27 @@ public class SkiAdInterstitial {
         mRequest.load(mContext, new SkiAdRequestListener() {
             @Override
             public void onResponse(SkiAdRequestResponse response) {
+                sessionLogger = SkiSessionLogger.getLogger(response.getAdInfo().getSessionID());
+                sessionLogger.build(new SkiSessionLogger.Builder() {
+                    @Override
+                    public void build(@NonNull SkiSessionLogger.Log log) {
+                        log.identifier = "adInterstitial.response";
+                    }
+                });
+                
                 mLoading = false;
                 if (response.hasAnyError()) {
+                    sessionLogger.build(new SkiSessionLogger.Builder() {
+                        @Override
+                        public void build(@NonNull SkiSessionLogger.Log log) {
+                            log.identifier = "adInterstitial.response.error";
+                            log.desc = "Report to user.";
+                            log.info = SkiSessionLogger.Log.info()
+                                    .put("method", "SkiAdListener.onAdFailedToLoad(int)")
+                                    .put("listenerIsSet", mAdListener != null)
+                                    .get();
+                        }
+                    });
                     if (mAdListener != null) {
                         final SkiAdListener listener = mAdListener;
                         final int errorCode = response.getErrorCode();
@@ -85,11 +111,11 @@ public class SkiAdInterstitial {
                     }
 
                     if (response.hasVastError()) {
-                        SkiVastCompressedInfo info = response.getVastInfo();
-                        if (info != null) {
+                        SkiCompactVast compactVast = response.getVastInfo();
+                        if (compactVast != null) {
                             Util.VastUrlMacros builder = Util.VastUrlMacros.builder()
                                     .setErrorCode(response.getVastErrorCode());
-                            ArrayList<URL> errorTrackings = info.getErrorTrackings();
+                            ArrayList<URL> errorTrackings = compactVast.getErrors();
                             for (URL url : errorTrackings) {
                                 final URL macrosed = builder.build(url);
                                 if (macrosed != null) {
@@ -103,6 +129,7 @@ public class SkiAdInterstitial {
                             }
                         }
                     }
+                    sessionLogger.report();
                     return;
                 }
 
@@ -110,6 +137,18 @@ public class SkiAdInterstitial {
 
                 mAdInfo = response.getAdInfo();
                 mVastInfo = response.getVastInfo();
+                
+                sessionLogger.build(new SkiSessionLogger.Builder() {
+                    @Override
+                    public void build(@NonNull SkiSessionLogger.Log log) {
+                        log.identifier = "adInterstitial.response.success";
+                        log.desc = "Report to user.";
+                        log.info = SkiSessionLogger.Log.info()
+                                .put("method", "SkiAdListener.onAdLoaded()")
+                                .put("listenerIsSet", mAdListener != null)
+                                .get();
+                    }
+                });
 
                 if (mAdListener != null) {
                     final SkiAdListener listener = mAdListener;
@@ -149,7 +188,25 @@ public class SkiAdInterstitial {
     }
 
     public void show() {
+        sessionLogger.build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adInterstitial.present";
+            }
+        });
+        
         if (!isLoaded() || isBeenUsed()) {
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adInterstitial.present.error";
+                    log.info = SkiSessionLogger.Log.info()
+                            .put("isReady", isLoaded())
+                            .put("isLoading", isLoading())
+                            .put("hasBeenUsed", isBeenUsed())
+                            .get();
+                }
+            });
             return;
         }
 
@@ -157,6 +214,18 @@ public class SkiAdInterstitial {
         mLoaded = false;
 
         mContext.startActivity(SkiAdInterstitialActivity.getIntent(mContext, mRequest.uid, mAdInfo, mVastInfo));
+        
+        sessionLogger.build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adInterstitial.present.success";
+                log.desc = "Report to user.";
+                log.info = SkiSessionLogger.Log.info()
+                        .put("method", "SkiAdListener.onAdOpened()")
+                        .put("listenerIsSet", mAdListener != null)
+                        .get();
+            }
+        });
 
         if (mAdListener != null) {
             synchronized (sListeners) {
@@ -187,7 +256,13 @@ public class SkiAdInterstitial {
         }
     }
 
-    static void closed(String uid) {
+    static boolean closed(String uid) {
+        if (uid == null) {
+            Log.d("tag", "message");
+            return false;
+        }
+        
+        boolean ret = false;
         synchronized (sListeners) {
             WeakReference<SkiAdListener> weak = sListeners.get(uid);
             if (weak != null) {
@@ -199,6 +274,7 @@ public class SkiAdInterstitial {
                             listener.onAdClosed();
                         }
                     });
+                    ret = true;
                 } else {
                     sListeners.remove(uid);
                 }
@@ -206,9 +282,17 @@ public class SkiAdInterstitial {
         }
 
         compat();
+        
+        return ret;
     }
 
-    static void left(String uid) {
+    static boolean left(String uid) {
+        if (uid == null) {
+            Log.d("tag", "message");
+            return false;
+        }
+        
+        boolean ret = false;
         synchronized (sListeners) {
             WeakReference<SkiAdListener> weak = sListeners.get(uid);
             if (weak != null) {
@@ -220,6 +304,7 @@ public class SkiAdInterstitial {
                             listener.onAdLeftApplication();
                         }
                     });
+                    ret = true;
                 } else {
                     sListeners.remove(uid);
                 }
@@ -227,5 +312,7 @@ public class SkiAdInterstitial {
         }
 
         compat();
+        
+        return ret;
     }
 }

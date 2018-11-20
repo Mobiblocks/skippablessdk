@@ -13,6 +13,7 @@ FOUNDATION_EXPORT double SKIPPABLESVersionNumber;
 //! Project version string for SKIPPABLES.
 FOUNDATION_EXPORT const unsigned char SKIPPABLESVersionString[];
 
+#import "SkippablesSDK.h"
 #import "SKIAdSize.h"
 #import "SKIAdRequest.h"
 #import "SKIAdBannerView.h"

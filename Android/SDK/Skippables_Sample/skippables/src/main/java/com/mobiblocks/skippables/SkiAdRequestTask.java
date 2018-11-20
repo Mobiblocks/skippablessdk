@@ -37,8 +37,10 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
 
     private final Listener listener;
     private final SkiAdErrorCollector errorCollector;
+    private final ISkiSessionLogger sessionLogger;
 
-    SkiAdRequestTask(@NonNull SkiAdErrorCollector errorCollector, @NonNull Listener listener) {
+    SkiAdRequestTask(@NonNull ISkiSessionLogger sessionLogger, @NonNull SkiAdErrorCollector errorCollector, @NonNull Listener listener) {
+        this.sessionLogger = sessionLogger;
         this.errorCollector = errorCollector;
         this.listener = listener;
     }
@@ -47,7 +49,7 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
     protected SkiAdRequestResponse doInBackground(SkiAdRequest... skiAdRequests) {
         SkiAdRequest adRequest = skiAdRequests[0];
 
-        JSONObject requestJson = listener.onGetRequestInfo(adRequest);
+        final JSONObject requestJson = listener.onGetRequestInfo(adRequest);
         if (requestJson == null) {
             errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
                 @Override
@@ -57,32 +59,58 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
                     err.desc = "Failed to serialise request json";
                 }
             });
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adRequest.requestData.error";
+                    log.desc = "Failed to collect device data";
+                }
+            });
             return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_INTERNAL_ERROR);
         }
 
+        sessionLogger.build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adRequest.requestData";
+                log.info = requestJson;
+            }
+        });
+
         final String urlString = SKIConstants.GetAdApiUrl(adRequest.getAdType());
+        final String httpMethod = "POST";
+        sessionLogger.build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adRequest.sendRequestData";
+                log.info = SkiSessionLogger.Log.info()
+                        .put("url", urlString)
+                        .put("method", httpMethod)
+                        .get();
+            }
+        });
+
         OutputStreamWriter out = null;
         HttpURLConnection urlConnection = null;
         try {
-            // Creating & connection Connection with url and required Header.
             URL url = new URL(urlString);
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setConnectTimeout(15 * 1000);
             urlConnection.setReadTimeout(15 * 1000);
             urlConnection.setRequestProperty("Connection", "close");
             urlConnection.setRequestProperty("Content-Type", "application/json");
-            urlConnection.setRequestMethod("POST");   //POST or GET
+            urlConnection.setRequestMethod(httpMethod);   //POST or GET
             urlConnection.setDoInput(true);
             urlConnection.setDoOutput(true);
 
             if (urlConnection instanceof HttpsURLConnection) {
                 ((HttpsURLConnection) urlConnection).setSSLSocketFactory(HttpsURLConnection.getDefaultSSLSocketFactory());
             }
-            
+
             urlConnection.connect();
 
             // Write Request to output stream to server.
-            out = new OutputStreamWriter(urlConnection.getOutputStream(),  "UTF-8");
+            out = new OutputStreamWriter(urlConnection.getOutputStream(), "UTF-8");
             out.write(requestJson.toString());
             out.close();
             out = null;
@@ -92,22 +120,49 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
 
             // Connection success. Proceed to fetch the response.
             if (statusCode == 200) {
+                SkiCompactVast compactVast = null;
                 BufferedReader buff = null;
-                SkiVastCompressedInfo vastInfo = null;
                 try {
+                    final StringBuilder dta = new StringBuilder();
                     InputStream it = new BufferedInputStream(urlConnection.getInputStream());
                     InputStreamReader read = new InputStreamReader(it);
                     buff = new BufferedReader(read);
-                    StringBuilder dta = new StringBuilder();
                     String chunks;
                     while ((chunks = buff.readLine()) != null) {
                         dta.append(chunks);
                     }
 
+                    final HttpURLConnection finalUrlConnection = urlConnection;
+                    sessionLogger.build(new SkiSessionLogger.Builder() {
+                        @Override
+                        public void build(@NonNull SkiSessionLogger.Log log) {
+                            log.identifier = "adRequest.sendRequestData.response";
+                            log.info = SkiSessionLogger.Log.info()
+                                    .put("url", urlString)
+                                    .put("statusCode", statusCode)
+                                    .put("data", dta.toString())
+                                    .put("headers", finalUrlConnection.getHeaderFields())
+                                    .get();
+                        }
+                    });
+                    
+                    sessionLogger.build(new SkiSessionLogger.Builder() {
+                        @Override
+                        public void build(@NonNull SkiSessionLogger.Log log) {
+                            log.identifier = "adRequest.processResponseData";
+                        }
+                    });
+                    
                     final SkiAdRequestResponse response = processResponseJson(new JSONObject(dta.toString()));
-                    vastInfo = response.getVastInfo();
-                    if (vastInfo != null) {
-                        SkiVastCompressedInfo.MediaFile mediaFile = listener.onGetBestMediaFile(response.getVastInfo());
+                    response.getAdInfo().setAdUnitId(adRequest.getAdUnitId());
+                    JSONObject deviceInfo = requestJson.optJSONObject("device");
+                    if (deviceInfo != null) {
+                        response.getAdInfo().setDeviceInfoJsonString(deviceInfo.toString());
+                    }
+                    
+                    compactVast = response.getVastInfo();
+                    if (compactVast != null) {
+                        final SkiCompactVast.MediaFile mediaFile = listener.onGetBestMediaFile(compactVast);
                         if (mediaFile == null) {
                             errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
                                 @Override
@@ -121,30 +176,84 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
                                     );
                                 }
                             });
-                            return SkiAdRequestResponse.withVastError(VastError.VAST_MEDIA_FILE_NOT_SUPPORTED_ERROR_CODE, vastInfo);
+                            response.setVastErrorCode(VastError.VAST_MEDIA_FILE_NOT_SUPPORTED_ERROR_CODE);
+                            return response;
                         }
 
-                        String tempDir = listener.onGetTempDirectory() + "/" + UUID.randomUUID().toString() + ".mp4";
-                        response.getVastInfo().setLocalMediaFile(tempDir);
-                        URL mediaUrl = mediaFile.getValue();
-                        downloadMediaFile(mediaUrl, tempDir);
-                    }
+                        sessionLogger.build(new SkiSessionLogger.Builder() {
+                            @Override
+                            public void build(@NonNull SkiSessionLogger.Log log) {
+                                log.identifier = "adRequest.compactVast.selectedMedia";
+                                log.info = mediaFile.toJSONObject();
+                            }
+                        });
 
-                    response.getAdInfo().setAdUnitId(adRequest.getAdUnitId());
-                    JSONObject deviceInfo = requestJson.optJSONObject("device");
-                    if (deviceInfo != null) {
-                        response.getAdInfo().setDeviceInfoJsonString(deviceInfo.toString());
+                        sessionLogger.build(new SkiSessionLogger.Builder() {
+                            @Override
+                            public void build(@NonNull SkiSessionLogger.Log log) {
+                                log.identifier = "adRequest.downloadMedia";
+                            }
+                        });
+                        
+
+                        String tempDir = listener.onGetTempDirectory() + "/" + UUID.randomUUID().toString() + ".mp4";
+                        URL mediaUrl = mediaFile.getUrl();
+                        try {
+                            downloadMediaFile(sessionLogger, mediaUrl, tempDir);
+                        } catch (final VastException e) {
+                            sessionLogger.build(new SkiSessionLogger.Builder() {
+                                @Override
+                                public void build(@NonNull SkiSessionLogger.Log log) {
+                                    log.identifier = "adRequest.processResponseData.error";
+                                    log.exception = e;
+                                }
+                            });
+                            
+                            response.setVastErrorCode(e.getErrorCode());
+                            return response;
+                        }
+                        
+                        mediaFile.setLocalMediaFile(tempDir);
                     }
 
                     return response;
-                } catch (VastException e) {
-                    return SkiAdRequestResponse.withVastError(e.getErrorCode(), vastInfo);
                 } finally {
                     if (buff != null) {
                         buff.close();
                     }
                 }
             } else {
+                BufferedReader buff = null;
+                try {
+                    final StringBuilder dta = new StringBuilder();
+                    InputStream it = new BufferedInputStream(urlConnection.getErrorStream());
+                    InputStreamReader read = new InputStreamReader(it);
+                    buff = new BufferedReader(read);
+                    String chunks;
+                    while ((chunks = buff.readLine()) != null) {
+                        dta.append(chunks);
+                    }
+
+                    final HttpURLConnection finalUrlConnection = urlConnection;
+                    sessionLogger.build(new SkiSessionLogger.Builder() {
+                        @Override
+                        public void build(@NonNull SkiSessionLogger.Log log) {
+                            log.identifier = "adRequest.sendRequestData.response";
+                            log.info = SkiSessionLogger.Log.info()
+                                    .put("url", urlString)
+                                    .put("statusCode", statusCode)
+                                    .put("data", dta.toString())
+                                    .put("headers", finalUrlConnection.getHeaderFields())
+                                    .get();
+                        }
+                    });
+                } catch (Exception ignore) {
+                } finally {
+                    if (buff != null) {
+                        buff.close();
+                    }
+                }
+
                 errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
                     @Override
                     public void build(SkiAdErrorCollector.Builder err) {
@@ -170,6 +279,13 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
                     err.underlyingException = e;
                 }
             });
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adRequest.sendRequestData.error";
+                    log.exception = e;
+                }
+            });
             return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_NETWORK_ERROR);
         } catch (final MalformedURLException e) {
             errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
@@ -181,6 +297,13 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
                             "url", urlString
                     );
                     err.underlyingException = e;
+                }
+            });
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adRequest.sendRequestData.error";
+                    log.exception = e;
                 }
             });
             return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_INTERNAL_ERROR);
@@ -196,6 +319,13 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
                     err.underlyingException = e;
                 }
             });
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adRequest.sendRequestData.error";
+                    log.exception = e;
+                }
+            });
             return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_NETWORK_ERROR);
         } catch (final JSONException e) {
             errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
@@ -207,6 +337,13 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
                             "url", urlString
                     );
                     err.underlyingException = e;
+                }
+            });
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adRequest.sendRequestData.error";
+                    log.exception = e;
                 }
             });
             return SkiAdRequestResponse.withError(SkiAdRequest.ERROR_RECEIVED_INVALID_RESPONSE);
@@ -224,40 +361,64 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
         }
     }
 
-    private void downloadMediaFile(URL url, String dest) throws IOException, VastException {
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        urlConnection.setConnectTimeout(15 * 1000);
-        urlConnection.setReadTimeout(15 * 1000);
-        urlConnection.setRequestProperty("Connection", "close");
-        urlConnection.setDoInput(true);
-        urlConnection.setRequestMethod("GET");   //POST or GET
-        urlConnection.connect();
+    private static void downloadMediaFile(ISkiSessionLogger sessionLogger, final URL url, String dest) throws IOException, VastException {
+        try {
+            final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setConnectTimeout(15 * 1000);
+            urlConnection.setReadTimeout(15 * 1000);
+            urlConnection.setRequestProperty("Connection", "close");
+            urlConnection.setDoInput(true);
+            urlConnection.setRequestMethod("GET");   //POST or GET
+            urlConnection.connect();
 
-        // Check the connection status.
-        int statusCode = urlConnection.getResponseCode();
+            // Check the connection status.
+            final int statusCode = urlConnection.getResponseCode();
 
-        // Connection success. Proceed to fetch the response.
-        if (statusCode == 200) {
-            File destFile = new File(dest);
+            // Connection success. Proceed to fetch the response.
+            if (statusCode == 200) {
+                File destFile = new File(dest);
 
-            InputStream it = new BufferedInputStream(urlConnection.getInputStream());
+                InputStream it = new BufferedInputStream(urlConnection.getInputStream());
 
-            FileOutputStream fileOutputStream = new FileOutputStream(destFile);
+                FileOutputStream fileOutputStream = new FileOutputStream(destFile);
 
-            byte[] chunks = new byte[4096];
-            int count;
-            while ((count = it.read(chunks)) != -1) {
-                fileOutputStream.write(chunks, 0, count);
+                byte[] chunks = new byte[4096];
+                int count;
+                while ((count = it.read(chunks)) != -1) {
+                    fileOutputStream.write(chunks, 0, count);
+                }
+
+                fileOutputStream.close();
+            } else {
+                throw new VastException(VAST_MEDIA_FILE_NOT_FOUND_ERROR_CODE);
             }
 
-            fileOutputStream.close();
-        } else {
-            throw new VastException(VAST_MEDIA_FILE_NOT_FOUND_ERROR_CODE);
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adRequest.downloadMedia.response";
+                    log.info = SkiSessionLogger.Log.info()
+                            .put("url", url.toString())
+                            .put("statusCode", statusCode)
+                            .put("headers", urlConnection.getHeaderFields())
+                            .get();
+                }
+            });
+        } catch (final Exception e) {
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adRequest.downloadMedia.error";
+                    log.exception = e;
+                }
+            });
+            
+            throw e;
         }
     }
 
     private SkiAdRequestResponse processResponseJson(JSONObject response) {
-        return SkiAdRequestResponse.create(errorCollector, response);
+        return SkiAdRequestResponse.create(sessionLogger, errorCollector, response);
     }
 
     @Override
@@ -270,7 +431,7 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
     interface Listener {
         JSONObject onGetRequestInfo(SkiAdRequest request);
 
-        SkiVastCompressedInfo.MediaFile onGetBestMediaFile(SkiVastCompressedInfo vastInfo);
+        SkiCompactVast.MediaFile onGetBestMediaFile(SkiCompactVast compactVast);
 
         String onGetTempDirectory() throws IOException;
 

@@ -23,6 +23,7 @@ extern SKIAdSize const kSKIAdSizeFullscreen;
 @class SKIAdRequestResponse;
 @class SKIAdRequestError;
 @class SKIErrorCollector;
+@class SKISDKSessionLogger;
 
 @protocol SKIAdRequestDelegate<NSObject>
 
@@ -42,7 +43,8 @@ extern SKIAdSize const kSKIAdSizeFullscreen;
 
 @property (copy, nonatomic) NSString *adUnitID;
 @property (strong, nonatomic) SKIErrorCollector *errorCollector;
-@property (assign, nonatomic) BOOL logEvents;
+@property (strong, nonatomic) SKISDKSessionLogger *sessionLogger;
+@property (assign, nonatomic) BOOL logErrors;
 
 @end
 

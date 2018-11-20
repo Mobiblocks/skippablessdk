@@ -63,9 +63,11 @@ class SkiEventTracker {
     class Builder {
         @NonNull URL url;
         boolean expires = true;
-        JSONObject data; // data
-        String sessionID; // sessionID
-        boolean logEvent = false; // logEvent
+        JSONObject data;
+        String sessionID;
+        String identifier;
+        boolean logError = false;
+        boolean logSession = false;
     }
 
     interface EventBuilder {
@@ -309,7 +311,7 @@ class SkiEventTracker {
         SerialTask.run(new Runnable() {
             @Override
             public void run() {
-                events.put(uuid, P.pair(b.url, expires, b.data, b.sessionID, b.logEvent));
+                events.put(uuid, P.pair(b.url, expires, b.data, b.sessionID, b.identifier, b.logError, b.logSession));
                 savedEvents();
             }
         }, new Runnable() {
@@ -405,23 +407,12 @@ class SkiEventTracker {
                     }
                 });
 //            }
-            
-            if (statusCode != 200 && pair.l) {
+
+
+            String response = null;
+            if (statusCode != 200 && pair.le) {
+                response = Util.tryReadAnyResponse(urlConnection);
                 final Map<String,List<String>> headers = urlConnection.getHeaderFields();
-                String response = null;
-                try {
-                    InputStream it = new BufferedInputStream(urlConnection.getErrorStream());
-                    InputStreamReader read = new InputStreamReader(it);
-                    BufferedReader buff = new BufferedReader(read);
-                    StringBuilder dta = new StringBuilder();
-                    String chunks;
-                    while ((chunks = buff.readLine()) != null) {
-                        dta.append(chunks);
-                    }
-                    response = dta.toString();
-                } catch (Exception ignore) {
-                    Dl("makeRequestEvent: " + pair.u + ":" + ignore);
-                }
                 final String finalResponse = response;
                 final JSONObject errData = SkiAdErrorCollector.Builder.buildJSONObject(new SkiAdErrorCollector.ErrorCollector() {
                     @Override
@@ -457,6 +448,31 @@ class SkiEventTracker {
                     }
                 });
             }
+            
+            if (pair.ls && pair.s != null && pair.i != null) {
+                if (response == null) {
+                    response = Util.tryReadAnyResponse(urlConnection);
+                }
+                
+                final Map<String,List<String>> headers = urlConnection.getHeaderFields();
+                ISkiSessionLogger sessionLogger = SkiSessionLogger.create();
+                sessionLogger.setSessionID(pair.s);
+                final String finalResponse = response;
+                sessionLogger.build(new SkiSessionLogger.Builder() {
+                    @Override
+                    public void build(@NonNull SkiSessionLogger.Log log) {
+                        log.identifier = "trackUrl.report";
+                        log.info = SkiSessionLogger.Log.info()
+                                .put("sessionID", pair.s)
+                                .put("identifier", pair.i)
+                                .put("url", pair.u.toString())
+                                .put("statusCode", statusCode)
+                                .put("headers", headers)
+                                .put("response", finalResponse)
+                                .get();
+                    }
+                }).report();
+            }
 
             Dl("makeRequestEvent: " + statusCode + ":" + pair.u);
         } catch (final IOException ioe) {
@@ -482,6 +498,22 @@ class SkiEventTracker {
                     ev.data = errData;
                 }
             });
+            if (pair.ls && pair.s != null && pair.i != null) {
+                ISkiSessionLogger sessionLogger = SkiSessionLogger.create();
+                sessionLogger.setSessionID(pair.s);
+                sessionLogger.build(new SkiSessionLogger.Builder() {
+                    @Override
+                    public void build(@NonNull SkiSessionLogger.Log log) {
+                        log.identifier = "trackUrl.report";
+                        log.info = SkiSessionLogger.Log.info()
+                                .put("sessionID", pair.s)
+                                .put("identifier", pair.i)
+                                .put("url", pair.u.toString())
+                                .get();
+                        log.exception = ioe;
+                    }
+                }).report();
+            }
         } finally {
             if (out != null) {
                 try {
@@ -505,6 +537,7 @@ class SkiEventTracker {
     }
 
     static SkiEventTracker getInstance(@NonNull Context context) {
+        SkiSessionLogger.initialize(context.getApplicationContext());
         if (instance == null) {
             initialize(context.getApplicationContext());
         }
@@ -513,6 +546,7 @@ class SkiEventTracker {
     }
 
     static void initialize(Context applicationContext) {
+        SkiSessionLogger.initialize(applicationContext);
         if (instance == null) {
             instance = new SkiEventTracker(applicationContext.getApplicationContext());
         }

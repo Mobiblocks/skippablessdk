@@ -24,19 +24,32 @@ import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.mobiblocks.skippables.vast.VastError;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.mobiblocks.skippables.vast.VastError.VAST_NO_ERROR_CODE;
@@ -179,6 +192,32 @@ class Util {
 
     static File getEventsFilePath(Context context) {
         return new File(getDocumentsFileDir(context), "skie");
+    }
+
+    static String uuid = UUID.randomUUID().toString();
+    static String session = null;
+    static String getCurrentSession() {
+        if (session == null) {
+            session = MAYBE_MD5(uuid);
+        }
+        
+        return session;
+    }
+    
+    private static String MAYBE_MD5(String md5) {
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+            byte[] array = md.digest(md5.getBytes("UTF-8"));
+            StringBuilder sb = new StringBuilder();
+            for (byte anArray : array) {
+                sb.append(Integer.toHexString((anArray & 0xFF) | 0x100).substring(1, 3));
+            }
+            return sb.toString();
+        } catch (java.security.NoSuchAlgorithmException ignored) {
+        } catch (java.io.UnsupportedEncodingException ignored) {
+
+        }
+        return md5;
     }
 
     static String getAAID(Context context) {
@@ -379,5 +418,100 @@ class Util {
         hm.put(k4, v4);
         hm.put(k5, v5);
         return hm;
+    }
+    
+    static JSONObject jsonObjectWrap(Map map) {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            for (Map.Entry<?, ?> entry : ((Map<?, ?>) map).entrySet()) {
+                if (entry.getKey() == null || !(entry.getKey() instanceof String)) {
+                    continue;
+                }
+
+                jsonObject.putOpt((String) entry.getKey(), jsonWrap(entry.getValue()));
+            }
+        } catch (Exception ignore) {}
+        return jsonObject;
+    }
+
+    static Object jsonWrap(Object o) {
+        if (o == null) {
+            return null;
+        }
+        if (o instanceof JSONArray || o instanceof JSONObject) {
+            return o;
+        }
+        try {
+            if (o instanceof Collection) {
+                JSONArray array = new JSONArray();
+                for (Object o1 : ((Collection) o)) {
+                    array.put(jsonWrap(o1));
+                }
+                return array;
+            }
+            if (o instanceof Map) {
+                JSONObject jsonObject = new JSONObject();
+                for (Map.Entry<?, ?> entry: ((Map<?, ?>) o).entrySet()) {
+                    if (entry.getKey() == null || !(entry.getKey() instanceof String)) {
+                        continue;
+                    }
+
+                    jsonObject.putOpt((String) entry.getKey(), jsonWrap(entry.getValue()));
+                }
+                return jsonObject;
+            }
+            if (o instanceof Boolean ||
+                    o instanceof Byte ||
+                    o instanceof Character ||
+                    o instanceof Double ||
+                    o instanceof Float ||
+                    o instanceof Integer ||
+                    o instanceof Long ||
+                    o instanceof Short ||
+                    o instanceof String) {
+                return o;
+            }
+            if (o.getClass().getPackage().getName().startsWith("java.")) {
+                return o.toString();
+            }
+        } catch (Exception ignored) {
+            android.util.Log.d("sdf", "sdf");
+        }
+        return null;
+    }
+
+    static String readAnyResponse(HttpURLConnection uc) throws IOException {
+        final int statusCode = uc.getResponseCode();
+        BufferedReader buff = null;
+        try {
+            InputStream inStream = statusCode == 200 ? uc.getInputStream() : uc.getErrorStream();
+            InputStream it = new BufferedInputStream(inStream);
+            InputStreamReader read = new InputStreamReader(it);
+            buff = new BufferedReader(read);
+            StringBuilder dta = new StringBuilder();
+            String chunks;
+            while ((chunks = buff.readLine()) != null) {
+                dta.append(chunks);
+            }
+            return dta.toString();
+        } finally {
+            close(buff);
+        }
+    }
+
+    static String tryReadAnyResponse(HttpURLConnection uc) {
+        try {
+            return readAnyResponse(uc);
+        } catch (Exception ignored) { }
+        
+        return null;
+    }
+    
+    static void close(Closeable closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (IOException ignore) { }
+        }
     }
 }

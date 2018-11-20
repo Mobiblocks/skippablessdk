@@ -26,7 +26,7 @@ typedef void(^SKIObserverTimeoutCallback)(SKIObserver *observer);
 
 - (void)remove;
 
-@property (weak, nonatomic, readonly) NSObject *object;
+@property (strong, nonatomic, readonly) NSObject *object;
 @property (copy, nonatomic, readonly) NSString *keyPath;
 
 @end

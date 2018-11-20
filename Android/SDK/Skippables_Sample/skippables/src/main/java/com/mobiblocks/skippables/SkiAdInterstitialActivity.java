@@ -34,19 +34,25 @@ import com.mobiblocks.skippables.vast.VastTime;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 public class SkiAdInterstitialActivity extends Activity {
 
     private static final String EXTRA_UID = "EXTRA_UID";
     private static final String EXTRA_AD_INFO = "EXTRA_AD_INFO";
     private static final String EXTRA_VAST_INFO = "EXTRA_VAST_INFO";
-    
-    private SkiAdErrorCollector errorCollector = new SkiAdErrorCollector();
 
-    private SkiVastCompressedInfo mVastInfo;
+    @NonNull
+    private SkiAdErrorCollector errorCollector = new SkiAdErrorCollector();
+    @NonNull
+    private ISkiSessionLogger sessionLogger = SkiSessionLogger.createNop();
+
+    private SkiCompactVast mVastInfo;
+    private SkiCompactVast.MediaFile mMediaFile;
     private TextView mSkipView;
     private TextView mCloseView;
     private ImageView mMediaControl;
@@ -75,7 +81,7 @@ public class SkiAdInterstitialActivity extends Activity {
     @SuppressWarnings("FieldCanBeLocal")
     private SkiAdReportActivity.SkiAdReportListener mReportListener;
 
-    static Intent getIntent(@SuppressWarnings("NullableProblems") @NonNull Context context, @NonNull String uid, @NonNull SkiAdInfo adInfo, @NonNull SkiVastCompressedInfo vastInfo) {
+    static Intent getIntent(@SuppressWarnings("NullableProblems") @NonNull Context context, @NonNull String uid, @NonNull SkiAdInfo adInfo, @NonNull SkiCompactVast vastInfo) {
         Intent intent = new Intent(context, SkiAdInterstitialActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra(SkiAdInterstitialActivity.EXTRA_UID, uid);
@@ -85,7 +91,7 @@ public class SkiAdInterstitialActivity extends Activity {
         return intent;
     }
 
-    static SkiVastCompressedInfo getVastInfo(Intent intent) {
+    static SkiCompactVast getVastInfo(Intent intent) {
         return intent.getParcelableExtra(EXTRA_VAST_INFO);
     }
 
@@ -105,12 +111,33 @@ public class SkiAdInterstitialActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        String sessionID = null;
         final SkiAdInfo adInfo = getAdInfo(getIntent());
         if (adInfo != null) {
-            errorCollector.setSessionID(adInfo.getSessionID());
+            sessionID = adInfo.getSessionID();
+            errorCollector.setSessionID(sessionID);
+            if (sessionID != null) {
+                sessionLogger = SkiSessionLogger.getLogger(sessionID);
+            }
         }
 
         mVastInfo = getVastInfo(getIntent());
+
+        //noinspection ConstantConditions
+        if (sessionLogger == null) {
+            sessionLogger = SkiSessionLogger.getLogger(sessionID).collectInfo(this);
+        }
+
+        sessionLogger.build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adInterstitialView.onCreate";
+                log.info = SkiSessionLogger.Log.info()
+                        .put("adInfoIsSet", adInfo != null)
+                        .put("vastInfoIsSet", mVastInfo != null)
+                        .get();
+            }
+        });
         if (mVastInfo == null) {
             errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
                 @Override
@@ -124,7 +151,22 @@ public class SkiAdInterstitialActivity extends Activity {
             return;
         }
 
-        if (mVastInfo.isMaybeShownInLandscape()) {
+        mMediaFile = mVastInfo.getAd().findBestMediaFile(this);
+        if (mMediaFile == null) {
+            // not possible
+            errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                @Override
+                public void build(SkiAdErrorCollector.Builder err) {
+                    err.type = SkiAdErrorCollector.TYPE_PLAYER;
+                    err.place = "SkiAdInterstitialActivity.onCreate";
+                    err.desc = "Activity created with media file.";
+                }
+            });
+            finishInterstitial(false);
+            return;
+        }
+
+        if (mVastInfo.getAd().maybeShownInLandscape()) {
             int orientation = Util.getScreenOrientation(this);
             switch (orientation) {
                 case ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE:
@@ -150,6 +192,13 @@ public class SkiAdInterstitialActivity extends Activity {
             }
         }
 
+        sessionLogger.build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adInterstitialView.preparePlayerView";
+            }
+        });
+
         mRelativeLayout = new RelativeLayout(this);
         mRelativeLayout.setLayoutParams(new RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
@@ -161,6 +210,13 @@ public class SkiAdInterstitialActivity extends Activity {
 //        videoViewLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
 //        videoViewLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
 //        videoViewLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+
+        sessionLogger.build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adInterstitialView.preparePlayer";
+            }
+        });
 
         mVideoView = new InterstitialVideoView(this);
 //        mVideoView.setClickable(true);
@@ -203,8 +259,8 @@ public class SkiAdInterstitialActivity extends Activity {
                 sendCompleteEvents();
             }
         });
-        
-        final SkiVastCompressedInfo.MediaFile mediaFile = mVastInfo.findBestMediaFile(this);
+
+        final SkiCompactVast.MediaFile mediaFile = mMediaFile;
         mVideoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, final int what, final int extra) {
@@ -214,32 +270,45 @@ public class SkiAdInterstitialActivity extends Activity {
                         err.type = SkiAdErrorCollector.TYPE_PLAYER;
                         err.place = "mVideoView.setOnErrorListener";
                         err.otherInfo = Util.<String, Object>hm(
-                                "what", what, 
+                                "what", what,
                                 "extra", extra
                         );
-                        
+
                         if (mediaFile != null) {
-                            err.otherInfo.put("mediaUrl", mediaFile.getValue());
+                            err.otherInfo.put("mediaUrl", mediaFile.getUrl());
                         }
                         if (adInfo != null) {
                             err.otherInfo.put("identifier", adInfo.getAdId());
                         }
                     }
                 });
+
+                sessionLogger.build(new SkiSessionLogger.Builder() {
+                    @Override
+                    public void build(@NonNull SkiSessionLogger.Log log) {
+                        log.identifier = "adInterstitialView.preparePlayer.error";
+                        log.info = SkiSessionLogger.Log.info()
+                                .put("what", what)
+                                .put("extra", extra)
+                                .get();
+                    }
+                });
+
                 sendErrorEvents();
                 finishInterstitial(false);
                 return true;
             }
         });
 
-        String local = mVastInfo.getLocalMediaFile();
-        if (local != null) {
-            mVideoView.setVideoPath(local);
-        } else {
-            if (mediaFile != null) {
-                mVideoView.setVideoURI(Uri.parse(mediaFile.getValue().toString()));
+        if (mediaFile != null) {
+            String local = mediaFile.getLocalMediaFile();
+            if (local != null) {
+                mVideoView.setVideoPath(local);
+            } else {
+                mVideoView.setVideoURI(Uri.parse(mediaFile.getUrl().toString()));
             }
         }
+
         mVideoView.setOnTouchListener(new View.OnTouchListener() {
             float startX = 0;
             float startY = 0;
@@ -369,7 +438,7 @@ public class SkiAdInterstitialActivity extends Activity {
 
             mRelativeLayout.addView(mMediaControl, mediaControlLayoutParams);
         }
-        
+
         if (adInfo != null) {
             mReportView = new TextView(this);
             mReportView.setVisibility(View.GONE);
@@ -456,16 +525,40 @@ public class SkiAdInterstitialActivity extends Activity {
     private void finishInterstitial(boolean left) {
         this.finish();
 
-        SkiAdInterstitial.closed(getUid(getIntent()));
+        final boolean reported = SkiAdInterstitial.closed(getUid(getIntent()));
+        sessionLogger.build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adInterstitialView.close";
+                log.desc = "Report to user.";
+                log.info = SkiSessionLogger.Log.info()
+                        .put("method", "SkiAdListener.onAdClosed()")
+                        .put("listenerIsSet", reported)
+                        .get();
+            }
+        });
+
         if (left) {
-            SkiAdInterstitial.left(getUid(getIntent()));
+            final boolean reported2 = SkiAdInterstitial.left(getUid(getIntent()));
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adInterstitialView.left";
+                    log.desc = "Report to user.";
+                    log.info = SkiSessionLogger.Log.info()
+                            .put("method", "SkiAdListener.onAdLeftApplication()")
+                            .put("listenerIsSet", reported2)
+                            .get();
+                }
+            });
         }
+
+//        sessionLogger.report();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
 
         mStateSaved = true;
     }
@@ -483,13 +576,20 @@ public class SkiAdInterstitialActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
+        sessionLogger.build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adInterstitialView.onResume";
+            }
+        });
+
         hideEverything();
         if (!mState.isCompleted()) {
             maybeScheduleTicker();
             if (!mVideoView.isPlaying() && !mState.isPaused()) {
                 mVideoView.start();
             }
-            
+
             mMediaControl.setImageResource(mState.isPaused() ? R.drawable.skippables_interstitial_video_play : R.drawable.skippables_interstitial_video_pause);
 
             mState.setShownOnce(true);
@@ -501,8 +601,15 @@ public class SkiAdInterstitialActivity extends Activity {
     protected void onPause() {
         super.onPause();
 
+        sessionLogger.build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adInterstitialView.onPause";
+            }
+        });
+
         saveCurrentPosition(null);
-        
+
         if (!mState.isCompleted()) {
             maybeUnscheduleTicker();
             if (mVideoView.isPlaying()) {
@@ -517,12 +624,15 @@ public class SkiAdInterstitialActivity extends Activity {
     @Override
     protected void onDestroy() {
         if (!mStateSaved) {
-            String local = mVastInfo.getLocalMediaFile();
-            if (local != null) {
+            if (mMediaFile != null) {
+                String local = mMediaFile.getLocalMediaFile();
                 //noinspection ResultOfMethodCallIgnored
                 new File(local).delete();
             }
         }
+
+        sessionLogger.report();
+
         super.onDestroy();
     }
 
@@ -533,7 +643,18 @@ public class SkiAdInterstitialActivity extends Activity {
         }
     }
 
-    private void saveCurrentPosition(Bundle bundle) {
+    private void saveCurrentPosition(@SuppressWarnings("SameParameterValue") Bundle bundle) {
+        sessionLogger.build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adInterstitialView.saveCurrentPosition";
+                log.info = SkiSessionLogger.Log.info()
+                        .put("videoViewIsSet", mVideoView != null)
+                        .put("state.isReady", mState.isReady())
+                        .put("currentPosition", mVideoView != null ? mVideoView.getCurrentPosition() : -1)
+                        .get();
+            }
+        });
         if (mVideoView == null || !mState.isReady()) {
             return;
         }
@@ -552,6 +673,19 @@ public class SkiAdInterstitialActivity extends Activity {
             }
         }
 
+        sessionLogger.build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adInterstitialView.restoreSavedPosition";
+                log.info = SkiSessionLogger.Log.info()
+                        .put("videoViewIsSet", mVideoView != null)
+                        .put("state.isReady", mState.isReady())
+                        .put("state.isCompleted", mState.isCompleted())
+                        .put("state.currentPosition", mState.getCurrentPosition())
+                        .get();
+            }
+        });
+
         if (!mState.isCompleted() && mState.isReady() && mState.getCurrentPosition() > 0 && mVideoView != null) {
             if (mState.getCurrentPosition() == mVideoView.getCurrentPosition()) {
                 return;
@@ -560,7 +694,7 @@ public class SkiAdInterstitialActivity extends Activity {
             if (BuildConfig.DEBUG) {
                 Log.d("skippables-state", mState.getCurrentPosition() + ":" + mVideoView.getCurrentPosition());
             }
-            
+
             if (mMediaPlayer != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 mMediaPlayer.seekTo(mState.getCurrentPosition(), MediaPlayer.SEEK_CLOSEST);
             } else {
@@ -614,7 +748,7 @@ public class SkiAdInterstitialActivity extends Activity {
         if (mState.isReady()) {
             return mVideoView.getDuration() / 1000;
         } else {
-            VastTime vastTime = mVastInfo.getDuration();
+            VastTime vastTime = mVastInfo.getAd().getDuration();
             if (vastTime != null) {
                 Long time = vastTime.getTime();
                 if (time != null) {
@@ -669,7 +803,7 @@ public class SkiAdInterstitialActivity extends Activity {
             return;
         }
 
-        VastTime vastTime = mVastInfo.getSkipOffset();
+        VastTime vastTime = mVastInfo.getAd().getSkipoffset();
         if (vastTime == null) {
             mReportView.setVisibility(View.VISIBLE);
 //            mSkipView.setVisibility(View.GONE);
@@ -710,38 +844,33 @@ public class SkiAdInterstitialActivity extends Activity {
 
     private void sendInitialEvents() {
         if (mState.isShownOnce() && mState.isReady()) {
-            ArrayList<URL> removeImpression = new ArrayList<>();
+            final ArrayList<HashMap<String, String>> indentedImpressions = new ArrayList<>();
             //noinspection ConstantConditions
-            URL assetURL = mVastInfo.findBestMediaFile(this).getValue();
+            URL assetURL = mMediaFile.getUrl();
             Util.VastUrlMacros builder = Util.VastUrlMacros.builder()
                     .setAssetUrl(assetURL)
                     .setContentPlayAhead(0);
-            ArrayList<URL> impressions = mVastInfo.getImpressionUrls();
+            ArrayList<URL> impressions = mVastInfo.getImpressions();
             for (URL url : impressions) {
-                removeImpression.add(url);
+                String identifier = UUID.randomUUID().toString();
+
+                indentedImpressions.add(Util.hm("identifier", identifier, "url", url.toString()));
+
                 URL macrosed = builder.build(url);
-                trackEventRequest(macrosed, "impression");
+                trackEventRequest(macrosed, "impression", identifier);
             }
 
-            mVastInfo.getImpressionUrls().removeAll(removeImpression);
+            mVastInfo.getImpressions().clear();
 
-            ArrayList<SkiVastCompressedInfo.MediaFile.Tracking> removeTracking = new ArrayList<>();
-            for (SkiVastCompressedInfo.MediaFile.Tracking tracking : mVastInfo.getTrackings()) {
-                //noinspection ConstantConditions
-                if (tracking.getValue() == null) {
-                    removeTracking.add(tracking);
-                    continue;
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adInterstitialView.sendImpressions";
+                    log.info = SkiSessionLogger.Log.info()
+                            .put("impressions", indentedImpressions)
+                            .get();
                 }
-                
-                String event = tracking.getEvent();
-                if ("start".equalsIgnoreCase(event)) {
-                    URL macrosed = builder.build(tracking.getValue());
-                    trackEventRequest(macrosed, event);
-                    removeTracking.add(tracking);
-                }
-            }
-
-            mVastInfo.getTrackings().removeAll(removeTracking);
+            });
         }
     }
 
@@ -749,153 +878,274 @@ public class SkiAdInterstitialActivity extends Activity {
         int duration = getAnyDuration();
         int currentPosition = mVideoView.getCurrentPosition() / 1000;
         //noinspection ConstantConditions
-        URL assetURL = mVastInfo.findBestMediaFile(this).getValue();
+        URL assetURL = mMediaFile.getUrl();
         Util.VastUrlMacros builder = Util.VastUrlMacros.builder()
                 .setAssetUrl(assetURL)
                 .setContentPlayAhead(currentPosition);
 
-        ArrayList<SkiVastCompressedInfo.MediaFile.Tracking> remove = new ArrayList<>();
-        for (SkiVastCompressedInfo.MediaFile.Tracking tracking :
-                mVastInfo.getTrackings()) {
+        final ArrayList<HashMap<String, Object>> indentedEvents = new ArrayList<>();
+        ArrayList<SkiCompactVast.TrackingEvent> removeTracking = new ArrayList<>();
+        for (SkiCompactVast.TrackingEvent tracking : mVastInfo.getAd().getTrackingEvents()) {
             //noinspection ConstantConditions
-            if (tracking.getValue() == null) {
+            if (tracking.getUrl() == null) {
                 continue;
             }
             String event = tracking.getEvent();
-            if ("firstQuartile".equalsIgnoreCase(event)) {
+            if ("start".equalsIgnoreCase(event)) {
+                if (tracking.getOffset() == null) {
+                    String identifier = UUID.randomUUID().toString();
+                    URL url = tracking.getUrl();
+                    URL macrosed = builder.build(url);
+                    indentedEvents.add(Util.<String, Object>hm(
+                            "identifier", identifier,
+                            "event", event,
+                            "url", url.toString(),
+                            "contentPlayhead", currentPosition));
+
+                    trackEventRequest(macrosed, event, identifier);
+
+                    removeTracking.add(tracking);
+                } else {
+                    int offset = tracking.getOffset().getOffset(duration);
+                    if (currentPosition >= offset) {
+                        String identifier = UUID.randomUUID().toString();
+                        URL url = tracking.getUrl();
+                        URL macrosed = builder.build(url);
+                        indentedEvents.add(Util.<String, Object>hm(
+                                "identifier", identifier,
+                                "event", event,
+                                "url", url.toString(),
+                                "contentPlayhead", currentPosition));
+
+                        trackEventRequest(macrosed, event, identifier);
+
+                        removeTracking.add(tracking);
+                    }
+                }
+            } else if ("firstQuartile".equalsIgnoreCase(event)) {
                 int quartile = (int) (duration * .25);
                 if (currentPosition >= quartile) {
-                    URL macrosed = builder.build(tracking.getValue());
-                    trackEventRequest(macrosed, event);
+                    String identifier = UUID.randomUUID().toString();
+                    URL url = tracking.getUrl();
+                    URL macrosed = builder.build(url);
+                    indentedEvents.add(Util.<String, Object>hm(
+                            "identifier", identifier,
+                            "event", event,
+                            "url", url.toString(),
+                            "contentPlayhead", currentPosition));
 
-                    remove.add(tracking);
+                    trackEventRequest(macrosed, event, identifier);
+
+                    removeTracking.add(tracking);
                 }
             } else if ("midpoint".equalsIgnoreCase(event)) {
                 int quartile = (int) (duration * .50);
                 if (currentPosition >= quartile) {
-                    URL macrosed = builder.build(tracking.getValue());
-                    trackEventRequest(macrosed, event);
+                    String identifier = UUID.randomUUID().toString();
+                    URL url = tracking.getUrl();
+                    URL macrosed = builder.build(url);
+                    indentedEvents.add(Util.<String, Object>hm(
+                            "identifier", identifier,
+                            "event", event,
+                            "url", url.toString(),
+                            "contentPlayhead", currentPosition));
 
-                    remove.add(tracking);
+                    trackEventRequest(macrosed, event, identifier);
+
+                    removeTracking.add(tracking);
                 }
             } else if ("thirdQuartile".equalsIgnoreCase(event)) {
                 int quartile = (int) (duration * .75);
                 if (currentPosition >= quartile) {
-                    URL macrosed = builder.build(tracking.getValue());
-                    trackEventRequest(macrosed, event);
+                    String identifier = UUID.randomUUID().toString();
+                    URL url = tracking.getUrl();
+                    URL macrosed = builder.build(url);
+                    indentedEvents.add(Util.<String, Object>hm(
+                            "identifier", identifier,
+                            "event", event,
+                            "url", url.toString(),
+                            "contentPlayhead", currentPosition));
 
-                    remove.add(tracking);
+                    trackEventRequest(macrosed, event, identifier);
+
+                    removeTracking.add(tracking);
                 }
             } else if ("progress".equalsIgnoreCase(event)) {
                 if (tracking.getOffset() == null) {
-                    remove.add(tracking);
+                    removeTracking.add(tracking);
                 } else {
-                    int offset = tracking.offset.getOffset(duration);
+                    int offset = tracking.getOffset().getOffset(duration);
                     if (currentPosition >= offset) {
-                        URL macrosed = builder.build(tracking.getValue());
-                        trackEventRequest(macrosed, event);
+                        String identifier = UUID.randomUUID().toString();
+                        URL url = tracking.getUrl();
+                        URL macrosed = builder.build(url);
+                        indentedEvents.add(Util.<String, Object>hm(
+                                "identifier", identifier,
+                                "event", event,
+                                "url", url.toString(),
+                                "contentPlayhead", currentPosition));
 
-                        remove.add(tracking);
+                        trackEventRequest(macrosed, event, identifier);
+
+                        removeTracking.add(tracking);
                     }
                 }
             }
         }
 
-        mVastInfo.getTrackings().removeAll(remove);
+        mVastInfo.getAd().getTrackingEvents().removeAll(removeTracking);
+
+        for (final HashMap<String, Object> evhm : indentedEvents) {
+            final ArrayList<HashMap<String, Object>> revents = new ArrayList<>();
+            revents.add(evhm);
+
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adInterstitialView.sendEvent";
+                    log.info = SkiSessionLogger.Log.info()
+                            .put("events", revents)
+                            .get();
+                }
+            });
+        }
     }
 
     private void sendCompleteEvents() {
         int currentPosition = mVideoView.getCurrentPosition() / 1000;
         //noinspection ConstantConditions
-        URL assetURL = mVastInfo.findBestMediaFile(this).getValue();
+        URL assetURL = mMediaFile.getUrl();
         Util.VastUrlMacros builder = Util.VastUrlMacros.builder()
                 .setAssetUrl(assetURL)
                 .setContentPlayAhead(currentPosition);
 
-        ArrayList<SkiVastCompressedInfo.MediaFile.Tracking> remove = new ArrayList<>();
-        for (SkiVastCompressedInfo.MediaFile.Tracking tracking : mVastInfo.getTrackings()) {
+        final ArrayList<HashMap<String, String>> indentedCompleted = new ArrayList<>();
+        ArrayList<SkiCompactVast.TrackingEvent> removeTracking = new ArrayList<>();
+        for (SkiCompactVast.TrackingEvent tracking : mVastInfo.getAd().getTrackingEvents()) {
             //noinspection ConstantConditions
-            if (tracking.getValue() == null) {
+            if (tracking.getUrl() == null) {
                 continue;
             }
             String event = tracking.getEvent();
             if ("complete".equalsIgnoreCase(event)) {
-                URL macrosed = builder.build(tracking.getValue());
-                trackEventRequest(macrosed, event);
+                String identifier = UUID.randomUUID().toString();
+                URL url = tracking.getUrl();
+                indentedCompleted.add(Util.hm("identifier", identifier, "url", url.toString()));
+                URL macrosed = builder.build(url);
+                trackEventRequest(macrosed, event, identifier);
 
-                remove.add(tracking);
+                removeTracking.add(tracking);
             }
         }
 
-        mVastInfo.getTrackings().removeAll(remove);
+        mVastInfo.getAd().getTrackingEvents().removeAll(removeTracking);
+
+        sessionLogger.build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adInterstitialView.sendCompleted";
+                log.info = SkiSessionLogger.Log.info()
+                        .put("completed", indentedCompleted)
+                        .get();
+            }
+        });
     }
 
     private void sendSkipEvents() {
         int currentPosition = mVideoView.getCurrentPosition() / 1000;
         //noinspection ConstantConditions
-        URL assetURL = mVastInfo.findBestMediaFile(this).getValue();
+        URL assetURL = mMediaFile.getUrl();
         Util.VastUrlMacros builder = Util.VastUrlMacros.builder()
                 .setAssetUrl(assetURL)
                 .setContentPlayAhead(currentPosition);
 
-        ArrayList<SkiVastCompressedInfo.MediaFile.Tracking> remove = new ArrayList<>();
-        for (SkiVastCompressedInfo.MediaFile.Tracking tracking : mVastInfo.getTrackings()) {
+        final ArrayList<HashMap<String, String>> indentedSkips = new ArrayList<>();
+        ArrayList<SkiCompactVast.TrackingEvent> removeTracking = new ArrayList<>();
+        for (SkiCompactVast.TrackingEvent tracking : mVastInfo.getAd().getTrackingEvents()) {
             //noinspection ConstantConditions
-            if (tracking.getValue() == null) {
+            if (tracking.getUrl() == null) {
                 continue;
             }
             String event = tracking.getEvent();
             if ("skip".equalsIgnoreCase(event)) {
-                URL macrosed = builder.build(tracking.getValue());
-                trackEventRequest(macrosed, event);
+                String identifier = UUID.randomUUID().toString();
+                URL url = tracking.getUrl();
+                indentedSkips.add(Util.hm("identifier", identifier, "url", url.toString()));
+                URL macrosed = builder.build(url);
+                trackEventRequest(macrosed, event, identifier);
 
-                remove.add(tracking);
+                removeTracking.add(tracking);
             }
         }
 
-        mVastInfo.getTrackings().removeAll(remove);
+        mVastInfo.getAd().getTrackingEvents().removeAll(removeTracking);
+
+        sessionLogger.build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adInterstitialView.sendSkips";
+                log.info = SkiSessionLogger.Log.info()
+                        .put("skips", indentedSkips)
+                        .get();
+            }
+        });
     }
 
     private void sendClickEvents() {
         int currentPosition = mVideoView.getCurrentPosition() / 1000;
         //noinspection ConstantConditions
-        URL assetURL = mVastInfo.findBestMediaFile(this).getValue();
+        URL assetURL = mMediaFile.getUrl();
         Util.VastUrlMacros builder = Util.VastUrlMacros.builder()
                 .setAssetUrl(assetURL)
                 .setContentPlayAhead(currentPosition);
 
-        for (URL url : mVastInfo.getClickTrackings()) {
+        final ArrayList<HashMap<String, String>> indentedClicks = new ArrayList<>();
+        for (URL url : mVastInfo.getAd().getVideoClicks()) {
+            String identifier = UUID.randomUUID().toString();
+            indentedClicks.add(Util.hm("identifier", identifier, "url", url.toString()));
             URL macrosed = builder.build(url);
-            trackEventRequest(macrosed, "click");
+            trackEventRequest(macrosed, "click", identifier);
         }
+
+        sessionLogger.build(new SkiSessionLogger.Builder() {
+            @Override
+            public void build(@NonNull SkiSessionLogger.Log log) {
+                log.identifier = "adInterstitialView.sendClicks";
+                log.info = SkiSessionLogger.Log.info()
+                        .put("clicks", indentedClicks)
+                        .get();
+            }
+        });
     }
 
     private void sendErrorEvents() {
         int currentPosition = mVideoView.getCurrentPosition() / 1000;
         //noinspection ConstantConditions
-        URL assetURL = mVastInfo.findBestMediaFile(this).getValue();
+        URL assetURL = mMediaFile.getUrl();
         Util.VastUrlMacros builder = Util.VastUrlMacros.builder()
                 .setAssetUrl(assetURL)
                 .setContentPlayAhead(currentPosition)
                 .setErrorCode(VastError.VAST_MEDIA_FILE_NOT_SUPPORTED_ERROR_CODE);
-        ArrayList<URL> errorTrackings = mVastInfo.getErrorTrackings();
+        ArrayList<URL> errorTrackings = mVastInfo.getInlineErrors();
         for (URL url : errorTrackings) {
-            trackEventRequest(builder.build(url), "error");
+            trackEventRequest(builder.build(url), "error", null);
         }
     }
-    
+
     @SuppressWarnings("unused")
-    private void trackEventRequest(final URL url, String name) {
+    private void trackEventRequest(final URL url, String name, final String identifier) {
         if (url == null) {
             return;
         }
-        
+
         SkiEventTracker.getInstance(this).trackEvent(new SkiEventTracker.EventBuilder() {
             @Override
             public void build(SkiEventTracker.Builder ev) {
                 ev.url = url;
-                ev.logEvent = true;
+                ev.identifier = identifier;
                 ev.sessionID = errorCollector.getSessionID();
+                ev.logError = true;
+                ev.logSession = sessionLogger.canLog();
             }
         });
     }
@@ -906,7 +1156,7 @@ public class SkiAdInterstitialActivity extends Activity {
         sendClickEvents();
 
         boolean left = true;
-        URL clickUrl = mVastInfo.getClickThrough();
+        final URL clickUrl = mVastInfo.getAd().getClickThrough();
         if (clickUrl != null) {
             if (clickUrl.getProtocol().equalsIgnoreCase("http") ||
                     clickUrl.getProtocol().equalsIgnoreCase("https")) {
@@ -921,6 +1171,19 @@ public class SkiAdInterstitialActivity extends Activity {
                     left = false;
                 }
             }
+
+            final boolean finalLeft = left;
+            sessionLogger.build(new SkiSessionLogger.Builder() {
+                @Override
+                public void build(@NonNull SkiSessionLogger.Log log) {
+                    log.identifier = "adInterstitialView.openClickThrough";
+                    log.desc = "Report to user.";
+                    log.info = SkiSessionLogger.Log.info()
+                            .put("url", clickUrl.toString())
+                            .put("left", finalLeft)
+                            .get();
+                }
+            });
 
             finishInterstitial(left);
         }
@@ -1057,6 +1320,7 @@ public class SkiAdInterstitialActivity extends Activity {
             return sMuted;
         }
 
+        @SuppressWarnings("unused")
         static void setMuted(boolean muted) {
             sMuted = muted;
         }
@@ -1076,11 +1340,11 @@ public class SkiAdInterstitialActivity extends Activity {
             isReady = ready;
         }
 
-        public boolean isPaused() {
+        boolean isPaused() {
             return isPaused;
         }
 
-        public void setPaused(boolean paused) {
+        void setPaused(boolean paused) {
             isPaused = paused;
         }
 
@@ -1088,7 +1352,7 @@ public class SkiAdInterstitialActivity extends Activity {
             return completed;
         }
 
-        void setCompleted(boolean completed) {
+        void setCompleted(@SuppressWarnings("SameParameterValue") boolean completed) {
             printState("current", this);
             this.completed = completed;
         }
@@ -1097,7 +1361,7 @@ public class SkiAdInterstitialActivity extends Activity {
             return shownOnce;
         }
 
-        void setShownOnce(boolean shownOnce) {
+        void setShownOnce(@SuppressWarnings("SameParameterValue") boolean shownOnce) {
             printState("current", this);
             this.shownOnce = shownOnce;
         }

@@ -13,24 +13,28 @@ import java.util.Date;
  * Copyright Mobiblocks 2018. All rights reserved.
  */
 class P implements Serializable {
-    private static final long serialVersionUID = 1352111171012111125L;
+    private static final long serialVersionUID = 1352111171012111128L;
 
     final URL u;
     final Date e;
     final String d; // data
     final String s; // sessionID
-    final boolean l; // logEvent
+    final String i; // identifier
+    final boolean le; // logError
+    final boolean ls; // logSession
 
-    private P(URL u, Date e, JSONObject d, String s, boolean l) {
+    private P(URL u, Date e, JSONObject d, String s, String i, boolean le, boolean ls) {
         this.e = e;
         this.u = u;
         this.d = d == null ? null : d.toString();
         this.s = s;
-        this.l = l;
+        this.i = i;
+        this.le = le;
+        this.ls = ls;
     }
 
-    static P pair(URL u, Date e, JSONObject d, String s, boolean l) {
-        return new P(u, e, d, s, l);
+    static P pair(URL u, Date e, JSONObject d, String s, String i, boolean le, boolean ls) {
+        return new P(u, e, d, s, i, le, ls);
     }
 
     JSONObject getD() {
