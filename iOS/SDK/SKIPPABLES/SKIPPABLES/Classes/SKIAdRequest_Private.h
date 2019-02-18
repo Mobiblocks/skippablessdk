@@ -9,14 +9,7 @@
 #define SKIAdRequest_Private_h
 
 #import "SKIAdSize.h"
-
-typedef NS_ENUM(NSInteger, SKIAdType) {
-	kSKIAdTypeBannerText        = 0,
-	kSKIAdTypeBannerImage       = 1,
-	kSKIAdTypeBannerRichmedia   = 2,
-	kSKIAdTypeInterstitial      = 3,
-	kSKIAdTypeInterstitialVideo = 4,
-};
+#import "SKIConstants.h"
 
 extern SKIAdSize const kSKIAdSizeFullscreen;
 

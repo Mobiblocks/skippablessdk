@@ -6,6 +6,7 @@
 //
 
 #import "SKIAdInterstitial.h"
+#import "SKIAdInterstitial_Private.h"
 
 #import "SKIConstants.h"
 
@@ -15,7 +16,8 @@
 
 #import "SKIVASTCompressedCreative.h"
 
-#import "SKIAdInterstitialViewController.h"
+#import "SKIAdInterstitialVideoViewController.h"
+#import "SKIAdInterstitialHtmlViewController.h"
 
 #import "SKIAdEventTracker.h"
 
@@ -77,7 +79,7 @@
 	
 	self.request = request;
 	self.request.adUnitID = self.adUnitID;
-	self.request.adType = kSKIAdTypeInterstitialVideo;
+	self.request.adType = kSKIAdTypeInterstitial;
 	self.request.adSize = kSKIAdSizeFullscreen;
 	self.request.delegate = self;
 	
@@ -120,11 +122,18 @@
 					 @"delegateIsSet": @(self.delegate != nil)
 					 };
 	}];
-	
-	SKIAdInterstitialViewController *viewController = [SKIAdInterstitialViewController viewController];
-	viewController.delegate = self;
-	viewController.ad = self;
-	[rootViewController presentViewController:viewController animated:YES completion:nil];
+
+	if (self.response.interstitialType == kSKIAdTypeInterstitialTypeHtml) {
+		SKIAdInterstitialHtmlViewController *viewController = [SKIAdInterstitialHtmlViewController viewController];
+		viewController.delegate = self;
+		viewController.ad = self;
+		[rootViewController presentViewController:viewController animated:YES completion:nil];
+	} else {
+		SKIAdInterstitialVideoViewController *viewController = [SKIAdInterstitialVideoViewController viewController];
+		viewController.delegate = self;
+		viewController.ad = self;
+		[rootViewController presentViewController:viewController animated:YES completion:nil];
+	}
 }
 
 - (void)skiAdRequest:(SKIAdRequest *)request didReceiveResponse:(SKIAdRequestResponse *)response {
@@ -193,7 +202,7 @@
 	}];
 }
 
-- (void)interstitialViewControllerDidFinishLoading:(SKIAdInterstitialViewController *)controller {
+- (void)interstitialViewControllerDidFinishLoading:(SKIAdInterstitialVideoViewController *)controller {
 //	_isLoading = NO;
 //	_isReady = YES;
 //	if ([self.delegate respondsToSelector:@selector(skiInterstitialDidReceiveAd:)]) {
@@ -201,7 +210,7 @@
 //	}
 }
 
-- (void)interstitialViewController:(SKIAdInterstitialViewController *)controller didFailToLoadWithErr:(SKIAdRequestError *)error {
+- (void)interstitialViewController:(SKIAdInterstitialVideoViewController *)controller didFailToLoadWithErr:(SKIAdRequestError *)error {
 //	_isLoading = NO;
 //	if ([self.delegate respondsToSelector:@selector(skiInterstitial:didFailToReceiveAdWithError:)]) {
 //		[self.delegate skiInterstitial:self didFailToReceiveAdWithError:error];

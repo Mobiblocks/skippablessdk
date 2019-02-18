@@ -69,6 +69,7 @@
 //#else
 #define SKIPPABLES_API_BANNER_URL @"https://www.skippables.com/x/srv/GetImage"
 #define SKIPPABLES_API_VIDEO_URL @"https://www.skippables.com/x/srv/GetVideo"
+#define SKIPPABLES_API_INTERSTITIAL_URL @"https://www.skippables.com/x/srv/GetInterstitial"
 #define SKIPPABLES_INSTALL_URL @"https://www.skippables.com/x/InstallServer/Track"
 #define SKIPPABLES_REPORT_URL @"https://www.skippables.com/x/api/Feedback/InfringementReport"
 #define SKIPPABLES_ERROR_REPORT_URL @"https://www.skippables.com/x/error"
@@ -78,11 +79,27 @@
 
 //#define SKIPPABLES_API_BANNER_URL @"http://test.skippables.com/x/srv/GetImage"
 //#define SKIPPABLES_API_VIDEO_URL @"http://test.skippables.com/x/srv/GetVideo"
+//#define SKIPPABLES_API_INTERSTITIAL_URL @"https://test.skippables.com/x/srv/GetInterstitial"
 //#define SKIPPABLES_INSTALL_URL @"http://test.skippables.com/x/InstallServer/Track"
 //#define SKIPPABLES_REPORT_URL @"http://test.skippables.com/x/api/Feedback/InfringementReport"
 //#define SKIPPABLES_ERROR_REPORT_URL @"https://test.skippables.com/x/error"
-//#define SKIPPABLES_SDK_ERROR_REPORT_URL @"https://www.skippables.com/x/error/sdk"
+//#define SKIPPABLES_SDK_ERROR_REPORT_URL @"https://test.skippables.com/x/error/sdk"
+//#define SKIPPABLES_SDK_EVENT_REPORT_URL @"https://test.skippables.com/x/log/sdk/event"
 //#endif
+
+typedef NS_ENUM(NSInteger, SKIAdType) {
+	kSKIAdTypeBannerText        = 0,
+	kSKIAdTypeBannerImage       = 1,
+	kSKIAdTypeBannerRichmedia   = 2,
+	kSKIAdTypeInterstitial      = 3,
+	kSKIAdTypeInterstitialVideo = 4,
+};
+
+typedef NS_ENUM(NSInteger, SKIAdTypeInterstitialType) {
+	kSKIAdTypeInterstitialTypeAny       = 0,
+	kSKIAdTypeInterstitialTypeHtml      = 1,
+	kSKIAdTypeInterstitialTypeVideo		= 2,
+};
 
 typedef NS_ENUM(NSInteger, SKIRTBDeviceType) {
 	kSKIRTBDeviceTypeUnknown          = 0,   ///< Unknown.
@@ -113,6 +130,8 @@ typedef NS_ENUM(NSInteger, SKIRTBConnectionType) {
 };
 
 NS_ASSUME_NONNULL_BEGIN
+
+extern NSString *SKIApiUrlForAdType(SKIAdType adType);
 
 extern NSString *SKIDevicePlatform(void);
 

@@ -82,6 +82,19 @@ typedef NS_ENUM(NSInteger, SKICategory) {
 	kSKICategoryCatalogs							= 6022, /// Catalogs
 };
 
+NSString *SKIApiUrlForAdType(SKIAdType adType) {
+	switch (adType) {
+		case kSKIAdTypeBannerText:
+		case kSKIAdTypeBannerImage:
+		case kSKIAdTypeBannerRichmedia:
+			return SKIPPABLES_API_BANNER_URL;
+		case kSKIAdTypeInterstitial:
+			return SKIPPABLES_API_INTERSTITIAL_URL;
+		case kSKIAdTypeInterstitialVideo:
+			return SKIPPABLES_API_VIDEO_URL;
+	}
+}
+
 NSString *SKIDevicePlatform() {
 	static NSString *platform = nil;
 	static dispatch_once_t onceToken;

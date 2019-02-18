@@ -7,6 +7,8 @@
 
 #import <Foundation/Foundation.h>
 
+#import "SKIConstants.h"
+
 @class SKIAdRequestError;
 @class SKICompactVast;
 
@@ -14,7 +16,10 @@
 
 + (instancetype)response;
 
+@property (assign, nonatomic) SKIAdTypeInterstitialType interstitialType;
+
 @property (copy, nonatomic) NSString *htmlSnippet;
+@property (strong, nonatomic) NSURL *htmlSnippetBaseUrl;
 @property (copy, nonatomic) NSString *videoVast;
 @property (strong, nonatomic) SKICompactVast *compactVast;
 @property (copy, nonatomic) NSString *clickThroughUrl;

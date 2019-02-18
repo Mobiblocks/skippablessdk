@@ -165,6 +165,17 @@ NSString *SKIGenderToString(SKIGender gender) {
 		case kSKIAdTypeBannerRichmedia:
 			dictionary[@"banner"] = @{ @"type" : @"richmedia", @"w" : @(adSize.width), @"h" : @(adSize.height) };
 			break;
+		case kSKIAdTypeInterstitial: {
+			dictionary[@"video"] = @{
+				@"w" : @(adSize.width),
+				@"h" : @(adSize.height),
+				@"mimes" : @[ @"video/mp4", @"video/quicktime", @"video/x-m4v", @"video/3gpp", @"video/3gpp2" ],
+				@"protocols" : @[ @(3), @(6), @(7) ],
+				@"linearity" : @(1),
+				@"skip" : @(1)
+			};
+			break;
+		}
 		case kSKIAdTypeInterstitialVideo: {
 			dictionary[@"video"] = @{
 				@"w" : @(adSize.width),
@@ -176,8 +187,6 @@ NSString *SKIGenderToString(SKIGender gender) {
 			};
 			break;
 		}
-			
-		case kSKIAdTypeInterstitial:
 		default:
 			NSAssert(NO, @"invalid ad type");
 			break;
@@ -579,7 +588,7 @@ NSString *SKIGenderToString(SKIGender gender) {
 	}
 	
 	__weak typeof(self) wSelf = self;
-	NSString *urlString = self.adType == kSKIAdTypeInterstitialVideo ? SKIPPABLES_API_VIDEO_URL : SKIPPABLES_API_BANNER_URL;
+	NSString *urlString = SKIApiUrlForAdType(self.adType);
 	NSURL *url = [NSURL URLWithString:urlString];
 	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
 	request.HTTPMethod = @"POST";
@@ -720,18 +729,19 @@ NSString *SKIGenderToString(SKIGender gender) {
 	[self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
 		log.idenitifier = @"adRequest.processResponseData";
 	}];
-	
-	if (self.adType == kSKIAdTypeInterstitialVideo) {
-		NSString *videoVast = responseData[@"content"] ?: responseData[@"Content"];
-//		NSURL *lurlw = [[NSBundle mainBundle] URLForResource:@"vaster1" withExtension:@"xml"];
-//		if (lurlw) {
-//			videoVast = [NSString stringWithContentsOfURL:lurlw encoding:NSUTF8StringEncoding error:nil];
-//		}
-		if ([[NSNull null] isEqual:videoVast] || videoVast.length == 0) {
-			requestResponse.error = [SKIAdRequestError errorWithCode:kSKIErrorNoFill userInfo:@{
-																								NSLocalizedDescriptionKey : @"No video ad available a this time."
-																								}];
-			
+
+
+	if (self.adType == kSKIAdTypeInterstitial) {
+		NSString *contentType = responseData[@"contenttype"] ?: responseData[@"Contenttype"];
+		if ([contentType isEqualToString:@"html"]) {
+			[self processHtmlResponse:requestResponse];
+		} else if ([contentType isEqualToString:@"video"]) {
+			[self processVideoResponse:requestResponse];
+		} else {
+			requestResponse.error = [SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{
+																								  NSLocalizedDescriptionKey : @"Ad data is invalid."
+																								  }];
+
 			[self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
 				log.idenitifier = @"adRequest.processResponseData.error";
 				log.error = requestResponse.error;
@@ -742,181 +752,188 @@ NSString *SKIGenderToString(SKIGender gender) {
 			});
 
 			return;
-		} else {
-			// TODO: temp here
-			requestResponse.videoVast = videoVast;
-			//--
-			__weak typeof(self) wSelf = self;
-			[SKIAsync waterfall:@[
-				^(id _Nullable result, SKIAsyncWaterfallCallback callback) {
-				    [self loadVastFromXmlString:videoVast
-				                       callback:^(SKIVASTVAST *vast, SKIAdRequestError *error) {
-					                       callback(error, vast);
-					                   }];
-				},
-				^(SKIVASTVAST *result, SKIAsyncWaterfallCallback callback) {
-				    [wSelf processVAST:result
-				              callback:^(SKICompactVast *compact, SKIAdRequestError *error) {
-					              callback(error, compact);
-					          }];
-				},
-				^(SKICompactVast *_Nullable compact, SKIAsyncWaterfallCallback callback) {
-					NSURL *mediaUrl = compact.ad.bestMediaFile.url;
-//					NSURL *mediaUrl = [NSURL URLWithString:@"https://uganada.wakanda.com/aska.mp4"];
-					[self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
-						log.idenitifier = @"adRequest.downloadMedia";
-					}];
-				    [[[SKINetworking
-				        downloadTaskWithURL:mediaUrl
-				          completionHandler:^(NSURL *_Nullable location, NSURLResponse *_Nullable response, NSError *_Nullable error) {
-					          if (error) {
-								  if ([error.domain isEqualToString:NSURLErrorDomain]) {
-									  if (error.code == NSURLErrorTimedOut) {
-										  [self trackErrorUrls:compact.inlineErrors errorCode:SKIVASTMediaFileTimeoutErrorCode];
-									  } else if (error.code == NSURLErrorCannotFindHost) {
-										  [self trackErrorUrls:compact.inlineErrors errorCode:SKIVASTMediaFileNotFoundErrorCode];
-									  }
-//									  else {
-//										  [self trackError:creative errorCode:SKIVASTMediaFileNotFoundErrorCode]
-//									  }
-								  }
-								  [self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
-									  err.type = SKIErrorCollectorTypeHTTP;
-									  err.place = @"processResponseData";
-									  err.desc = @"Failed to download media file";
-									  err.underlyingError = error;
-								  }];
-								  [self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
-									  log.idenitifier = @"adRequest.downloadMedia.error";
-									  log.error = error;
-								  }];
-						          callback([SKIAdRequestError errorNetworkErrorWithUserInfo:@{
-							                   NSLocalizedDescriptionKey : @"Could not load video.",
-							                   NSUnderlyingErrorKey : error
-							               }],
-						                   compact);
-						          return;
-					          }
-							  
-							  NSHTTPURLResponse *httpReponse = (NSHTTPURLResponse *)response;
-							  
-							  [self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
-								  log.idenitifier = @"adRequest.downloadMedia.response";
-								  log.info = @{
-											   @"url": mediaUrl.absoluteString ?: [NSNull null],
-											   @"statusCode": @(httpReponse.statusCode),
-											   @"headers": httpReponse.allHeaderFields ?: [NSNull null]
-											   };
-							  }];
-					          if (httpReponse.statusCode != 200) {
-								  [self trackErrorUrls:compact.inlineErrors errorCode:SKIVASTMediaFileNotFoundErrorCode];
-								  [self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
-									  err.type = SKIErrorCollectorTypeHTTP;
-									  err.place = @"processResponseData";
-									  err.desc = @"Failed to download media file";
-									  err.otherInfo = @{
-														@"url": mediaUrl,
-														@"statusCode": @(httpReponse.statusCode)
-														};
-								  }];
-						          callback([SKIAdRequestError errorNetworkErrorWithUserInfo:@{
-							                   NSLocalizedDescriptionKey : @"Could not load video."
-							               }],
-						                   compact);
-						          return;
-					          }
-							  
-							  [self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
-								  log.idenitifier = @"adRequest.processMedia";
-							  }];
-
-					          NSString *ext = SKIMimeToExtension(httpReponse.MIMEType);
-					          NSString *cachePath = SKICachePath();
-					          NSString *localPath =
-					              [cachePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@", [[NSUUID UUID] UUIDString], ext]];
-					          NSURL *localUrl = [NSURL fileURLWithPath:localPath];
-
-					          NSError *localError = NULL;
-					          if ([[NSFileManager defaultManager] fileExistsAtPath:localPath]) {
-						          if (![[NSFileManager defaultManager] removeItemAtURL:localUrl error:&localError]) {
-									  [self trackErrorUrls:compact.inlineErrors errorCode:SKIVASTUndefinedErrorCode];
-									  [self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
-										  err.type = SKIErrorCollectorTypeOther;
-										  err.place = @"processResponseData";
-										  err.desc = @"Filemanager error";
-										  err.underlyingError = localError;
-									  }];
-									  
-									  [self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
-										  log.idenitifier = @"adRequest.processMedia.error";
-										  log.error = localError;
-									  }];
-									  
-							          callback([SKIAdRequestError errorInternalErrorWithUserInfo:@{NSUnderlyingErrorKey : localError}], compact);
-							          return;
-						          }
-					          }
-					          if (![[NSFileManager defaultManager] moveItemAtURL:location toURL:localUrl error:&localError]) {
-								  [self trackErrorUrls:compact.inlineErrors errorCode:SKIVASTUndefinedErrorCode];
-								  [self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
-									  err.type = SKIErrorCollectorTypeOther;
-									  err.place = @"processResponseData";
-									  err.desc = @"Filemanager error";
-									  err.underlyingError = localError;
-								  }];
-								  
-								  [self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
-									  log.idenitifier = @"adRequest.processMedia.error";
-									  log.error = localError;
-								  }];
-						          callback([SKIAdRequestError errorInternalErrorWithUserInfo:@{NSUnderlyingErrorKey : localError}], compact);
-						          return;
-					          }
-
-					          DLog(@"localUrl: %@", localUrl.path);
-
-					          compact.ad.bestMediaFile.localMediaUrl = localUrl;
-							  
-							  
-							  [self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
-								  log.idenitifier = @"adRequest.processMedia.success";
-							  }];
-
-					          callback(nil, compact);
-					      }] retry:1] resume];
-				}
-			] completion:^(NSError *_Nullable error, SKICompactVast *compact) {
-				  requestResponse.error = (SKIAdRequestError *)error;
-				  requestResponse.compactVast = compact;
-				  SKIAsyncOnMain(^{
-				 	 [wSelf.delegate skiAdRequest:wSelf didReceiveResponse:requestResponse];
-				  });
-			  }];
 		}
+	} else if (self.adType == kSKIAdTypeInterstitialVideo) {
+		[self processVideoResponse:requestResponse];
 	} else {
-		NSString *maybeHtml = responseData[@"data"] ?: responseData[@"Data"];
-		if ([[NSNull null] isEqual:maybeHtml] || maybeHtml.length == 0) {
-			requestResponse.error = [SKIAdRequestError errorWithCode:kSKIErrorNoFill userInfo:@{
-																								NSLocalizedDescriptionKey : @"No banner ad available a this time."
-																								}];
-			
+		[self processBannerResponse:requestResponse];
+	}
+}
+
+- (void)processVideoResponse:(SKIAdRequestResponse *)requestResponse {
+	requestResponse.interstitialType = kSKIAdTypeInterstitialTypeVideo;
+	NSDictionary *responseData = requestResponse.rawResponse;
+
+	NSString *videoVast = responseData[@"content"] ?: responseData[@"Content"];
+	//		NSURL *lurlw = [[NSBundle mainBundle] URLForResource:@"vaster1" withExtension:@"xml"];
+	//		if (lurlw) {
+	//			videoVast = [NSString stringWithContentsOfURL:lurlw encoding:NSUTF8StringEncoding error:nil];
+	//		}
+	if ([[NSNull null] isEqual:videoVast] || videoVast.length == 0) {
+		requestResponse.error = [SKIAdRequestError errorWithCode:kSKIErrorNoFill userInfo:@{
+																							NSLocalizedDescriptionKey : @"No video ad available a this time."
+																							}];
+
+		[self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+			log.idenitifier = @"adRequest.processVideoResponse.error";
+			log.error = requestResponse.error;
+		}];
+
+		SKIAsyncOnMain(^{
+			[self.delegate skiAdRequest:self didReceiveResponse:requestResponse];
+		});
+
+		return;
+	} else {
+		// TODO: temp here
+		requestResponse.videoVast = videoVast;
+		//--
+		__weak typeof(self) wSelf = self;
+		[SKIAsync waterfall:@[
+							  ^(id _Nullable result, SKIAsyncWaterfallCallback callback) {
+			[self loadVastFromXmlString:videoVast
+							   callback:^(SKIVASTVAST *vast, SKIAdRequestError *error) {
+								   callback(error, vast);
+							   }];
+		},
+							   ^(SKIVASTVAST *result, SKIAsyncWaterfallCallback callback) {
+			[wSelf processVAST:result
+					  callback:^(SKICompactVast *compact, SKIAdRequestError *error) {
+						  callback(error, compact);
+					  }];
+		},
+							   ^(SKICompactVast *_Nullable compact, SKIAsyncWaterfallCallback callback) {
+			NSURL *mediaUrl = compact.ad.bestMediaFile.url;
+			//					NSURL *mediaUrl = [NSURL URLWithString:@"https://uganada.wakanda.com/aska.mp4"];
 			[self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
-				log.idenitifier = @"adRequest.processResponseData.error";
-				log.error = requestResponse.error;
+				log.idenitifier = @"adRequest.downloadMedia";
 			}];
+			[[[SKINetworking
+			   downloadTaskWithURL:mediaUrl
+			   completionHandler:^(NSURL *_Nullable location, NSURLResponse *_Nullable response, NSError *_Nullable error) {
+				   if (error) {
+					   if ([error.domain isEqualToString:NSURLErrorDomain]) {
+						   if (error.code == NSURLErrorTimedOut) {
+							   [self trackErrorUrls:compact.inlineErrors errorCode:SKIVASTMediaFileTimeoutErrorCode];
+						   } else if (error.code == NSURLErrorCannotFindHost) {
+							   [self trackErrorUrls:compact.inlineErrors errorCode:SKIVASTMediaFileNotFoundErrorCode];
+						   }
+						   //									  else {
+						   //										  [self trackError:creative errorCode:SKIVASTMediaFileNotFoundErrorCode]
+						   //									  }
+					   }
+					   [self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+						   err.type = SKIErrorCollectorTypeHTTP;
+						   err.place = @"processVideoResponse";
+						   err.desc = @"Failed to download media file";
+						   err.underlyingError = error;
+					   }];
+					   [self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+						   log.idenitifier = @"adRequest.downloadMedia.error";
+						   log.error = error;
+					   }];
+					   callback([SKIAdRequestError errorNetworkErrorWithUserInfo:@{
+																				   NSLocalizedDescriptionKey : @"Could not load video.",
+																				   NSUnderlyingErrorKey : error
+																				   }],
+								compact);
+					   return;
+				   }
 
-			SKIAsyncOnMain(^{
-				[self.delegate skiAdRequest:self didReceiveResponse:requestResponse];
-			});
+				   NSHTTPURLResponse *httpReponse = (NSHTTPURLResponse *)response;
 
-			return;
-		} else {
-			requestResponse.htmlSnippet = maybeHtml;
+				   [self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+					   log.idenitifier = @"adRequest.downloadMedia.response";
+					   log.info = @{
+									@"url": mediaUrl.absoluteString ?: [NSNull null],
+									@"statusCode": @(httpReponse.statusCode),
+									@"headers": httpReponse.allHeaderFields ?: [NSNull null]
+									};
+				   }];
+				   if (httpReponse.statusCode != 200) {
+					   [self trackErrorUrls:compact.inlineErrors errorCode:SKIVASTMediaFileNotFoundErrorCode];
+					   [self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+						   err.type = SKIErrorCollectorTypeHTTP;
+						   err.place = @"processVideoResponse";
+						   err.desc = @"Failed to download media file";
+						   err.otherInfo = @{
+											 @"url": mediaUrl,
+											 @"statusCode": @(httpReponse.statusCode)
+											 };
+					   }];
+					   callback([SKIAdRequestError errorNetworkErrorWithUserInfo:@{
+																				   NSLocalizedDescriptionKey : @"Could not load video."
+																				   }],
+								compact);
+					   return;
+				   }
 
-			SKIAsyncOnMain(^{
-				[self.delegate skiAdRequest:self didReceiveResponse:requestResponse];
-			});
+				   [self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+					   log.idenitifier = @"adRequest.processMedia";
+				   }];
+
+				   NSString *ext = SKIMimeToExtension(httpReponse.MIMEType);
+				   NSString *cachePath = SKICachePath();
+				   NSString *localPath =
+				   [cachePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@", [[NSUUID UUID] UUIDString], ext]];
+				   NSURL *localUrl = [NSURL fileURLWithPath:localPath];
+
+				   NSError *localError = NULL;
+				   if ([[NSFileManager defaultManager] fileExistsAtPath:localPath]) {
+					   if (![[NSFileManager defaultManager] removeItemAtURL:localUrl error:&localError]) {
+						   [self trackErrorUrls:compact.inlineErrors errorCode:SKIVASTUndefinedErrorCode];
+						   [self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+							   err.type = SKIErrorCollectorTypeOther;
+							   err.place = @"processVideoResponse";
+							   err.desc = @"Filemanager error";
+							   err.underlyingError = localError;
+						   }];
+
+						   [self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+							   log.idenitifier = @"adRequest.processMedia.error";
+							   log.error = localError;
+						   }];
+
+						   callback([SKIAdRequestError errorInternalErrorWithUserInfo:@{NSUnderlyingErrorKey : localError}], compact);
+						   return;
+					   }
+				   }
+				   if (![[NSFileManager defaultManager] moveItemAtURL:location toURL:localUrl error:&localError]) {
+					   [self trackErrorUrls:compact.inlineErrors errorCode:SKIVASTUndefinedErrorCode];
+					   [self.errorCollector collect:^(SKIErrorCollectorBuilder * _Nonnull err) {
+						   err.type = SKIErrorCollectorTypeOther;
+						   err.place = @"processVideoResponse";
+						   err.desc = @"Filemanager error";
+						   err.underlyingError = localError;
+					   }];
+
+					   [self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+						   log.idenitifier = @"adRequest.processMedia.error";
+						   log.error = localError;
+					   }];
+					   callback([SKIAdRequestError errorInternalErrorWithUserInfo:@{NSUnderlyingErrorKey : localError}], compact);
+					   return;
+				   }
+
+				   DLog(@"localUrl: %@", localUrl.path);
+
+				   compact.ad.bestMediaFile.localMediaUrl = localUrl;
+
+
+				   [self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+					   log.idenitifier = @"adRequest.processMedia.success";
+				   }];
+
+				   callback(nil, compact);
+			   }] retry:1] resume];
 		}
+							   ] completion:^(NSError *_Nullable error, SKICompactVast *compact) {
+								   requestResponse.error = (SKIAdRequestError *)error;
+								   requestResponse.compactVast = compact;
+								   SKIAsyncOnMain(^{
+									   [wSelf.delegate skiAdRequest:wSelf didReceiveResponse:requestResponse];
+								   });
+							   }];
 	}
 }
 
@@ -1284,6 +1301,66 @@ NSString *SKIGenderToString(SKIGender gender) {
 	}];
 	
 	return usable;
+}
+
+- (void)processHtmlResponse:(SKIAdRequestResponse *)requestResponse {
+	requestResponse.interstitialType = kSKIAdTypeInterstitialTypeHtml;
+	
+	NSDictionary *responseData = requestResponse.rawResponse;
+	NSString *maybeHtml = responseData[@"content"] ?: responseData[@"Content"];
+	if ([[NSNull null] isEqual:maybeHtml] || maybeHtml.length == 0) {
+		requestResponse.error = [SKIAdRequestError errorWithCode:kSKIErrorNoFill userInfo:@{
+																							NSLocalizedDescriptionKey : @"No ad available a this time."
+																							}];
+
+		[self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+			log.idenitifier = @"adRequest.processHtmlResponse.error";
+			log.error = requestResponse.error;
+		}];
+
+		SKIAsyncOnMain(^{
+			[self.delegate skiAdRequest:self didReceiveResponse:requestResponse];
+		});
+		return;
+	} else {
+		requestResponse.htmlSnippet = maybeHtml;
+
+		NSString *maybeBaseUrl = responseData[@"baseUrl"] ?: responseData[@"Baseurl"] ?: responseData[@"BaseUrl"];
+		if (maybeBaseUrl) {
+			requestResponse.htmlSnippetBaseUrl = [NSURL URLWithString:maybeBaseUrl];
+		}
+
+		SKIAsyncOnMain(^{
+			[self.delegate skiAdRequest:self didReceiveResponse:requestResponse];
+		});
+	}
+}
+
+- (void)processBannerResponse:(SKIAdRequestResponse *)requestResponse {
+	NSDictionary *responseData = requestResponse.rawResponse;
+	NSString *maybeHtml = responseData[@"data"] ?: responseData[@"Data"];
+	if ([[NSNull null] isEqual:maybeHtml] || maybeHtml.length == 0) {
+		requestResponse.error = [SKIAdRequestError errorWithCode:kSKIErrorNoFill userInfo:@{
+																							NSLocalizedDescriptionKey : @"No banner ad available a this time."
+																							}];
+
+		[self.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
+			log.idenitifier = @"adRequest.processBannerResponse.error";
+			log.error = requestResponse.error;
+		}];
+
+		SKIAsyncOnMain(^{
+			[self.delegate skiAdRequest:self didReceiveResponse:requestResponse];
+		});
+
+		return;
+	} else {
+		requestResponse.htmlSnippet = maybeHtml;
+
+		SKIAsyncOnMain(^{
+			[self.delegate skiAdRequest:self didReceiveResponse:requestResponse];
+		});
+	}
 }
 
 - (void)trackErrorUrl:(NSURL *)url errorCode:(SKIVASTErrorCode)errorCode {

@@ -8,6 +8,8 @@
 #ifndef SKIAdInterstitial_Private_h
 #define SKIAdInterstitial_Private_h
 
+#import "SKIAdInterstitialViewController.h"
+
 @class SKIAdRequestResponse;
 @class SKIErrorCollector;
 @class SKISDKSessionLogger;

@@ -11,6 +11,8 @@
 		6516CFEA20373BD100119842 /* SKIAdReportViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6516CFE820373BD100119842 /* SKIAdReportViewController.m */; };
 		6531A4671FA0A74700E627C3 /* SKIAdEventTracker.h in Headers */ = {isa = PBXBuildFile; fileRef = 6531A4651FA0A74700E627C3 /* SKIAdEventTracker.h */; };
 		6531A4681FA0A74700E627C3 /* SKIAdEventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 6531A4661FA0A74700E627C3 /* SKIAdEventTracker.m */; };
+		6534FA792191A87F002BB64B /* NSArray+Util.h in Headers */ = {isa = PBXBuildFile; fileRef = 6534FA772191A87F002BB64B /* NSArray+Util.h */; };
+		6534FA7A2191A87F002BB64B /* NSArray+Util.m in Sources */ = {isa = PBXBuildFile; fileRef = 6534FA782191A87F002BB64B /* NSArray+Util.m */; };
 		65582F361FAB358B0099AC77 /* SKIViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 65582F341FAB358B0099AC77 /* SKIViewController.h */; };
 		65582F371FAB358B0099AC77 /* SKIViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 65582F351FAB358B0099AC77 /* SKIViewController.m */; };
 		65582F3A1FACAE910099AC77 /* SKIObserver.h in Headers */ = {isa = PBXBuildFile; fileRef = 65582F381FACAE910099AC77 /* SKIObserver.h */; };
@@ -18,7 +20,13 @@
 		65720AB52181B64A00C6BCFD /* SKINetworking.h in Headers */ = {isa = PBXBuildFile; fileRef = 65720AB32181B64A00C6BCFD /* SKINetworking.h */; };
 		65720AB62181B64A00C6BCFD /* SKINetworking.m in Sources */ = {isa = PBXBuildFile; fileRef = 65720AB42181B64A00C6BCFD /* SKINetworking.m */; };
 		6593892020458C200057012A /* SKIRes.m in Sources */ = {isa = PBXBuildFile; fileRef = 6593891F20458C200057012A /* SKIRes.m */; };
+		65B0A311221AC0D30012FC03 /* SKIAdInterstitialHtmlViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 65B0A30F221AC0D30012FC03 /* SKIAdInterstitialHtmlViewController.h */; };
+		65B0A312221AC0D30012FC03 /* SKIAdInterstitialHtmlViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 65B0A310221AC0D30012FC03 /* SKIAdInterstitialHtmlViewController.m */; };
+		65B0A316221AC45B0012FC03 /* SKIAdInterstitialViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 65B0A314221AC45B0012FC03 /* SKIAdInterstitialViewController.h */; };
+		65B0A317221AC45B0012FC03 /* SKIAdInterstitialViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 65B0A315221AC45B0012FC03 /* SKIAdInterstitialViewController.m */; };
 		65B9B0391FB461D20093650A /* libSKIVAST-FAT.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65B9B0381FB461C10093650A /* libSKIVAST-FAT.a */; };
+		65C1BE2121A2C677003922CB /* SkippablesSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = 65C1BE1F21A2C677003922CB /* SkippablesSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65C1BE2221A2C677003922CB /* SkippablesSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = 65C1BE2021A2C677003922CB /* SkippablesSDK.m */; };
 		65D1A66B1FC30356003E91AA /* SKIGeo.h in Headers */ = {isa = PBXBuildFile; fileRef = 65D1A6691FC30356003E91AA /* SKIGeo.h */; };
 		65D1A66C1FC30356003E91AA /* SKIGeo.m in Sources */ = {isa = PBXBuildFile; fileRef = 65D1A66A1FC30356003E91AA /* SKIGeo.m */; };
 		65E3686C1F84DE2E00245DFF /* SKIPPABLES.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E3686A1F84DE2E00245DFF /* SKIPPABLES.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -40,8 +48,8 @@
 		65E36B911F8E1B8700245DFF /* SKIAdInterstitial.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B8F1F8E1B8700245DFF /* SKIAdInterstitial.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		65E36B921F8E1B8700245DFF /* SKIAdInterstitial.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B901F8E1B8700245DFF /* SKIAdInterstitial.m */; };
 		65E36B941F8E1BB700245DFF /* SKIAdInterstitialDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B931F8E1BB700245DFF /* SKIAdInterstitialDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		65E36B971F8E5D4700245DFF /* SKIAdInterstitialViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B951F8E5D4700245DFF /* SKIAdInterstitialViewController.h */; };
-		65E36B981F8E5D4700245DFF /* SKIAdInterstitialViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B961F8E5D4700245DFF /* SKIAdInterstitialViewController.m */; };
+		65E36B971F8E5D4700245DFF /* SKIAdInterstitialVideoViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 65E36B951F8E5D4700245DFF /* SKIAdInterstitialVideoViewController.h */; };
+		65E36B981F8E5D4700245DFF /* SKIAdInterstitialVideoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B961F8E5D4700245DFF /* SKIAdInterstitialVideoViewController.m */; };
 		65E36B9D1F8E63AC00245DFF /* SKIConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E36B9C1F8E63AC00245DFF /* SKIConstants.m */; };
 		65F63C4D1F96404300A5CE56 /* SKIVASTCompressedCreative.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F63C4B1F96404300A5CE56 /* SKIVASTCompressedCreative.h */; };
 		65F63C4E1F96404300A5CE56 /* SKIVASTCompressedCreative.m in Sources */ = {isa = PBXBuildFile; fileRef = 65F63C4C1F96404300A5CE56 /* SKIVASTCompressedCreative.m */; };
@@ -78,6 +86,8 @@
 		6516CFE820373BD100119842 /* SKIAdReportViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdReportViewController.m; sourceTree = "<group>"; };
 		6531A4651FA0A74700E627C3 /* SKIAdEventTracker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdEventTracker.h; sourceTree = "<group>"; };
 		6531A4661FA0A74700E627C3 /* SKIAdEventTracker.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdEventTracker.m; sourceTree = "<group>"; };
+		6534FA772191A87F002BB64B /* NSArray+Util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSArray+Util.h"; sourceTree = "<group>"; };
+		6534FA782191A87F002BB64B /* NSArray+Util.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSArray+Util.m"; sourceTree = "<group>"; };
 		65582F341FAB358B0099AC77 /* SKIViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIViewController.h; sourceTree = "<group>"; };
 		65582F351FAB358B0099AC77 /* SKIViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIViewController.m; sourceTree = "<group>"; };
 		65582F381FACAE910099AC77 /* SKIObserver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIObserver.h; sourceTree = "<group>"; };
@@ -88,7 +98,13 @@
 		658EE98D1F99EEEA00628597 /* SKIAdInterstitial_Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdInterstitial_Private.h; sourceTree = "<group>"; };
 		6593891D20458BE60057012A /* SKIRes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIRes.h; sourceTree = "<group>"; };
 		6593891F20458C200057012A /* SKIRes.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIRes.m; sourceTree = "<group>"; };
+		65B0A30F221AC0D30012FC03 /* SKIAdInterstitialHtmlViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdInterstitialHtmlViewController.h; sourceTree = "<group>"; };
+		65B0A310221AC0D30012FC03 /* SKIAdInterstitialHtmlViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdInterstitialHtmlViewController.m; sourceTree = "<group>"; };
+		65B0A314221AC45B0012FC03 /* SKIAdInterstitialViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdInterstitialViewController.h; sourceTree = "<group>"; };
+		65B0A315221AC45B0012FC03 /* SKIAdInterstitialViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdInterstitialViewController.m; sourceTree = "<group>"; };
 		65B9AFEA1FB4612E0093650A /* SKIVAST.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SKIVAST.xcodeproj; path = ../SKIVAST/SKIVAST.xcodeproj; sourceTree = "<group>"; };
+		65C1BE1F21A2C677003922CB /* SkippablesSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkippablesSDK.h; sourceTree = "<group>"; };
+		65C1BE2021A2C677003922CB /* SkippablesSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SkippablesSDK.m; sourceTree = "<group>"; };
 		65D1A6691FC30356003E91AA /* SKIGeo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIGeo.h; sourceTree = "<group>"; };
 		65D1A66A1FC30356003E91AA /* SKIGeo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIGeo.m; sourceTree = "<group>"; };
 		65E368671F84DE2E00245DFF /* SKIPPABLES.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SKIPPABLES.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -115,8 +131,8 @@
 		65E36B8F1F8E1B8700245DFF /* SKIAdInterstitial.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdInterstitial.h; sourceTree = "<group>"; };
 		65E36B901F8E1B8700245DFF /* SKIAdInterstitial.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdInterstitial.m; sourceTree = "<group>"; };
 		65E36B931F8E1BB700245DFF /* SKIAdInterstitialDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdInterstitialDelegate.h; sourceTree = "<group>"; };
-		65E36B951F8E5D4700245DFF /* SKIAdInterstitialViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdInterstitialViewController.h; sourceTree = "<group>"; };
-		65E36B961F8E5D4700245DFF /* SKIAdInterstitialViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdInterstitialViewController.m; sourceTree = "<group>"; };
+		65E36B951F8E5D4700245DFF /* SKIAdInterstitialVideoViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIAdInterstitialVideoViewController.h; sourceTree = "<group>"; };
+		65E36B961F8E5D4700245DFF /* SKIAdInterstitialVideoViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIAdInterstitialVideoViewController.m; sourceTree = "<group>"; };
 		65E36B9C1F8E63AC00245DFF /* SKIConstants.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIConstants.m; sourceTree = "<group>"; };
 		65F63C4B1F96404300A5CE56 /* SKIVASTCompressedCreative.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SKIVASTCompressedCreative.h; sourceTree = "<group>"; };
 		65F63C4C1F96404300A5CE56 /* SKIVASTCompressedCreative.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SKIVASTCompressedCreative.m; sourceTree = "<group>"; };
@@ -180,6 +196,8 @@
 			isa = PBXGroup;
 			children = (
 				65E368C61F86616C00245DFF /* Util */,
+				65C1BE1F21A2C677003922CB /* SkippablesSDK.h */,
+				65C1BE2021A2C677003922CB /* SkippablesSDK.m */,
 				6593891D20458BE60057012A /* SKIRes.h */,
 				6593891F20458C200057012A /* SKIRes.m */,
 				65E3688E1F85037200245DFF /* SKIConstants.h */,
@@ -206,8 +224,12 @@
 				65E36B931F8E1BB700245DFF /* SKIAdInterstitialDelegate.h */,
 				65582F341FAB358B0099AC77 /* SKIViewController.h */,
 				65582F351FAB358B0099AC77 /* SKIViewController.m */,
-				65E36B951F8E5D4700245DFF /* SKIAdInterstitialViewController.h */,
-				65E36B961F8E5D4700245DFF /* SKIAdInterstitialViewController.m */,
+				65B0A314221AC45B0012FC03 /* SKIAdInterstitialViewController.h */,
+				65B0A315221AC45B0012FC03 /* SKIAdInterstitialViewController.m */,
+				65E36B951F8E5D4700245DFF /* SKIAdInterstitialVideoViewController.h */,
+				65E36B961F8E5D4700245DFF /* SKIAdInterstitialVideoViewController.m */,
+				65B0A30F221AC0D30012FC03 /* SKIAdInterstitialHtmlViewController.h */,
+				65B0A310221AC0D30012FC03 /* SKIAdInterstitialHtmlViewController.m */,
 				6516CFE720373BD100119842 /* SKIAdReportViewController.h */,
 				6516CFE820373BD100119842 /* SKIAdReportViewController.m */,
 			);
@@ -236,6 +258,8 @@
 				65D1A66A1FC30356003E91AA /* SKIGeo.m */,
 				65720AB32181B64A00C6BCFD /* SKINetworking.h */,
 				65720AB42181B64A00C6BCFD /* SKINetworking.m */,
+				6534FA772191A87F002BB64B /* NSArray+Util.h */,
+				6534FA782191A87F002BB64B /* NSArray+Util.m */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -259,18 +283,22 @@
 			buildActionMask = 2147483647;
 			files = (
 				65720AB52181B64A00C6BCFD /* SKINetworking.h in Headers */,
-				65E36B971F8E5D4700245DFF /* SKIAdInterstitialViewController.h in Headers */,
+				6534FA792191A87F002BB64B /* NSArray+Util.h in Headers */,
+				65E36B971F8E5D4700245DFF /* SKIAdInterstitialVideoViewController.h in Headers */,
 				65E368851F84E82800245DFF /* SKIAdBannerView.h in Headers */,
+				65B0A316221AC45B0012FC03 /* SKIAdInterstitialViewController.h in Headers */,
 				65582F3A1FACAE910099AC77 /* SKIObserver.h in Headers */,
 				65D1A66B1FC30356003E91AA /* SKIGeo.h in Headers */,
 				65582F361FAB358B0099AC77 /* SKIViewController.h in Headers */,
 				65E368C91F86618700245DFF /* SKIAsync.h in Headers */,
 				65E3687D1F84E78300245DFF /* SKIAdRequest.h in Headers */,
+				65B0A311221AC0D30012FC03 /* SKIAdInterstitialHtmlViewController.h in Headers */,
 				65F63C591F9779CB00A5CE56 /* SKIVASTUrl.h in Headers */,
 				65E36B911F8E1B8700245DFF /* SKIAdInterstitial.h in Headers */,
 				65E36B941F8E1BB700245DFF /* SKIAdInterstitialDelegate.h in Headers */,
 				65E368791F84E06B00245DFF /* SKIAdSize.h in Headers */,
 				65E368D01F87774100245DFF /* SKIAdRequestResponse.h in Headers */,
+				65C1BE2121A2C677003922CB /* SkippablesSDK.h in Headers */,
 				65E3686C1F84DE2E00245DFF /* SKIPPABLES.h in Headers */,
 				65E368BF1F862D3B00245DFF /* SKIAdRequestError.h in Headers */,
 				6531A4671FA0A74700E627C3 /* SKIAdEventTracker.h in Headers */,
@@ -309,11 +337,12 @@
 			isa = PBXProject;
 			attributes = {
 				CLASSPREFIX = SKI;
-				LastUpgradeCheck = 0900;
+				LastUpgradeCheck = 1010;
 				ORGANIZATIONNAME = Mobiblocks;
 				TargetAttributes = {
 					65E368661F84DE2E00245DFF = {
 						CreatedOnToolsVersion = 9.0;
+						LastSwiftMigration = 1000;
 						ProvisioningStyle = Manual;
 					};
 				};
@@ -375,17 +404,21 @@
 			files = (
 				65E368CA1F86618700245DFF /* SKIAsync.m in Sources */,
 				6593892020458C200057012A /* SKIRes.m in Sources */,
-				65E36B981F8E5D4700245DFF /* SKIAdInterstitialViewController.m in Sources */,
+				65E36B981F8E5D4700245DFF /* SKIAdInterstitialVideoViewController.m in Sources */,
 				65E368861F84E82800245DFF /* SKIAdBannerView.m in Sources */,
 				65582F3B1FACAE910099AC77 /* SKIObserver.m in Sources */,
 				65720AB62181B64A00C6BCFD /* SKINetworking.m in Sources */,
+				65B0A312221AC0D30012FC03 /* SKIAdInterstitialHtmlViewController.m in Sources */,
 				65E36B9D1F8E63AC00245DFF /* SKIConstants.m in Sources */,
 				6531A4681FA0A74700E627C3 /* SKIAdEventTracker.m in Sources */,
 				65F63C5A1F9779CB00A5CE56 /* SKIVASTUrl.m in Sources */,
+				6534FA7A2191A87F002BB64B /* NSArray+Util.m in Sources */,
 				65E36B921F8E1B8700245DFF /* SKIAdInterstitial.m in Sources */,
 				65E368C01F862D3B00245DFF /* SKIAdRequestError.m in Sources */,
 				65E3687E1F84E78300245DFF /* SKIAdRequest.m in Sources */,
 				65D1A66C1FC30356003E91AA /* SKIGeo.m in Sources */,
+				65B0A317221AC45B0012FC03 /* SKIAdInterstitialViewController.m in Sources */,
+				65C1BE2221A2C677003922CB /* SkippablesSDK.m in Sources */,
 				65E3687A1F84E06B00245DFF /* SKIAdSize.m in Sources */,
 				65582F371FAB358B0099AC77 /* SKIViewController.m in Sources */,
 				6516CFEA20373BD100119842 /* SKIAdReportViewController.m in Sources */,
@@ -419,6 +452,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -426,6 +460,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -460,6 +495,7 @@
 		65D1A6781FC6EFFF003E91AA /* SCBuild */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Manual;
 				DEFINES_MODULE = YES;
@@ -481,6 +517,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = NO;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = SCBuild;
@@ -499,6 +536,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -506,6 +544,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -557,6 +596,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -564,6 +604,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -598,6 +639,7 @@
 		65E368701F84DE2E00245DFF /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Manual;
 				DEFINES_MODULE = YES;
@@ -618,6 +660,8 @@
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -625,6 +669,7 @@
 		65E368711F84DE2E00245DFF /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Manual;
 				DEFINES_MODULE = YES;
@@ -645,6 +690,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = NO;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

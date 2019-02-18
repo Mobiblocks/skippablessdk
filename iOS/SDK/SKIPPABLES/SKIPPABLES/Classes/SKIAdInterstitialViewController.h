@@ -2,14 +2,16 @@
 //  SKIAdInterstitialViewController.h
 //  SKIPPABLES
 //
-//  Copyright © 2017 Mobiblocks. All rights reserved.
+//  Created by Daniel on 2/18/19.
+//  Copyright © 2019 Mobiblocks. All rights reserved.
 //
-
-#import <UIKit/UIKit.h>
 
 #import "SKIViewController.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 @class SKIAdRequestError;
+@class SKIAdInterstitial;
 @class SKIAdInterstitialViewController;
 
 @protocol SKIAdInterstitialViewControllerDelegate<NSObject>
@@ -19,8 +21,6 @@
 
 @end
 
-@class SKIAdInterstitial;
-
 @interface SKIAdInterstitialViewController : SKIViewController
 
 + (instancetype)viewController;
@@ -29,3 +29,5 @@
 @property (weak, nonatomic) id<SKIAdInterstitialViewControllerDelegate> delegate;
 
 @end
+
+NS_ASSUME_NONNULL_END
