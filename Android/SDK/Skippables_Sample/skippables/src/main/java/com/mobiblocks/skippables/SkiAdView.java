@@ -13,6 +13,7 @@ import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -331,6 +332,9 @@ public class SkiAdView extends ViewGroup {
                     mReportView.setVisibility(INVISIBLE);
                     mReportView.setText(R.string.skippables_ad_report);
                     mReportView.setTextSize(11);
+                    mReportView.setGravity(Gravity.CENTER);
+                    mReportView.setMinWidth(px(12));
+                    mReportView.setMinHeight(px(12));
                     mReportView.setTextColor(Color.rgb(70, 130, 180));
                     mReportView.setBackgroundColor(Color.argb(178, 51, 51, 51));
                     int plr = px(0);

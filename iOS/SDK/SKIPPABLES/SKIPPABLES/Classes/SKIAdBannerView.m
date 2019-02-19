@@ -177,14 +177,16 @@
 	}
 	
 	CGPoint origin = _webView ? _webView.frame.origin : CGPointZero;
-	_reportLabelView = [[UILabel alloc] initWithFrame:(CGRect){origin, CGSizeZero}];
+	CGSize size = (CGSize){12, 12};
+	_reportLabelView = [[UILabel alloc] initWithFrame:(CGRect){origin, size}];
 	_reportLabelView.textColor = [UIColor colorWithRed:0.27f green:0.5f blue:0.7f alpha:1.f];
 	_reportLabelView.font = [UIFont monospacedDigitSystemFontOfSize:17 weight:UIFontWeightRegular];
-	_reportLabelView.text = @"Report";
+	_reportLabelView.text = @"i";
+	_reportLabelView.textAlignment = NSTextAlignmentCenter;
 	_reportLabelView.backgroundColor = [UIColor colorWithWhite:0.2f alpha:0.7f];
 	_reportLabelView.userInteractionEnabled = YES;
-	_reportLabelView.font = [UIFont systemFontOfSize:13.f];
-	[_reportLabelView sizeToFit];
+	_reportLabelView.font = [UIFont systemFontOfSize:11.f];
+//	[_reportLabelView sizeToFit];
 	_reportLabelView.hidden = YES;
 	
 	UITapGestureRecognizer *reportTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
