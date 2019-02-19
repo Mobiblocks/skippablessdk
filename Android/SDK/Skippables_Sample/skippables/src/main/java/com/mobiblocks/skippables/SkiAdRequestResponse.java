@@ -221,6 +221,8 @@ class SkiAdRequestResponse {
             
             response.adInfo.setHtmlSnippet(content);
             response.adInfo.setHtmlSnippetBaseUrl(baseUrl);
+            response.adInfo.setClickUrl(object.optString("ClickUrl"));
+            response.adInfo.setImpressionUrl(object.optString("ImpressionUrl"));
             response.setHtmlSnippet(content);
 
             return response;

@@ -1323,10 +1323,19 @@ NSString *SKIGenderToString(SKIGender gender) {
 		});
 		return;
 	} else {
+		NSString *clickUrl = responseData[@"ClickUrl"];
+		if (clickUrl) {
+			requestResponse.clickUrl = [NSURL URLWithString:clickUrl];
+		}
+		NSString *impressionUrl = responseData[@"ImpressionUrl"];
+		if (impressionUrl && [[NSNull null] isEqual:impressionUrl] == NO) {
+			requestResponse.impressionUrl = [NSURL URLWithString:impressionUrl];
+		}
+
 		requestResponse.htmlSnippet = maybeHtml;
 
 		NSString *maybeBaseUrl = responseData[@"baseUrl"] ?: responseData[@"Baseurl"] ?: responseData[@"BaseUrl"];
-		if (maybeBaseUrl) {
+		if (maybeBaseUrl && [[NSNull null] isEqual:maybeBaseUrl] == NO) {
 			requestResponse.htmlSnippetBaseUrl = [NSURL URLWithString:maybeBaseUrl];
 		}
 

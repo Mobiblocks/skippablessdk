@@ -65,16 +65,38 @@
 	[self updateFrames];
 }
 
+- (void)setCenter:(CGPoint)center {
+	[super setCenter:center];
+
+	[self updateFrames];
+}
+
+- (void)setBounds:(CGRect)bounds {
+	[super setBounds:bounds];
+
+	[self updateFrames];
+}
+
 - (void)setAdSize:(SKIAdSize)adSize {
 	_adSize = adSize;
 	
 	[self updateFrames];
 }
 
+- (void)setScaleToFillWidth:(BOOL)scaleToFillWidth {
+	_scaleToFillWidth = scaleToFillWidth;
+	[self updateFrames];
+}
+
 - (void)updateFrames {
 	if (_webView) {
-		CGPoint point = (CGPoint){(self.bounds.size.width - self.adSize.width) / 2.f, (self.bounds.size.height - self.adSize.height) / 2.f};
-		_webView.frame = (CGRect){point, self.adSize};
+		CGSize size = self.adSize;
+		if (self.scaleToFillWidth) {
+			size.width = MAX(size.width, self.bounds.size.width);
+		}
+
+		CGPoint point = (CGPoint){(self.bounds.size.width - size.width) / 2.f, (self.bounds.size.height - size.height) / 2.f};
+		_webView.frame = (CGRect){point, size};
 	}
 	
 	if (_webView && _reportLabelView) {

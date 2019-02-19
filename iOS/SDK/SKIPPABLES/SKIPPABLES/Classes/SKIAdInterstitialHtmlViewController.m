@@ -27,6 +27,8 @@
 
 @property (strong, nonatomic) WKWebView *webView;
 
+@property (assign, nonatomic) BOOL impressionSent;
+
 @end
 
 @implementation SKIAdInterstitialHtmlViewController
@@ -268,9 +270,13 @@
 			[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
 				log.idenitifier = @"adInterstitialHtmlView.userClick";
 				log.info = @{
-							 @"url": url.absoluteString
+							 @"url": url.absoluteString,
+							 @"clickUrl": self.ad.response.clickUrl.absoluteString ?: @""
 							 };
 			}];
+
+			url = self.ad.response.clickUrl ?: url;
+
 			if (@available(iOS 10.0, *)) {
 				[[UIApplication sharedApplication] openURL:url options:@{} completionHandler:^(BOOL success) {
 					if (success) {
@@ -318,6 +324,17 @@
 	[self.ad.sessionLogger build:^(SKISDKSessionLog * _Nonnull log) {
 		log.idenitifier = @"adInterstitialHtmlView.didFinishNavigation";
 	}];
+
+	if (self.impressionSent == NO && self.ad.response.impressionUrl) {
+		self.impressionSent = YES;
+		
+		[[SKIAdEventTracker defaultTracker] trackEvent:^(SKIAdEventTrackerBuilder * _Nonnull e) {
+			e.url = self.ad.response.impressionUrl;
+			e.logError = self.ad.logErrors;
+			e.logSession = self.ad.sessionLogger.canLog;
+			e.sessionID = self.ad.errorCollector.sessionID;
+		}];
+	}
 }
 
 - (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error {

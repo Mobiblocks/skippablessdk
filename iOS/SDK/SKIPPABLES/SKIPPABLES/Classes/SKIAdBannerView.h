@@ -17,6 +17,8 @@
 
 @property (assign, nonatomic) SKIAdSize adSize;
 
+@property (assign, nonatomic) BOOL scaleToFillWidth;
+
 @property (weak, nonatomic, nullable) IBOutlet id<SKIAdBannerViewDelegate> delegate;
 
 @property (weak, nonatomic, nullable) IBOutlet UIViewController *rootViewController;

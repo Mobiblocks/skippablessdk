@@ -25,8 +25,10 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 import static android.view.View.VISIBLE;
 
@@ -64,6 +66,7 @@ public class SkiAdInterstitialHtmlActivity extends Activity {
     @SuppressWarnings("FieldCanBeLocal")
     private SkiAdReportActivity.SkiAdReportListener mReportListener;
     
+    private boolean impressionSent = false;
     private int mSkipSeconds = 5;
     private Timer myTimer;
     private Runnable mTimerTick = new Runnable() {
@@ -175,6 +178,7 @@ public class SkiAdInterstitialHtmlActivity extends Activity {
         });
 
         mWebView = new WebView(this);
+        mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.setWebViewClient(new WebViewClient() {
             private long touchStamp = 0;
 
@@ -188,6 +192,26 @@ public class SkiAdInterstitialHtmlActivity extends Activity {
             private void tryOpenAnyBrowser(Uri uri) {
                 if (System.currentTimeMillis() - touchStamp < 2000) {
                     return;
+                }
+
+                final Uri finalUri = uri;
+                sessionLogger.build(new SkiSessionLogger.Builder() {
+                    @Override
+                    public void build(@NonNull SkiSessionLogger.Log log) {
+                        log.identifier = "adInterstitialHtmlView.openClick";
+                        log.info = SkiSessionLogger.Log.info()
+                                .put("url", finalUri.toString())
+                                .put("clickUrl", adInfo.getClickUrl())
+                                .get();
+                                
+                    }
+                });
+                
+                if (adInfo.getClickUrl() != null) {
+                    Uri override = Uri.parse(adInfo.getClickUrl());
+                    if (override != null) {
+                        uri = override;
+                    }
                 }
 
                 touchStamp = System.currentTimeMillis();
@@ -237,6 +261,36 @@ public class SkiAdInterstitialHtmlActivity extends Activity {
                         log.identifier = "adInterstitialHtmlView.prepareWebView.onPageFinished";
                     }
                 });
+
+                if (impressionSent == false && adInfo.getImpressionUrl() != null) {
+                    impressionSent = true;
+                    
+                    try {
+                        final URL impUrl = new URL(adInfo.getImpressionUrl());
+                        final String identifier = UUID.randomUUID().toString();
+                        SkiEventTracker.getInstance(SkiAdInterstitialHtmlActivity.this).trackEvent(new SkiEventTracker.EventBuilder() {
+                            @Override
+                            public void build(SkiEventTracker.Builder ev) {
+                                ev.url = impUrl;
+                                ev.identifier = identifier;
+                                ev.sessionID = errorCollector.getSessionID();
+                                ev.logError = true;
+                                ev.logSession = sessionLogger.canLog();
+                            }
+                        });
+                    } catch (final Exception ex) {
+                        sessionLogger.build(new SkiSessionLogger.Builder() {
+                            @Override
+                            public void build(@NonNull SkiSessionLogger.Log log) {
+                                log.identifier = "adInterstitialHtmlView.impression.error";
+                                log.exception = ex;
+                                log.info = SkiSessionLogger.Log.info()
+                                        .put("impressionUr", adInfo.getImpressionUrl())
+                                        .get();
+                            }
+                        });
+                    }
+                }
             }
 
             @Override

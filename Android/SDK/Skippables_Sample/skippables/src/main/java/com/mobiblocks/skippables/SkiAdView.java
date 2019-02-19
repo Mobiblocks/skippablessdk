@@ -40,6 +40,7 @@ public class SkiAdView extends ViewGroup {
     private WebView mWebView;
     private TextView mReportView;
     private boolean mLoading;
+    private boolean mScaleToFillWidth;
     @SuppressWarnings("FieldCanBeLocal")
     private SkiAdReportActivity.SkiAdReportListener mReportListener;
 
@@ -82,7 +83,12 @@ public class SkiAdView extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        int aw = mAdSize.getWidthInPixels(getContext());
+        int aw;
+        if (mScaleToFillWidth) {
+            aw = Math.max(mAdSize.getWidthInPixels(getContext()), getMeasuredWidth());
+        } else {
+            aw = mAdSize.getWidthInPixels(getContext());
+        }
         int ah = mAdSize.getHeightInPixels(getContext());
         int wl = (getMeasuredWidth() - aw) / 2;
         int wt = (getMeasuredHeight() - ah) / 2;
@@ -293,13 +299,28 @@ public class SkiAdView extends ViewGroup {
                             }
                         }
 
-                        return true;//super.shouldOverrideUrlLoading(view, url);
+                        return true;
                     }
 
-//                    @Override
-//                    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-//                        
-//                    }
+                    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                        WebView.HitTestResult hr = view.getHitTestResult();
+                        int hitType = hr != null ? hr.getType() : WebView.HitTestResult.UNKNOWN_TYPE;
+                        if (hitTypeIsLink(hitType)) {
+                            tryOpenAnyBrowser(request.getUrl());
+                            return true;
+                        } else {
+                            if (hitType == WebView.HitTestResult.EMAIL_TYPE ||
+                                    hitType == WebView.HitTestResult.GEO_TYPE ||
+                                    hitType == WebView.HitTestResult.PHONE_TYPE) {
+                                tryOpenAnyBrowser(request.getUrl());
+                                return true;
+                            }
+                        }
+
+                        return true;
+                    }
                 });
                 mWebView.loadData(htmlData, "text/html", "utf8");
                 mWebView.setVisibility(INVISIBLE);
@@ -417,6 +438,14 @@ public class SkiAdView extends ViewGroup {
 //
 //            super.setLayoutParams(params);
 //        }
+    }
+
+    public boolean isScaleToFillWidth() {
+        return mScaleToFillWidth;
+    }
+
+    public void setScaleToFillWidth(boolean mScaleToFillWidth) {
+        this.mScaleToFillWidth = mScaleToFillWidth;
     }
 
     private int px(float dp) {

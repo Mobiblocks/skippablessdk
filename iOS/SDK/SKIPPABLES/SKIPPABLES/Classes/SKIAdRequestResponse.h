@@ -19,7 +19,11 @@
 @property (assign, nonatomic) SKIAdTypeInterstitialType interstitialType;
 
 @property (copy, nonatomic) NSString *htmlSnippet;
+
 @property (strong, nonatomic) NSURL *htmlSnippetBaseUrl;
+@property (strong, nonatomic) NSURL *clickUrl;
+@property (strong, nonatomic) NSURL *impressionUrl;
+
 @property (copy, nonatomic) NSString *videoVast;
 @property (strong, nonatomic) SKICompactVast *compactVast;
 @property (copy, nonatomic) NSString *clickThroughUrl;

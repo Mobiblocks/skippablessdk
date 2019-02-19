@@ -16,6 +16,8 @@ class SkiAdInfo implements Parcelable {
     private String sessionID;
     private String htmlSnippet;
     private String htmlSnippetBaseUrl;
+    private String clickUrl;
+    private String impressionUrl;
     
     SkiAdInfo() {
         
@@ -29,6 +31,8 @@ class SkiAdInfo implements Parcelable {
         sessionID = in.readString();
         htmlSnippet = in.readString();
         htmlSnippetBaseUrl = in.readString();
+        clickUrl = in.readString();
+        impressionUrl = in.readString();
     }
 
     @Override
@@ -39,6 +43,8 @@ class SkiAdInfo implements Parcelable {
         dest.writeString(sessionID);
         dest.writeString(htmlSnippet);
         dest.writeString(htmlSnippetBaseUrl);
+        dest.writeString(clickUrl);
+        dest.writeString(impressionUrl);
     }
 
     @Override
@@ -104,11 +110,27 @@ class SkiAdInfo implements Parcelable {
         this.htmlSnippet = htmlSnippet;
     }
 
-    public String getHtmlSnippetBaseUrl() {
+    String getHtmlSnippetBaseUrl() {
         return htmlSnippetBaseUrl;
     }
 
-    public void setHtmlSnippetBaseUrl(String htmlSnippetBaseUrl) {
+    void setHtmlSnippetBaseUrl(String htmlSnippetBaseUrl) {
         this.htmlSnippetBaseUrl = htmlSnippetBaseUrl;
+    }
+
+    String getClickUrl() {
+        return clickUrl;
+    }
+
+    void setClickUrl(String clickUrl) {
+        this.clickUrl = clickUrl;
+    }
+
+    String getImpressionUrl() {
+        return impressionUrl;
+    }
+
+    void setImpressionUrl(String impressionUrl) {
+        this.impressionUrl = impressionUrl;
     }
 }
