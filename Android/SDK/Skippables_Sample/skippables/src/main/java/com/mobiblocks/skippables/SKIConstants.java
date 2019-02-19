@@ -19,6 +19,7 @@ final class SKIConstants {
 
     private static final String API_BANNER_URL = BASE_URL + "/x/srv/GetImage";
     private static final String API_VIDEO_URL = BASE_URL + "/x/srv/GetVideo";
+    private static final String API_INTERSTITIAL_URL = BASE_URL + "/x/srv/GetInterstitial";
     private static final String INSTALL_URL = BASE_URL + "/x/InstallServer/Track";
     private static final String INFRINGEMENT_REPORT_URL = BASE_URL + "/x/api/Feedback/InfringementReport";
 
@@ -32,9 +33,10 @@ final class SKIConstants {
             case SkiAdRequest.AD_TYPE_BANNER_RICH_MEDIA:
             case SkiAdRequest.AD_TYPE_BANNER_TEXT:
                 return API_BANNER_URL;
+            case SkiAdRequest.AD_TYPE_INTERSTITIAL:
+                return API_INTERSTITIAL_URL;
             case SkiAdRequest.AD_TYPE_INTERSTITIAL_VIDEO:
                 return API_VIDEO_URL;
-            case SkiAdRequest.AD_TYPE_INTERSTITIAL:
             default:
                 throw new Error("Not implemented");
         }

@@ -153,7 +153,7 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
                         }
                     });
                     
-                    final SkiAdRequestResponse response = processResponseJson(new JSONObject(dta.toString()));
+                    final SkiAdRequestResponse response = processResponseJson(adRequest.getAdType(), new JSONObject(dta.toString()));
                     response.getAdInfo().setAdUnitId(adRequest.getAdUnitId());
                     JSONObject deviceInfo = requestJson.optJSONObject("device");
                     if (deviceInfo != null) {
@@ -417,8 +417,8 @@ class SkiAdRequestTask extends AsyncTask<SkiAdRequest, Void, SkiAdRequestRespons
         }
     }
 
-    private SkiAdRequestResponse processResponseJson(JSONObject response) {
-        return SkiAdRequestResponse.create(sessionLogger, errorCollector, response);
+    private SkiAdRequestResponse processResponseJson(@SkiAdRequest.AdType int adType, JSONObject response) {
+        return SkiAdRequestResponse.create(sessionLogger, errorCollector, adType, response);
     }
 
     @Override

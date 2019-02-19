@@ -14,6 +14,8 @@ class SkiAdInfo implements Parcelable {
     private String adUnitId;
     private String deviceInfoJsonString;
     private String sessionID;
+    private String htmlSnippet;
+    private String htmlSnippetBaseUrl;
     
     SkiAdInfo() {
         
@@ -25,6 +27,8 @@ class SkiAdInfo implements Parcelable {
         adUnitId = in.readString();
         deviceInfoJsonString = in.readString();
         sessionID = in.readString();
+        htmlSnippet = in.readString();
+        htmlSnippetBaseUrl = in.readString();
     }
 
     @Override
@@ -33,6 +37,8 @@ class SkiAdInfo implements Parcelable {
         dest.writeString(adUnitId);
         dest.writeString(deviceInfoJsonString);
         dest.writeString(sessionID);
+        dest.writeString(htmlSnippet);
+        dest.writeString(htmlSnippetBaseUrl);
     }
 
     @Override
@@ -88,5 +94,21 @@ class SkiAdInfo implements Parcelable {
 
     void setSessionID(String sessionID) {
         this.sessionID = sessionID;
+    }
+
+    String getHtmlSnippet() {
+        return htmlSnippet;
+    }
+
+    void setHtmlSnippet(String htmlSnippet) {
+        this.htmlSnippet = htmlSnippet;
+    }
+
+    public String getHtmlSnippetBaseUrl() {
+        return htmlSnippetBaseUrl;
+    }
+
+    public void setHtmlSnippetBaseUrl(String htmlSnippetBaseUrl) {
+        this.htmlSnippetBaseUrl = htmlSnippetBaseUrl;
     }
 }

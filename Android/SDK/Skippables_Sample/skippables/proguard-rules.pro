@@ -26,7 +26,10 @@
 -keep public class com.mobiblocks.skippables.SkiAdInterstitial {
     public *;
 }
--keep public class com.mobiblocks.skippables.SkiAdInterstitialActivity {
+-keep public class com.mobiblocks.skippables.SkiAdInterstitialVideoActivity {
+    public *;
+}
+-keep public class com.mobiblocks.skippables.SkiAdInterstitialHtmlActivity {
     public *;
 }
 -keep public class com.mobiblocks.skippables.SkiAdListener {

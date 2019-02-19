@@ -1,5 +1,6 @@
 package com.mobiblocks.skippables;
 
+import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -23,6 +24,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -35,14 +38,28 @@ import java.util.List;
  */
 
 class SkiAdRequestResponse {
+    static final int AD_INTERSTITIAL_TYPE_ANY = 0;
+    static final int AD_INTERSTITIAL_TYPE_VIDEO = 1;
+    static final int AD_INTERSTITIAL_TYPE_HTML = 2;
+    @SuppressWarnings("WeakerAccess")
+    @IntDef({AD_INTERSTITIAL_TYPE_ANY,
+            AD_INTERSTITIAL_TYPE_VIDEO,
+            AD_INTERSTITIAL_TYPE_HTML})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface InterstitialType {
+    }
+    
     @SuppressWarnings("UnusedAssignment")
     @SkiAdRequest.AdError
     private int errorCode = SkiAdRequest.ERROR_NO_ERROR;
     @VastError.AdVastError
     private int vastErrorCode = VastError.VAST_NO_ERROR_CODE;
     private boolean logErrors = true;
+    
+    @InterstitialType int interstitialType = AD_INTERSTITIAL_TYPE_ANY;
 
     private String htmlSnippet;
+    private String htmlSnippetBaseUrl;
     private SkiCompactVast vast;
 
     @NonNull private final SkiAdInfo adInfo = new SkiAdInfo();
@@ -143,7 +160,7 @@ class SkiAdRequestResponse {
         return adInfo;
     }
 
-    static SkiAdRequestResponse create(ISkiSessionLogger sessionLogger, SkiAdErrorCollector errorCollector, JSONObject object) {
+    static SkiAdRequestResponse create(ISkiSessionLogger sessionLogger, SkiAdErrorCollector errorCollector, @SkiAdRequest.AdType int adType, JSONObject object) {
         String sessionID = object.optString("SessionID");
         errorCollector.setSessionID(sessionID);
 
@@ -157,30 +174,72 @@ class SkiAdRequestResponse {
             sessionLogger.setSessionID(sessionID);
         }
         
-        if (!object.isNull("data") || !object.isNull("Data")) {
-            response.adInfo.setAdId(object.optString("AdId"));
-            
-            String data = object.optString("data", null);
-            if (data == null) {
-                data = object.optString("Data", null);
+        if (adType == SkiAdRequest.AD_TYPE_INTERSTITIAL) {
+            String contentType = object.optString("contenttype", null);
+            if (contentType == null) {
+                contentType = object.optString("Contenttype", null);
             }
-            if (data != null) {
-                if (data.isEmpty()) {
-                    response.setErrorCode(SkiAdRequest.ERROR_NO_FILL);
-                }
-                
-                response.setHtmlSnippet(data);
-
+            if ("html".equalsIgnoreCase(contentType)) {
+                return processHtmlResponse(response, sessionLogger, errorCollector, object);
+            } else if ("video".equalsIgnoreCase(contentType)) {
+                return processVideoResponse(response, sessionLogger, errorCollector, object);
+            } else {
+                response.setErrorCode(SkiAdRequest.ERROR_RECEIVED_INVALID_RESPONSE);
                 return response;
             }
+        } else if (adType == SkiAdRequest.AD_TYPE_INTERSTITIAL_VIDEO) {
+            return processVideoResponse(response, sessionLogger, errorCollector, object);
+        } else {
+            return processBannerResponse(response, sessionLogger, errorCollector, object);
         }
+    }
 
+    private static SkiAdRequestResponse processHtmlResponse(SkiAdRequestResponse response, ISkiSessionLogger sessionLogger, SkiAdErrorCollector errorCollector, JSONObject object) {
+        response.interstitialType = AD_INTERSTITIAL_TYPE_HTML;
+        
         if (!object.isNull("content") || !object.isNull("Content")) {
             String content = object.optString("content", null);
             if (content == null) {
                 content = object.optString("Content", null);
             }
             
+            if (content == null || content.isEmpty()) {
+                response.setErrorCode(SkiAdRequest.ERROR_NO_FILL);
+                return response;
+            }
+            
+            String baseUrl = object.optString("baseUrl");
+            if (baseUrl == null) {
+                baseUrl = object.optString("Baseurl");
+            }
+            if (baseUrl == null) {
+                baseUrl = object.optString("BaseUrl");
+            }
+
+            response.adInfo.setSessionID(object.optString("SessionID"));
+            response.adInfo.setAdId(object.optString("AdId"));
+            
+            response.adInfo.setHtmlSnippet(content);
+            response.adInfo.setHtmlSnippetBaseUrl(baseUrl);
+            response.setHtmlSnippet(content);
+
+            return response;
+        }
+
+        response.setErrorCode(SkiAdRequest.ERROR_NO_FILL);
+
+        return response;
+    }
+
+    private static SkiAdRequestResponse processVideoResponse(SkiAdRequestResponse response, ISkiSessionLogger sessionLogger, SkiAdErrorCollector errorCollector, JSONObject object) {
+        response.interstitialType = AD_INTERSTITIAL_TYPE_VIDEO;
+        
+        if (!object.isNull("content") || !object.isNull("Content")) {
+            String content = object.optString("content", null);
+            if (content == null) {
+                content = object.optString("Content", null);
+            }
+
             if (content == null || content.isEmpty()) {
                 response.setErrorCode(SkiAdRequest.ERROR_NO_FILL);
                 return response;
@@ -210,7 +269,7 @@ class SkiAdRequestResponse {
                         err.desc = "VAST does not contain ad.";
                     }
                 });
-                
+
                 response.setVastErrorCode(VastError.VAST_NO_ERROR_CODE);
                 return response;
             }
@@ -224,7 +283,7 @@ class SkiAdRequestResponse {
 
             Result<SkiCompactVast> compactVastResult = extractInfo(vast);
             response.setVastInfo(compactVastResult.getResult());
-            
+
             if (compactVastResult.getError() != null) {
                 final Error error = compactVastResult.getError();
 
@@ -243,7 +302,7 @@ class SkiAdRequestResponse {
                         }
                     }
                 });
-                
+
                 if (error.domain == 2) {
                     response.setVastErrorCode(error.code);
                     return response;
@@ -253,7 +312,7 @@ class SkiAdRequestResponse {
                     return response;
                 }
             }
-            
+
             final SkiCompactVast compactVast = compactVastResult.getResult();
 
             sessionLogger.build(new SkiSessionLogger.Builder() {
@@ -274,6 +333,30 @@ class SkiAdRequestResponse {
 
         response.setErrorCode(SkiAdRequest.ERROR_NO_FILL);
 
+        return response;
+    }
+
+    private static SkiAdRequestResponse processBannerResponse(SkiAdRequestResponse response, ISkiSessionLogger sessionLogger, SkiAdErrorCollector errorCollector, JSONObject object) {
+        if (!object.isNull("data") || !object.isNull("Data")) {
+            response.adInfo.setAdId(object.optString("AdId"));
+
+            String data = object.optString("data", null);
+            if (data == null) {
+                data = object.optString("Data", null);
+            }
+            if (data != null) {
+                if (data.isEmpty()) {
+                    response.setErrorCode(SkiAdRequest.ERROR_NO_FILL);
+                }
+
+                response.setHtmlSnippet(data);
+
+                return response;
+            }
+        }
+
+        response.setErrorCode(SkiAdRequest.ERROR_NO_FILL);
+        
         return response;
     }
 

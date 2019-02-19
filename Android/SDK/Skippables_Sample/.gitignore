@@ -4,4 +4,5 @@
 build/*
 app/build/*
 app/src/main/assets/bundle/*
+captures/*
 local.properties

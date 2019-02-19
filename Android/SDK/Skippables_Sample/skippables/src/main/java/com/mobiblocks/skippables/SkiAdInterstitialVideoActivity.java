@@ -40,7 +40,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
-public class SkiAdInterstitialActivity extends Activity {
+public class SkiAdInterstitialVideoActivity extends Activity {
 
     private static final String EXTRA_UID = "EXTRA_UID";
     private static final String EXTRA_AD_INFO = "EXTRA_AD_INFO";
@@ -82,11 +82,11 @@ public class SkiAdInterstitialActivity extends Activity {
     private SkiAdReportActivity.SkiAdReportListener mReportListener;
 
     static Intent getIntent(@SuppressWarnings("NullableProblems") @NonNull Context context, @NonNull String uid, @NonNull SkiAdInfo adInfo, @NonNull SkiCompactVast vastInfo) {
-        Intent intent = new Intent(context, SkiAdInterstitialActivity.class);
+        Intent intent = new Intent(context, SkiAdInterstitialVideoActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(SkiAdInterstitialActivity.EXTRA_UID, uid);
-        intent.putExtra(SkiAdInterstitialActivity.EXTRA_AD_INFO, adInfo);
-        intent.putExtra(SkiAdInterstitialActivity.EXTRA_VAST_INFO, vastInfo);
+        intent.putExtra(SkiAdInterstitialVideoActivity.EXTRA_UID, uid);
+        intent.putExtra(SkiAdInterstitialVideoActivity.EXTRA_AD_INFO, adInfo);
+        intent.putExtra(SkiAdInterstitialVideoActivity.EXTRA_VAST_INFO, vastInfo);
 
         return intent;
     }
@@ -131,7 +131,7 @@ public class SkiAdInterstitialActivity extends Activity {
         sessionLogger.build(new SkiSessionLogger.Builder() {
             @Override
             public void build(@NonNull SkiSessionLogger.Log log) {
-                log.identifier = "adInterstitialView.onCreate";
+                log.identifier = "adInterstitialVideoView.onCreate";
                 log.info = SkiSessionLogger.Log.info()
                         .put("adInfoIsSet", adInfo != null)
                         .put("vastInfoIsSet", mVastInfo != null)
@@ -143,7 +143,7 @@ public class SkiAdInterstitialActivity extends Activity {
                 @Override
                 public void build(SkiAdErrorCollector.Builder err) {
                     err.type = SkiAdErrorCollector.TYPE_PLAYER;
-                    err.place = "SkiAdInterstitialActivity.onCreate";
+                    err.place = "SkiAdInterstitialVideoActivity.onCreate";
                     err.desc = "Activity created with invalid vast info.";
                 }
             });
@@ -158,7 +158,7 @@ public class SkiAdInterstitialActivity extends Activity {
                 @Override
                 public void build(SkiAdErrorCollector.Builder err) {
                     err.type = SkiAdErrorCollector.TYPE_PLAYER;
-                    err.place = "SkiAdInterstitialActivity.onCreate";
+                    err.place = "SkiAdInterstitialVideoActivity.onCreate";
                     err.desc = "Activity created with media file.";
                 }
             });
@@ -195,7 +195,7 @@ public class SkiAdInterstitialActivity extends Activity {
         sessionLogger.build(new SkiSessionLogger.Builder() {
             @Override
             public void build(@NonNull SkiSessionLogger.Log log) {
-                log.identifier = "adInterstitialView.preparePlayerView";
+                log.identifier = "adInterstitialVideoView.preparePlayerView";
             }
         });
 
@@ -214,7 +214,7 @@ public class SkiAdInterstitialActivity extends Activity {
         sessionLogger.build(new SkiSessionLogger.Builder() {
             @Override
             public void build(@NonNull SkiSessionLogger.Log log) {
-                log.identifier = "adInterstitialView.preparePlayer";
+                log.identifier = "adInterstitialVideoView.preparePlayer";
             }
         });
 
@@ -286,7 +286,7 @@ public class SkiAdInterstitialActivity extends Activity {
                 sessionLogger.build(new SkiSessionLogger.Builder() {
                     @Override
                     public void build(@NonNull SkiSessionLogger.Log log) {
-                        log.identifier = "adInterstitialView.preparePlayer.error";
+                        log.identifier = "adInterstitialVideoView.preparePlayer.error";
                         log.info = SkiSessionLogger.Log.info()
                                 .put("what", what)
                                 .put("extra", extra)
@@ -452,7 +452,7 @@ public class SkiAdInterstitialActivity extends Activity {
             mReportView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    SkiAdReportActivity.show(SkiAdInterstitialActivity.this, createReportListener(adInfo));
+                    SkiAdReportActivity.show(SkiAdInterstitialVideoActivity.this, createReportListener(adInfo));
                 }
             });
 
@@ -508,7 +508,7 @@ public class SkiAdInterstitialActivity extends Activity {
                     String email = SkiAdReportActivity.getEmail(data);
                     String feedback = SkiAdReportActivity.getFeedback(data);
 
-                    SkiEventTracker.getInstance(SkiAdInterstitialActivity.this)
+                    SkiEventTracker.getInstance(SkiAdInterstitialVideoActivity.this)
                             .trackInfringementReport(
                                     SkiEventTracker.infringementReport(adInfo)
                                             .setEmail(email)
@@ -529,7 +529,7 @@ public class SkiAdInterstitialActivity extends Activity {
         sessionLogger.build(new SkiSessionLogger.Builder() {
             @Override
             public void build(@NonNull SkiSessionLogger.Log log) {
-                log.identifier = "adInterstitialView.close";
+                log.identifier = "adInterstitialVideoView.close";
                 log.desc = "Report to user.";
                 log.info = SkiSessionLogger.Log.info()
                         .put("method", "SkiAdListener.onAdClosed()")
@@ -543,7 +543,7 @@ public class SkiAdInterstitialActivity extends Activity {
             sessionLogger.build(new SkiSessionLogger.Builder() {
                 @Override
                 public void build(@NonNull SkiSessionLogger.Log log) {
-                    log.identifier = "adInterstitialView.left";
+                    log.identifier = "adInterstitialVideoView.left";
                     log.desc = "Report to user.";
                     log.info = SkiSessionLogger.Log.info()
                             .put("method", "SkiAdListener.onAdLeftApplication()")
@@ -579,7 +579,7 @@ public class SkiAdInterstitialActivity extends Activity {
         sessionLogger.build(new SkiSessionLogger.Builder() {
             @Override
             public void build(@NonNull SkiSessionLogger.Log log) {
-                log.identifier = "adInterstitialView.onResume";
+                log.identifier = "adInterstitialVideoView.onResume";
             }
         });
 
@@ -604,7 +604,7 @@ public class SkiAdInterstitialActivity extends Activity {
         sessionLogger.build(new SkiSessionLogger.Builder() {
             @Override
             public void build(@NonNull SkiSessionLogger.Log log) {
-                log.identifier = "adInterstitialView.onPause";
+                log.identifier = "adInterstitialVideoView.onPause";
             }
         });
 
@@ -647,7 +647,7 @@ public class SkiAdInterstitialActivity extends Activity {
         sessionLogger.build(new SkiSessionLogger.Builder() {
             @Override
             public void build(@NonNull SkiSessionLogger.Log log) {
-                log.identifier = "adInterstitialView.saveCurrentPosition";
+                log.identifier = "adInterstitialVideoView.saveCurrentPosition";
                 log.info = SkiSessionLogger.Log.info()
                         .put("videoViewIsSet", mVideoView != null)
                         .put("state.isReady", mState.isReady())
@@ -676,7 +676,7 @@ public class SkiAdInterstitialActivity extends Activity {
         sessionLogger.build(new SkiSessionLogger.Builder() {
             @Override
             public void build(@NonNull SkiSessionLogger.Log log) {
-                log.identifier = "adInterstitialView.restoreSavedPosition";
+                log.identifier = "adInterstitialVideoView.restoreSavedPosition";
                 log.info = SkiSessionLogger.Log.info()
                         .put("videoViewIsSet", mVideoView != null)
                         .put("state.isReady", mState.isReady())
@@ -707,7 +707,6 @@ public class SkiAdInterstitialActivity extends Activity {
         Resources r = getResources();
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics()));
     }
-
 
     @SuppressLint("InlinedApi")
     private void hideEverything() {
@@ -865,7 +864,7 @@ public class SkiAdInterstitialActivity extends Activity {
             sessionLogger.build(new SkiSessionLogger.Builder() {
                 @Override
                 public void build(@NonNull SkiSessionLogger.Log log) {
-                    log.identifier = "adInterstitialView.sendImpressions";
+                    log.identifier = "adInterstitialVideoView.sendImpressions";
                     log.info = SkiSessionLogger.Log.info()
                             .put("impressions", indentedImpressions)
                             .get();
@@ -1002,7 +1001,7 @@ public class SkiAdInterstitialActivity extends Activity {
             sessionLogger.build(new SkiSessionLogger.Builder() {
                 @Override
                 public void build(@NonNull SkiSessionLogger.Log log) {
-                    log.identifier = "adInterstitialView.sendEvent";
+                    log.identifier = "adInterstitialVideoView.sendEvent";
                     log.info = SkiSessionLogger.Log.info()
                             .put("events", revents)
                             .get();
@@ -1043,7 +1042,7 @@ public class SkiAdInterstitialActivity extends Activity {
         sessionLogger.build(new SkiSessionLogger.Builder() {
             @Override
             public void build(@NonNull SkiSessionLogger.Log log) {
-                log.identifier = "adInterstitialView.sendCompleted";
+                log.identifier = "adInterstitialVideoView.sendCompleted";
                 log.info = SkiSessionLogger.Log.info()
                         .put("completed", indentedCompleted)
                         .get();
@@ -1083,7 +1082,7 @@ public class SkiAdInterstitialActivity extends Activity {
         sessionLogger.build(new SkiSessionLogger.Builder() {
             @Override
             public void build(@NonNull SkiSessionLogger.Log log) {
-                log.identifier = "adInterstitialView.sendSkips";
+                log.identifier = "adInterstitialVideoView.sendSkips";
                 log.info = SkiSessionLogger.Log.info()
                         .put("skips", indentedSkips)
                         .get();
@@ -1110,7 +1109,7 @@ public class SkiAdInterstitialActivity extends Activity {
         sessionLogger.build(new SkiSessionLogger.Builder() {
             @Override
             public void build(@NonNull SkiSessionLogger.Log log) {
-                log.identifier = "adInterstitialView.sendClicks";
+                log.identifier = "adInterstitialVideoView.sendClicks";
                 log.info = SkiSessionLogger.Log.info()
                         .put("clicks", indentedClicks)
                         .get();
@@ -1176,7 +1175,7 @@ public class SkiAdInterstitialActivity extends Activity {
             sessionLogger.build(new SkiSessionLogger.Builder() {
                 @Override
                 public void build(@NonNull SkiSessionLogger.Log log) {
-                    log.identifier = "adInterstitialView.openClickThrough";
+                    log.identifier = "adInterstitialVideoView.openClickThrough";
                     log.desc = "Report to user.";
                     log.info = SkiSessionLogger.Log.info()
                             .put("url", clickUrl.toString())

@@ -186,7 +186,7 @@ public class SkiAdRequest {
                             throw new Exception("Invalid ad type.");
 //                            break;
                         }
-                        case SkiAdRequest.AD_TYPE_INTERSTITIAL_VIDEO: {
+                        case SkiAdRequest.AD_TYPE_INTERSTITIAL: {
                             JSONObject adTypeObject = new JSONObject();
                             adTypeObject.put("w", screenSize.getWidth());
                             adTypeObject.put("h", screenSize.getHeight());
@@ -198,9 +198,17 @@ public class SkiAdRequest {
                             requestObject.put("video", adTypeObject);
                             break;
                         }
-                        case SkiAdRequest.AD_TYPE_INTERSTITIAL: {
-                            throw new Exception("Invalid ad type.");
-//                            break;
+                        case SkiAdRequest.AD_TYPE_INTERSTITIAL_VIDEO: {
+                            JSONObject adTypeObject = new JSONObject();
+                            adTypeObject.put("w", screenSize.getWidth());
+                            adTypeObject.put("h", screenSize.getHeight());
+                            adTypeObject.put("mimes", getMimesArray());
+                            adTypeObject.put("protocols", getProtocolsArray());
+                            adTypeObject.put("linearity", 1);
+                            adTypeObject.put("skip", 1);
+
+                            requestObject.put("video", adTypeObject);
+                            break;
                         }
                     }
 

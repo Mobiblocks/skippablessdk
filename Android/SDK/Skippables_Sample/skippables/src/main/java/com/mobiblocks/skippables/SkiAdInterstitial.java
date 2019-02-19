@@ -37,6 +37,7 @@ public class SkiAdInterstitial {
     private ISkiSessionLogger sessionLogger;
 
     private static final HashMap<String, WeakReference<SkiAdListener>> sListeners = new HashMap<>();
+    private @SkiAdRequestResponse.InterstitialType int mInterstitialType;
 
     public SkiAdInterstitial(Context context) {
         mContext = context;
@@ -73,7 +74,7 @@ public class SkiAdInterstitial {
         mHasBeenUsed = false;
 
         mRequest = new SkiAdRequest(request);
-        mRequest.setAdType(SkiAdRequest.AD_TYPE_INTERSTITIAL_VIDEO);
+        mRequest.setAdType(SkiAdRequest.AD_TYPE_INTERSTITIAL);
         mRequest.setAdUnitId(mAdUnitId);
         mRequest.load(mContext, new SkiAdRequestListener() {
             @Override
@@ -137,6 +138,7 @@ public class SkiAdInterstitial {
 
                 mAdInfo = response.getAdInfo();
                 mVastInfo = response.getVastInfo();
+                mInterstitialType = response.interstitialType;
                 
                 sessionLogger.build(new SkiSessionLogger.Builder() {
                     @Override
@@ -212,8 +214,12 @@ public class SkiAdInterstitial {
 
         mHasBeenUsed = true;
         mLoaded = false;
-
-        mContext.startActivity(SkiAdInterstitialActivity.getIntent(mContext, mRequest.uid, mAdInfo, mVastInfo));
+        
+        if (mInterstitialType == SkiAdRequestResponse.AD_INTERSTITIAL_TYPE_HTML) {
+            mContext.startActivity(SkiAdInterstitialHtmlActivity.getIntent(mContext, mRequest.uid, mAdInfo));
+        } else {
+            mContext.startActivity(SkiAdInterstitialVideoActivity.getIntent(mContext, mRequest.uid, mAdInfo, mVastInfo));
+        }
         
         sessionLogger.build(new SkiSessionLogger.Builder() {
             @Override
