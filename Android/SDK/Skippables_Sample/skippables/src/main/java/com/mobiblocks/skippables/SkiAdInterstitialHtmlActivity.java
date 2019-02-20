@@ -370,7 +370,7 @@ public class SkiAdInterstitialHtmlActivity extends Activity {
                     }
                 }
 
-                return true;
+                return false;
             }
 
             @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -392,7 +392,7 @@ public class SkiAdInterstitialHtmlActivity extends Activity {
                     }
                 }
 
-                return true;
+                return false;
             }
         });
 
