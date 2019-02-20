@@ -261,20 +261,20 @@ class SkiAdRequestResponse {
                 return response;
             }
 
-            VAST.Ad ad = vast.getFirstAd();
-            if (ad == null) {
-                errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
-                    @Override
-                    public void build(SkiAdErrorCollector.Builder err) {
-                        err.type = SkiAdErrorCollector.TYPE_VAST;
-                        err.place = "SkiAdRequestResponse.create";
-                        err.desc = "VAST does not contain ad.";
-                    }
-                });
-
-                response.setVastErrorCode(VastError.VAST_NO_ERROR_CODE);
-                return response;
-            }
+//            VAST.Ad ad = vast.getFirstAd();
+//            if (ad == null) {
+//                errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+//                    @Override
+//                    public void build(SkiAdErrorCollector.Builder err) {
+//                        err.type = SkiAdErrorCollector.TYPE_VAST;
+//                        err.place = "SkiAdRequestResponse.create";
+//                        err.desc = "VAST does not contain ad.";
+//                    }
+//                });
+//
+//                response.setVastErrorCode(VastError.VAST_NO_ERROR_CODE);
+//                return response;
+//            }
 
             sessionLogger.build(new SkiSessionLogger.Builder() {
                 @Override
@@ -306,6 +306,17 @@ class SkiAdRequestResponse {
                 });
 
                 if (error.domain == 2) {
+                    if (error.code == VastError.VAST_WRAPPER_NO_VAST_ERROR_CODE) {
+                        errorCollector.collect(new SkiAdErrorCollector.ErrorCollector() {
+                            @Override
+                            public void build(SkiAdErrorCollector.Builder err) {
+                                err.type = SkiAdErrorCollector.TYPE_VAST;
+                                err.place = "SkiAdRequestResponse.create";
+                                err.desc = "VAST does not contain ad.";
+                            }
+                        });
+                    }
+                    
                     response.setVastErrorCode(error.code);
                     return response;
                 } else {
@@ -328,7 +339,7 @@ class SkiAdRequestResponse {
             });
 
             response.adInfo.setSessionID(object.optString("SessionID"));
-            response.adInfo.setAdId(ad.getId());
+            response.adInfo.setAdId(compactVast.getAd().getIdentifier());
 
             return response;
         }
@@ -477,7 +488,7 @@ class SkiAdRequestResponse {
             return failed;
         }
 
-        public T getResult() {
+        T getResult() {
             return result;
         }
 
@@ -524,7 +535,7 @@ class SkiAdRequestResponse {
 
         VAST.Ad ad = vast.getFirstAd();
         if (ad == null) {
-            return Result.fail(new Error(2, VastError.VAST_NO_ERROR_CODE));
+            return Result.fail(compactVast, new Error(2, VastError.VAST_WRAPPER_NO_VAST_ERROR_CODE));
         }
         
         return extractInfo(vast, compactVast);
