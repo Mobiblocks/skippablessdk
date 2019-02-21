@@ -97,7 +97,9 @@
 		log.idenitifier = @"adInterstitialHtmlView.didAppear";
 	}];
 
-	[self resumeTimer];
+	if (self.webView.isLoading == NO) {
+		[self resumeTimer];
+	}
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -335,6 +337,8 @@
 			e.sessionID = self.ad.errorCollector.sessionID;
 		}];
 	}
+
+	[self resumeTimer];
 }
 
 - (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error {
@@ -344,6 +348,8 @@
 		log.idenitifier = @"adInterstitialHtmlView.didFailNavigation";
 		log.error = error;
 	}];
+
+	[self resumeTimer];
 }
 
 - (BOOL)prefersStatusBarHidden {

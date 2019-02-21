@@ -63,6 +63,7 @@ public class SkiAdInterstitialHtmlActivity extends Activity {
     private TextView mSkipView;
     private TextView mReportView;
     private WebView mWebView;
+    private boolean mIsLoaded;
     @SuppressWarnings("FieldCanBeLocal")
     private SkiAdReportActivity.SkiAdReportListener mReportListener;
     
@@ -291,6 +292,9 @@ public class SkiAdInterstitialHtmlActivity extends Activity {
                         });
                     }
                 }
+
+                mIsLoaded = true;
+                maybeScheduleTicker();
             }
 
             @Override
@@ -312,6 +316,7 @@ public class SkiAdInterstitialHtmlActivity extends Activity {
                                 .get();
                     }
                 });
+                maybeScheduleTicker();
             }
 
             @TargetApi(Build.VERSION_CODES.M)
@@ -524,7 +529,9 @@ public class SkiAdInterstitialHtmlActivity extends Activity {
     protected void onResume() {
         super.onResume();
         
-        maybeScheduleTicker();
+        if (mIsLoaded) {
+            maybeScheduleTicker();
+        }
 
         sessionLogger.build(new SkiSessionLogger.Builder() {
             @Override

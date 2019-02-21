@@ -733,9 +733,9 @@ NSString *SKIGenderToString(SKIGender gender) {
 
 	if (self.adType == kSKIAdTypeInterstitial) {
 		NSString *contentType = responseData[@"contenttype"] ?: responseData[@"Contenttype"];
-		if ([contentType isEqualToString:@"html"]) {
+		if ([[NSNull null] isEqual:contentType] == NO && [contentType isEqualToString:@"html"]) {
 			[self processHtmlResponse:requestResponse];
-		} else if ([contentType isEqualToString:@"video"]) {
+		} else if ([[NSNull null] isEqual:contentType] == NO && [contentType isEqualToString:@"video"]) {
 			[self processVideoResponse:requestResponse];
 		} else {
 			requestResponse.error = [SKIAdRequestError errorReceivedInvalidResponseWithUserInfo:@{
@@ -1324,7 +1324,7 @@ NSString *SKIGenderToString(SKIGender gender) {
 		return;
 	} else {
 		NSString *clickUrl = responseData[@"ClickUrl"];
-		if (clickUrl) {
+		if (clickUrl && [[NSNull null] isEqual:clickUrl] == NO) {
 			requestResponse.clickUrl = [NSURL URLWithString:clickUrl];
 		}
 		NSString *impressionUrl = responseData[@"ImpressionUrl"];
