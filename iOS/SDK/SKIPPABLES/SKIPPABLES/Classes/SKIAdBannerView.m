@@ -5,6 +5,8 @@
 //  Copyright © 2017 Mobiblocks. All rights reserved.
 //
 
+#import <WebKit/WebKit.h>
+
 #import "SKIAdBannerView.h"
 
 #import "SKIConstants.h"
@@ -17,9 +19,9 @@
 #import "SKIAdRequestError_Private.h"
 #import "SKIAdReportViewController.h"
 
-@interface SKIAdBannerView () <SKIAdRequestDelegate, UIWebViewDelegate>
+@interface SKIAdBannerView () <SKIAdRequestDelegate, WKNavigationDelegate>
 
-@property (strong, nonatomic) UIWebView *webView;
+@property (strong, nonatomic) WKWebView *webView;
 @property (strong, nonatomic) UILabel *reportLabelView;
 
 @property (copy, nonatomic) SKIAdRequest *request;
@@ -150,14 +152,14 @@
 	
 	self.requestResponse = response;
 	
-	self.webView.delegate = self;
+	self.webView.navigationDelegate = self;
 	[self.webView loadHTMLString:response.htmlSnippet baseURL:nil];
 }
 
-- (UIWebView *)webView {
+- (WKWebView *)webView {
 	if (!_webView) {
 		CGPoint point = (CGPoint){(self.bounds.size.width - self.adSize.width) / 2.f, (self.bounds.size.height - self.adSize.height) / 2.f};
-		self.webView = [[UIWebView alloc] initWithFrame:(CGRect){point, self.adSize}];
+		self.webView = [[WKWebView alloc] initWithFrame:(CGRect){point, self.adSize}];
 		_webView.scrollView.bounces = NO;
 		_webView.scrollView.scrollEnabled = NO;
 		_webView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | //UIViewAutoresizingFlexibleWidth |
@@ -200,7 +202,7 @@
 - (void)handleTapGesture:(UITapGestureRecognizer *)gesture {
 	if (gesture.view == self.reportLabelView) {
 		__weak typeof(self) wSelf = self;
-		UIWebView *webView = _webView;
+		WKWebView *webView = _webView;
 		UILabel *reportLabelView = _reportLabelView;
 		[SKIAdReportViewController showFromViewController:self.rootViewController callback:^(BOOL canceled, NSString * _Nullable email, NSString * _Nullable message) {
 			if (canceled) {
@@ -223,51 +225,47 @@
 	}
 }
 
-- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
-	if (navigationType == UIWebViewNavigationTypeLinkClicked) {
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
+	if (navigationAction.navigationType == WKNavigationTypeLinkActivated) {
 		if (webView.isLoading) {
-			return NO;
+			decisionHandler(WKNavigationActionPolicyCancel);
 		}
-		
-		NSURL *url = request.URL;
+
+		NSURL *url = navigationAction.request.URL;
 		if ([[UIApplication sharedApplication] canOpenURL:url]) {
-			
+
 			if ([self.delegate respondsToSelector:@selector(skiAdViewWillLeaveApplication:)]) {
 				[self.delegate skiAdViewWillLeaveApplication:self];
 			}
-			
+
 			[[UIApplication sharedApplication] openURL:url];
-			
-			return NO;
+
+			decisionHandler(WKNavigationActionPolicyCancel);
+		} else {
+			decisionHandler(WKNavigationActionPolicyCancel);
 		}
-		
-		return NO;
+	} else {
+		decisionHandler(WKNavigationActionPolicyAllow);
 	}
-	
-	return YES;
 }
 
-- (void)webViewDidStartLoad:(UIWebView *)webView {
-	
-}
+- (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
+	[webView evaluateJavaScript:@"document.body.style.margin='0';document.body.style.padding='0';" completionHandler:nil];
 
-- (void)webViewDidFinishLoad:(UIWebView *)webView {
-	[webView stringByEvaluatingJavaScriptFromString:@"document.body.style.margin='0';document.body.style.padding='0';"];
-	
 	[self updateFrames];
-	
+
 	webView.hidden = NO;
 	self.reportLabelView.hidden = NO;
-	
+
 	if ([self.delegate respondsToSelector:@selector(skiAdViewDidReceiveAd:)]) {
 		[self.delegate skiAdViewDidReceiveAd:self];
 	}
 }
 
-- (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
+- (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error {
 	webView.hidden = YES;
 	self.reportLabelView.hidden = YES;
-	
+
 	if ([self.delegate respondsToSelector:@selector(skiAdView:didFailToReceiveAdWithError:)]) {
 		SKIAdRequestError *requestError = [SKIAdRequestError errorInternalErrorWithUserInfo:@{NSUnderlyingErrorKey : error}];
 		[self.delegate skiAdView:self didFailToReceiveAdWithError:requestError];

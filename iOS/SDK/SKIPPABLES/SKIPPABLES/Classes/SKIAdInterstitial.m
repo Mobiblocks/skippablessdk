@@ -5,6 +5,8 @@
 //  Copyright © 2017 Mobiblocks. All rights reserved.
 //
 
+#import <WebKit/WebKit.h>
+
 #import "SKIAdInterstitial.h"
 #import "SKIAdInterstitial_Private.h"
 
@@ -21,7 +23,7 @@
 
 #import "SKIAdEventTracker.h"
 
-@interface SKIAdInterstitial () <SKIAdRequestDelegate, SKIAdInterstitialViewControllerDelegate, UIWebViewDelegate>
+@interface SKIAdInterstitial () <SKIAdRequestDelegate, SKIAdInterstitialViewControllerDelegate, WKNavigationDelegate>
 
 @property (copy, nonatomic) SKIAdRequest *request;
 @property (strong, nonatomic) SKIAdRequestResponse *response;

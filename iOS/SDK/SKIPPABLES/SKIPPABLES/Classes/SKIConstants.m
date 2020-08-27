@@ -7,6 +7,7 @@
 
 #import <Foundation/Foundation.h>
 #import <CommonCrypto/CommonDigest.h>
+#import <WebKit/WebKit.h>
 
 #import "SKIConstants.h"
 
@@ -249,8 +250,12 @@ NSString *SKIUserAgent() {
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
 		SKISyncOnMain(^{
-			UIWebView *webView = [[UIWebView alloc] initWithFrame:CGRectZero];
-			ua = [webView stringByEvaluatingJavaScriptFromString:@"navigator.userAgent"];
+			WKWebView *webView = [[WKWebView alloc] initWithFrame:CGRectZero];
+			[webView evaluateJavaScript:@"navigator.userAgent" completionHandler:^(id _Nullable result, NSError * _Nullable error) {
+				if (result != nil) {
+					ua = [result stringValue];
+				}
+			}];
 		});
 	});
 	
